@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {
@@ -458,8 +458,8 @@ o.spec("crypto facade", function () {
 		return mail;
 	}
 
-	o("decrypt instance", function (done, timeout) {
-		timeout(1000)
+	o("decrypt instance", function (done) {
+		o.timeout(1000)
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"

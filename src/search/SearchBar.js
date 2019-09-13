@@ -24,7 +24,6 @@ import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
-import {worker} from "../api/main/WorkerClient"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
@@ -35,7 +34,6 @@ import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector";
 import {debounce, downcast, noOp} from "../api/common/utils/Utils"
-import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
 import {hasMoreResults} from "./SearchModel"
@@ -194,7 +192,9 @@ export class SearchBar implements Component {
 						'padding-top': px(2), // center input field
 						'margin-right': px(styles.isDesktopLayout() ? 15 : 8),
 						'border-bottom': vnode.attrs.alwaysExpanded
-						|| this.expanded ? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`) : "0px",
+						|| this.expanded
+							? (this.focused ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`)
+							: "0px",
 						'align-self': "center",
 						'max-width': px(400),
 						'flex': "1"
@@ -410,7 +410,7 @@ export class SearchBar implements Component {
 			this.expanded = false
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
-					worker.enableMailIndexing().then(() => {
+					locator.worker.enableMailIndexing().then(() => {
 						this.search()
 						this.focus()
 					}).catch(IndexingNotSupportedError, () => {
@@ -458,7 +458,7 @@ export class SearchBar implements Component {
 		}
 		if (this._isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+				locator.worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
 					if (locator.search.isNewSearch(query, moreResults.restriction)) {
 						return
 					} else {

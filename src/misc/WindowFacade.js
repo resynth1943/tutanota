@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNodeBoot, isApp, isIOSApp, Mode} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
-import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
@@ -31,8 +30,7 @@ class WindowFacade {
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
 		this.init()
-		asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-			`${env.rootPathPrefix}src/api/main/WorkerClient.js`)
+		import('../api/main/WorkerClient.js')
 			.then(module => {
 				// load async to reduce size of boot bundle
 				this._worker = module.worker

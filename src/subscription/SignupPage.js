@@ -17,7 +17,7 @@ import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/Tutanota
 import {SysService} from "../api/entities/sys/Services"
 import {worker} from "../api/main/WorkerClient"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
-import {asyncImport, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"
@@ -248,8 +248,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 
 
 	showTerms(section: string) {
-		asyncImport(typeof module !== "undefined"
-			? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
+		import('./terms.js')
 			.then(terms => {
 				let dialog: Dialog
 				let visibleLang = lang.code

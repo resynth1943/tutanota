@@ -3,7 +3,7 @@ import {CryptoError} from "../common/error/CryptoError"
 import {objToError, Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
-import {assertMainOrNode, isMain} from "../Env"
+import {assertMainOrNode, isDesktop, isMain, isTest} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import type {
 	AccountTypeEnum,
@@ -53,11 +53,6 @@ import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 
 assertMainOrNode()
-
-
-function requireNodeOnly(path: string) {
-	return require(path)
-}
 
 type Message = {
 	id: string,
@@ -141,8 +136,8 @@ export class WorkerClient implements EntityRestInterface {
 			}
 			this._queue = new Queue(worker)
 
-			window.env.systemConfig.baseURL = System.getConfig().baseURL
-			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
+			// window.env.systemConfig.baseURL = System.getConfig().baseURL
+			// window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
 			this.initialized = this._queue
 			                       .postMessage(new Request('setup', [

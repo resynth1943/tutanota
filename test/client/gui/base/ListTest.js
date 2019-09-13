@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List"
 import type {ListElement} from "../../../../src/api/common/EntityFunctions"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"

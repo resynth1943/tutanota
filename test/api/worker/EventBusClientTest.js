@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {spy} from "../TestUtils"
@@ -83,7 +83,7 @@ o.spec("EventBusClient test", () => {
 	// 	})
 	// })
 
-	o("parallel received event batches are passed sequentially to the entity rest cache", node((done, timeout) => {
+	o("parallel received event batches are passed sequentially to the entity rest cache", node(function (done, timeout) {
 		timeout(500)
 
 		let messageData1 = _createMessageData(1)
@@ -99,7 +99,7 @@ o.spec("EventBusClient test", () => {
 		})
 	}))
 
-	o("counter update", node((done, timeout) => {
+	o("counter update", node(function (done, timeout) {
 		let counterUpdate = _createCounterData("group1", 4, "list1")
 		ebc._worker.updateCounter = spy(ebc._worker.updateCounter)
 		ebc._message({data: counterUpdate}).then(() => {

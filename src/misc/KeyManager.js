@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/Env"
 import {ButtonType} from "../gui/base/ButtonN"
-import {asyncImport, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
@@ -144,8 +144,7 @@ class KeyManager {
 	}
 
 	openF1Help() {
-		asyncImport(typeof module
-		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
+		asyncImport("../gui/base/Dialog.js")
 			.then(module => {
 				if (this._helpDialog && this._helpDialog.visible) {
 					return

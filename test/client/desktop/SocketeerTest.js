@@ -1,9 +1,9 @@
 // @flow
 import n from "../nodemocker"
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {makeTimeoutMock} from "../../api/TestUtils"
 
-o.spec("Socketeer Test", (done, timeout) => {
+o.spec("Socketeer Test", function (done, timeout) {
 	n.startGroup({
 		group: __filename, allowables: [
 			'../api/common/utils/Utils',

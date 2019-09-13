@@ -289,17 +289,17 @@ function _executeRegistryScript(script: string): Promise<void> {
 }
 
 
-function _registerOnWin(): Promise<void> {
-	const tmpRegScript = require('./reg-templater.js').registerKeys(process.execPath)
+async function _registerOnWin() {
+	const tmpRegScript = (await import('./reg-templater.js')).registerKeys(process.execPath)
 	return _executeRegistryScript(tmpRegScript)
 		.then(() => {
 			app.setAsDefaultProtocolClient('mailto')
 		})
 }
 
-function _unregisterOnWin(): Promise<void> {
+async function _unregisterOnWin() {
 	app.removeAsDefaultProtocolClient('mailto')
-	const tmpRegScript = require('./reg-templater.js').unregisterKeys()
+	const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
 	return _executeRegistryScript(tmpRegScript)
 }
 

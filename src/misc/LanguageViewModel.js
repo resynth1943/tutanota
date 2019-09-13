@@ -1,6 +1,6 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/Env"
-import {asyncImport, downcast} from "../api/common/utils/Utils"
+import {downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import type {TranslationKeyType} from "./TranslationKey"
 
@@ -56,6 +56,48 @@ export const languages: Language[] = [
 	{code: 'zh', textId: 'languageChineseSimplified_label'},
 	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
 ]
+
+const translationImportMap = {
+	'ar': () => import("../translations/ar.js"),
+	'bg': () => import("../translations/bg.js"),
+	'ca': () => import("../translations/ca.js"),
+	'cs': () => import("../translations/cs.js"),
+	'da': () => import("../translations/da.js"),
+	'de': () => import("../translations/de.js"),
+	'de_sie': () => import("../translations/de_sie.js"),
+	'el': () => import("../translations/el.js"),
+	'en': () => import("../translations/en.js"),
+	'es': () => import("../translations/es.js"),
+	'et': () => import("../translations/et.js"),
+	'fa_ir': () => import("../translations/fa_ir.js"),
+	'fi': () => import("../translations/fi.js"),
+	'fr': () => import("../translations/fr.js"),
+	'gl': () => import("../translations/gl.js"),
+	'hi': () => import("../translations/hi.js"),
+	'hr': () => import("../translations/hr.js"),
+	'hu': () => import("../translations/hu.js"),
+	'id': () => import("../translations/id.js"),
+	'it': () => import("../translations/it.js"),
+	'ja': () => import("../translations/ja.js"),
+	'lt': () => import("../translations/lt.js"),
+	'lv': () => import("../translations/lv.js"),
+	'nl': () => import("../translations/nl.js"),
+	'no': () => import("../translations/no.js"),
+	'pl': () => import("../translations/pl.js"),
+	'pt_br': () => import("../translations/pt_br.js"),
+	'pt_pt': () => import("../translations/pt_pt.js"),
+	'ro': () => import("../translations/ro.js"),
+	'ru': () => import("../translations/ru.js"),
+	'sk': () => import("../translations/sk.js"),
+	'sl': () => import("../translations/sl.js"),
+	'sr': () => import("../translations/sr.js"),
+	'sv': () => import("../translations/sv.js"),
+	'tr': () => import("../translations/tr.js"),
+	'uk': () => import("../translations/uk.js"),
+	'vi': () => import("../translations/vi.js"),
+	'zh': () => import("../translations/zh.js"),
+	'zh_tw': () => import("../translations/zh_tw.js"),
+}
 export const languageByCode: {[string]: Language} = languages.reduce((acc, curr) => {
 	acc[curr.code] = curr
 	return acc
@@ -161,10 +203,9 @@ export class LanguageViewModel {
 		// we don't support multiple language files for en so just use the one and only.
 		const code = lang.code.startsWith("en") ? "en" : lang.code
 
-		return asyncImport(typeof module
-		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${code}.js`)
-			.then(translations => {
-				this.translations = translations
+		return translationImportMap[code]()
+			.then(translationsModule => {
+				this.translations = translationsModule
 				this.code = lang.code
 			})
 	}

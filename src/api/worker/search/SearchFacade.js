@@ -39,17 +39,13 @@ import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 // $FlowIgnore[untyped-import]
-import EC from "../../common/EntityConstants"
+import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
-
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

@@ -11,7 +11,6 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
-import {asyncImport} from "../../api/common/utils/Utils"
 import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
 import {ButtonColors, ButtonType, getColors} from "./ButtonN"
 
@@ -282,8 +281,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 					buttonPromise,
 					Promise.all([
 						Promise.delay(100),
-						asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-							`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+						import("./ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (buttonPromise.isPending()) {
 							return module.showProgressDialog("loading_msg", buttonPromise)
@@ -297,8 +295,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: Translation
 		const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 		resultPromise.then(buttons => {
 			if (buttons.length === 0) {
-				asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-					`${env.rootPathPrefix}src/gui/base/Dialog.js`)
+				import( './Dialog.js')
 					.then(module => {
 						return module.Dialog.error("selectionNotAvailable_msg")
 					})

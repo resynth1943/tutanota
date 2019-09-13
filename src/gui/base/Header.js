@@ -3,7 +3,7 @@ import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
-import {asyncImport, neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "../../api/common/utils/Utils"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
@@ -79,8 +79,7 @@ class Header {
 
 
 		// load worker and search bar one after another because search bar uses worker.
-		asyncImport(typeof module !== "undefined" ?
-			module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`)
+		import('../../api/main/WorkerClient.js')
 			.then(workerClientModule => {
 				const worker = (workerClientModule.worker: WorkerClient)
 				worker.wsConnection().map(state => {
@@ -100,8 +99,7 @@ class Header {
 					}
 				})
 				worker.initialized.then(() => {
-					asyncImport(typeof module !== "undefined" ?
-						module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
+					import('../../search/SearchBar.js')
 						.then((searchBarModule) => {
 							this.searchBar = new searchBarModule.SearchBar()
 						})
@@ -219,6 +217,7 @@ class Header {
 			const fistVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
 			const title = fistVisibleBgColumn ? fistVisibleBgColumn.getTitle() : ""
 			return header(title)
+
 		} else if (m.route.get().startsWith('/login')) {
 			return header(lang.get("login_label"))
 		} else if (m.route.get().startsWith('/signup')) {

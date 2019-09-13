@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
@@ -183,12 +183,11 @@ o.spec("MailIndexer test", () => {
 		}).then(done)
 	})
 
-	o("processNewMail catches NotFoundError", function (done) {
+	o("processNewMail catches NotFoundError", async function () {
 		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		indexer.processNewMail(event).then(result => {
-			o(result).equals(null)
-		}).then(done)
+		const result = await indexer.processNewMail(event)
+		o(result).equals(null)
 	})
 
 	o("processNewMail catches NotAuthorizedError", function (done) {

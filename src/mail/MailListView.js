@@ -56,7 +56,6 @@ export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
-	view: Function;
 
 	constructor(mailListId: Id, mailView: MailView) {
 		this.listId = mailListId

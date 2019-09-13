@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef, createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createRepeatRuleWithValues, getAllDayDateUTCFromZone, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"

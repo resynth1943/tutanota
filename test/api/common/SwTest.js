@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {ServiceWorker} from "../../../src/serviceworker/sw.js"
 
 const fromNetwork = (url: string) => ({}: any)
@@ -12,7 +12,7 @@ o.spec("ServiveWorkerTest ", node(function () {
 
 	let applicationPaths = ["mail", "login"]
 
-	o.before((done, timeout) => {
+	o.before(function (done, timeout) {
 		exclusions = []
 		sw = new ServiceWorker([], caches, "testCache", root, applicationPaths, true)
 		done()

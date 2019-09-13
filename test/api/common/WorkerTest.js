@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {worker} from "../../../src/api/main/WorkerClient"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
@@ -9,7 +9,7 @@ import {logins} from "../../../src/api/main/LoginController"
 
 o.spec("WorkerTest request / response", node(function () {
 
-	o.before((done, timeout) => {
+	o.before(function (done, timeout) {
 		timeout(2000)
 		worker.initialized.then(done)
 	})

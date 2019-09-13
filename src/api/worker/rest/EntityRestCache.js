@@ -20,7 +20,7 @@ import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
 // $FlowIgnore[untyped-import]
-import EC from "../../common/EntityConstants"
+import {ValueType} from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
@@ -31,7 +31,6 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
 
-const ValueType = EC.ValueType
 
 assertWorkerOrNode()
 

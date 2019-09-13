@@ -1,18 +1,19 @@
-const path = require('path')
-const pj = require('../package.json')
+import path from "path"
+import file from "file"
+
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (opts) {
-	const {nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked} = opts
+export default function generateTemplate(nameSuffix, version, targetUrl, iconPath, sign) {
+	const pj = JSON.parse(file.readFileSync("../package.json", "utf-8"))
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	return {
 		"name": appName,
-		"main": "./src/desktop/DesktopMain.js",
+		"main": "./desktop/desktop/DesktopMain.js",
 		"version": version,
 		"author": "Tutao GmbH",
 		"description": "The desktop client for Tutanota, the secure e-mail service.",
@@ -41,7 +42,7 @@ module.exports = function (opts) {
 				+ "-----END PUBLIC KEY-----"
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
-			"preloadjs": "./src/desktop/preload.js",
+			"preloadjs": "./desktop/desktop/preload.js",
 			"desktophtml": "./desktop.html",
 			"iconName": "logo-solo-red.png",
 			"fileManagerTimeout": 30000,

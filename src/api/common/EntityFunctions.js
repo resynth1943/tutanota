@@ -8,14 +8,13 @@ import {
 	utf8Uint8ArrayToString
 } from "./utils/Encoding"
 // $FlowIgnore[untyped-import]
-import EC from "./EntityConstants"
-import {asyncImport} from "./utils/Utils"
+import {Cardinality, Type, ValueType} from "./EntityConstants"
 import {last} from "./utils/ArrayUtils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
+import sysModelMap from "../entities/sys/sysModelMap"
+import tutanotaModelMap from "../entities/tutanota/tutanotaModelMap"
+import monitorModelMap from "../entities/monitor/monitorModelMap"
 
-const Type = EC.Type
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
 
 export const HttpMethod = Object.freeze({
 	GET: 'GET',
@@ -79,16 +78,23 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.type)
 }
 
+const modelMaps = {"sys": sysModelMap, "tutanota": tutanotaModelMap, "monitor": monitorModelMap}
+
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
 	const pathPrefix = env.adminTypes.includes(typeRef.app + "/" + typeRef.type)
 		? "admin/"
 		: env.rootPathPrefix
+	const modelMap = modelMaps[typeRef.app]
 
-	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-		`${pathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`)
-		.then(module => {
-			return module._TypeModel
-		})
+	if (modelMap[typeRef.type] == null) {
+		return Promise.reject(new Error("Cannot find TypeRef: " + String(typeRef)))
+	} else {
+		// Wrap in Bluebird promise
+		return Promise.resolve(modelMap[typeRef.type]())
+		              .then(module => {
+			              return module._TypeModel
+		              })
+	}
 }
 
 export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
@@ -391,7 +397,8 @@ export function getEtId(entity: Element): Id {
 
 export function getLetId(entity: ListElement): IdTuple {
 	if (typeof entity._id === "undefined") {
-		throw new Error("listId is not defined for " + (typeof (entity: any)._type === 'undefined'
+		throw new Error("listId is not defined for " + (typeof (entity: any)._type
+		=== 'undefined'
 			? JSON.stringify(entity)
 			: (entity: any)))
 	}

@@ -1,8 +1,8 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from "../nodemocker"
 
-o.spec("Desktop Notifier Test", (done, timeout) => {
+o.spec("Desktop Notifier Test", function (done, timeout) {
 	n.startGroup({
 		group: __filename, allowables: [
 			'../api/common/utils/Utils', '.utils/Utils', './Utils',

@@ -1,7 +1,5 @@
-const Promise = require('bluebird')
-
-const path = require("path")
-const fs = Promise.Promise.promisifyAll(require("fs-extra"))
+import path from "path"
+import fs from "fs-extra"
 
 
 global.window = undefined
@@ -17,11 +15,11 @@ function getUrls(env) {
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
-module.exports.renderHtml = function (scripts, env) {
-	global.window = require("mithril/test-utils/browserMock")(global)
+export async function renderHtml(scripts, env) {
+	global.window = (await import("mithril/test-utils/browserMock.js")).default(global)
 	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
+	const m = (await import('mithril')).default
+	const render = (await import('mithril-node-render')).default
 
 	return render(
 		m("html", [
@@ -83,11 +81,11 @@ const csp = (m, env) => {
 	}
 }
 
-module.exports.renderTestHtml = async function (scripts) {
-	global.window = require("mithril/test-utils/browserMock")()
+export async function renderTestHtml(scripts) {
+	global.window = (await import("mithril/test-utils/browserMock.js")).default()
 	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
+	const m = (await import('mithril')).default
+	const render = (await import('mithril-node-render')).default()
 
 	let html = '<!DOCTYPE html>\n' + await render(
 		m("html", [
@@ -104,7 +102,7 @@ module.exports.renderTestHtml = async function (scripts) {
 }
 
 function _writeFile(targetFile, content) {
-	return fs.mkdirsAsync(path.dirname(targetFile)).then(() => fs.writeFileAsync(targetFile, content, 'utf-8'))
+	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }
 
 class ExternalScript {

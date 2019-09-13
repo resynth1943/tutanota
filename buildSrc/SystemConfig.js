@@ -1,20 +1,16 @@
-const Promise = require('bluebird')
-const fs = Promise.Promise.promisifyAll(require("fs-extra"))
-const path = require("path")
-
 // These are the dependencies that must be provided for the module loader systemjs
 const baseDependencies = [
 	"libs/polyfill.js",
 	"libs/bluebird.js",
 ]
 
-const baseDevDependencies = baseDependencies
-	.concat(["libs/system.src.js"])
-const baseProdDependencies = baseDependencies
-	.concat(["libs/system-production.src.js"])
-	.map(relative => path.join(__dirname, '/..', relative).replace("/libs/", "/libs/minified/"))
+export const baseDevDependencies = baseDependencies
+	.concat(["libs/system.js"])
+// export const baseProdDependencies = baseDependencies
+// 	.concat(["libs/s.js"])
+// 	.map(relative => path.join(__dirname, '/..', relative))
 
-const dependencyMap = {
+export const dependencyMap = {
 	"mithril": "./libs/mithril.js",
 	"mithril/stream/stream.js": "./libs/stream.js",
 	"squire-rte": "./libs/squire-raw.js",
@@ -24,8 +20,6 @@ const dependencyMap = {
 	"qrcode": "./libs/qrcode.js",
 	"jszip": "./libs/jszip.js",
 	"luxon": "./libs/luxon.js",
-	"@hot": "@empty", // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
-	"util": "@empty" // used by ospec to provide debug output in node
 }
 
 const systemConfigTemplate = {
@@ -72,12 +66,7 @@ function devPlaygroundConfig(bundles) {
 
 function devTestConfig() {
 	return Object.assign({}, systemConfigTemplate, {
-		map: Object.assign({}, systemConfigTemplate.map, hotReloaderMap, {
-			"ospec/ospec.js": "../node_modules/ospec/ospec.js",
-			"velocity-animate": "../node_modules/velocity-animate/velocity.js",
-			"prismjs": "../node_modules/prismjs",
-			"faker": "../node_modules/faker/build/build/faker.min.js",
-		})
+		map: Object.assign({}, systemConfigTemplate.map, hotReloaderMap)
 	})
 }
 
@@ -111,14 +100,14 @@ function replaceLibsPath(object) {
 	return updated
 }
 
-module.exports = {
-	baseDevDependencies,
-	baseProdDependencies,
-	hotReloaderMap,
-	dependencyMap,
-	devConfig,
-	distRuntimeConfig,
-	devPlaygroundConfig,
-	devTestConfig,
-	distBuildConfig
-}
+// module.exports = {
+// 	baseDevDependencies,
+// 	baseProdDependencies,
+// 	hotReloaderMap,
+// 	dependencyMap,
+// 	devConfig,
+// 	distRuntimeConfig,
+// 	devPlaygroundConfig,
+// 	devTestConfig,
+// 	distBuildConfig
+// }

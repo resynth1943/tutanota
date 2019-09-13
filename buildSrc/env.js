@@ -22,9 +22,8 @@
 // prod desktop dist     | mail.tutanota.com | desktop.html | node -l dist
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
-function create(systemConfig, staticUrl, version, mode, dist, rootPathPrefix, adminTypes) {
+export function create(staticUrl, version, mode, dist, rootPathPrefix, adminTypes) {
 	return {
-		systemConfig,
 		"staticUrl": staticUrl,
 		"mode": mode != null ? mode : "Browser",
 		"versionNumber": version,
@@ -33,8 +32,4 @@ function create(systemConfig, staticUrl, version, mode, dist, rootPathPrefix, ad
 		"rootPathPrefix": rootPathPrefix != null ? rootPathPrefix : "",
 		"adminTypes": adminTypes ? adminTypes : []
 	}
-}
-
-module.exports = {
-	create
 }

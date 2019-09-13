@@ -106,27 +106,6 @@ export function clone<T>(instance: T): T {
 	}
 }
 
-/**
- * Imports a module using System.import and sets up the depencency map (needed for hmr)
- * => Hot reloading is currently not capable of tracking dynamic imports => We add the metadata for the dynamic import manually
- * @see https://github.com/alexisvincent/systemjs-hot-reloader/issues/129
- * @param importer The name of the importing module
- * @param moduleName The module to import
- * @returns resolves to the imported module
- */
-export function asyncImport(importer: string, moduleName: string): Promise<*> {
-	return System.import(moduleName)
-	             .then(module => {
-		             if (System.loads) {
-			             if (!System.loads[System.resolveSync(importer)].depMap[moduleName]) {
-				             System.loads[System.resolveSync(importer)].deps.push(moduleName)
-				             System.loads[System.resolveSync(importer)].depMap[moduleName] = System.resolveSync(moduleName)
-			             }
-		             }
-		             return module
-	             })
-}
-
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter(alias => alias.enabled).map(alias => alias.mailAddress)
 	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
