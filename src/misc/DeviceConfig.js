@@ -19,7 +19,7 @@ class DeviceConfig {
 	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
 	_language: ?string;
-	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
+	_defaultCalendarView: {[userId: Id]: ?CalendarViewTypeEnum};
 	_hiddenCalendars: {[userId: Id]: Id[]}
 	_signupToken: string;
 

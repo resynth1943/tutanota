@@ -12,6 +12,7 @@ export const ElementDataOS: ObjectStoreName = "ElementData"
 export const MetaDataOS: ObjectStoreName = "MetaData"
 export const GroupDataOS: ObjectStoreName = "GroupMetaData"
 export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
+export const ExternalAllowListOS: ObjectStoreName = "ExternalAllowListOS"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
@@ -19,20 +20,20 @@ export type IndexName = string
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 export const indexName = (indexName: IndexName): string => indexName
 
-const DB_VERSION = 3
-
+const DB_VERSION = 4
+export type DbKey = string | number | Uint8Array
 
 export interface DbTransaction {
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]>;
+	getAll(objectStore: ObjectStoreName): Promise<{key: DbKey, value: any}[]>;
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T>;
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T>;
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]>;
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]>;
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any>;
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any>;
 
 
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void>;
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void>;
 
 	abort(): void;
 
@@ -113,6 +114,8 @@ export class DbFacade {
 								db.createObjectStore(GroupDataOS)
 								db.createObjectStore(SearchTermSuggestionsOS)
 								metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
+								// TODO: migrate properly
+								db.createObjectStore(ExternalAllowListOS, {keyPath: "address"})
 							} catch (e) {
 								callback(new DbError("could not create object store searchindex", e))
 							}
@@ -240,7 +243,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<{key: DbKey, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
@@ -263,7 +266,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T> {
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
 		return Promise.fromCallback((callback) => {
 			try {
 				const os = this._transaction.objectStore(objectStore)
@@ -285,12 +288,12 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
 		           .then(result => result || [])
 	}
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = key
@@ -309,7 +312,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void> {
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)

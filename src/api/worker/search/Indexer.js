@@ -3,8 +3,8 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import type {DbTransaction} from "./DbFacade"
-import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
+import type {DbKey, DbTransaction} from "./DbFacade"
+import {DbFacade, ExternalAllowListOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -20,7 +20,14 @@ import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
-import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
+import {
+	_createNewIndexUpdate,
+	encryptAllowedExternalAddress,
+	filterIndexMemberships,
+	markEnd,
+	markStart,
+	typeRefToTypeInfo
+} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -171,6 +178,33 @@ export class Indexer {
 		})
 	}
 
+	addAllowedExternalSender(address: string): Promise<void> {
+		return this.db.initialized.then(() => {
+			const encryptedAddress = encryptAllowedExternalAddress(this.db.key, address, this.db.iv)
+			return this.db.dbFacade.createTransaction(false, [ExternalAllowListOS]).then((transaction) => {
+				return transaction.put(ExternalAllowListOS, null, {address: encryptedAddress})
+			})
+		})
+	}
+
+	removeAllowedExternalSender(address: string): Promise<void> {
+		return this.db.initialized.then(() => {
+			const encryptedAddress = encryptAllowedExternalAddress(this.db.key, address, this.db.iv)
+			return this.db.dbFacade.createTransaction(false, [ExternalAllowListOS]).then((transaction) => {
+				return transaction.delete(ExternalAllowListOS, encryptedAddress)
+			})
+		})
+	}
+
+	isAllowedExternalSender(address: string): Promise<boolean> {
+		return this.db.initialized.then(() => {
+			const encryptedAddress = encryptAllowedExternalAddress(this.db.key, address, this.db.iv)
+			return this.db.dbFacade.createTransaction(true, [ExternalAllowListOS]).then((transaction) => {
+				return transaction.get(ExternalAllowListOS, encryptedAddress).then((result) => result != null)
+			})
+		})
+	}
+
 	enableMailIndexing(): Promise<void> {
 		return this.db.initialized.then(() => {
 			return this._mail.enableMailIndexing(this._initParams.user).then(() => {
@@ -294,7 +328,7 @@ export class Indexer {
 			return {id: m.group, type: getMembershipGroupType(m)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id | number, value: GroupData}[]) => {
+			return t.getAll(GroupDataOS).then((loadedGroups: {key: DbKey, value: GroupData}[]) => {
 				let oldGroups = loadedGroups.map((group) => {
 					const id: Id = downcast(group.key)
 					return {id, type: group.value.groupType}

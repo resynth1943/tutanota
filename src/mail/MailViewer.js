@@ -97,7 +97,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import type {ButtonAttrs, ButtonColorEnum} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
@@ -138,6 +138,15 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 const DOUBLE_TAP_TIME_MS = 350
 const SCROLL_FACTOR = 4 / 5
 
+// TODO: it does not handle all edge cases (e.g. allowing in email with no external content shows banner)
+export const ContentBlockingPolicy = Object.freeze({
+	Block: "0",
+	Show: "1",
+	AlwaysShow: "2",
+	NoExternalContent: "3"
+})
+export type ContentBlockingPolicyEnum = $Values<typeof ContentBlockingPolicy>;
+
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
@@ -150,7 +159,7 @@ export class MailViewer {
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
-	_contentBlocked: boolean;
+	_contentBlockingPolicy: ContentBlockingPolicyEnum;
 	_domMailViewer: ?HTMLElement;
 	_bodyLineHeight: number;
 	_errorOccurred: boolean;
@@ -199,7 +208,7 @@ export class MailViewer {
 		this._attachmentButtons = []
 		this._htmlBody = ""
 		this._contrastFixNeeded = false
-		this._contentBlocked = false
+		this._contentBlockingPolicy = ContentBlockingPolicy.Block
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
 		this._domMailViewer = null
@@ -320,6 +329,7 @@ export class MailViewer {
 									})
 									: null,
 							this._renderEventBanner(),
+							this._renderExternalImageBanner(),
 							this._renderAttachments(),
 							m("hr.hr.mb.mt-s"),
 						]),
@@ -532,7 +542,6 @@ export class MailViewer {
 		const actions = []
 		const colors = ButtonColors.Content
 
-		actions.push(this._createLoadExternalContentButton(mail, colors))
 		if (mail.state === MailState.DRAFT) {
 			actions.push(m(ButtonN, {
 				label: "edit_action",
@@ -671,6 +680,18 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
+					if (this._contentBlockingPolicy === ContentBlockingPolicy.AlwaysShow) {
+						// TODO: translate
+						moreButtons.push({
+							label: () => "Disallow External Content",
+							click: () => {
+								worker.removeAllowedExternalSender(mail.sender.address)
+								this._contentBlockingPolicy = ContentBlockingPolicy.Show
+							},
+							icon: () => Icons.Picture,
+							type: ButtonType.Dropdown
+						})
+					}
 					return moreButtons
 				}, /*width=*/300)
 			}))
@@ -795,30 +816,6 @@ export class MailViewer {
 		return createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250)
 	}
 
-	_createLoadExternalContentButton(mail: Mail, colors: ButtonColorEnum): Children {
-		return this._contentBlocked
-			? m(ButtonN, {
-				label: "contentBlocked_msg",
-				icon: () => Icons.Picture,
-				colors,
-				click: () => {
-					if (this._mailBody) {
-						Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
-							if (confirmed) {
-								this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false, isTutanotaTeamMail(mail)).html))
-								this._contentBlocked = false
-								this._domBodyDeferred = defer()
-								this._replaceInlineImages()
-								m.redraw()
-							}
-						})
-
-					}
-				}
-			})
-			: null
-	}
-
 
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
@@ -842,9 +839,13 @@ export class MailViewer {
 
 	/** @return list of inline referenced cid */
 	_loadMailBody(mail: Mail): Promise<Array<string>> {
-		return this._entityClient.load(MailBodyTypeRef, mail.body).then(body => {
+		return Promise.all([
+			this._entityClient.load(MailBodyTypeRef, mail.body),
+			worker.isAllowedExternalSender(mail.sender.address)
+		]).spread((body, isAllowedExternalSender) => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true, isTutanotaTeamMail(mail))
+
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), !isAllowedExternalSender, isTutanotaTeamMail(mail))
 			this._checkMailForPhishing(mail, sanitizeResult.links)
 
 			/**
@@ -861,7 +862,12 @@ export class MailViewer {
 			)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
 
-			this._contentBlocked = sanitizeResult.externalContent.length > 0
+			this._contentBlockingPolicy = isAllowedExternalSender
+				? ContentBlockingPolicy.AlwaysShow
+				: sanitizeResult.externalContent.length > 0
+					? ContentBlockingPolicy.Block
+					: ContentBlockingPolicy.NoExternalContent
+
 			m.redraw()
 			return sanitizeResult.inlineImageCids
 		}).catch(NotFoundError, e => {
@@ -1202,10 +1208,9 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return this._mailModel.getMailboxDetailsForMail(this.mail)
-				           .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails))
+				           .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlockingPolicy === ContentBlockingPolicy.Block, this._inlineImages, mailboxDetails))
 				           .then(editorDialog => editorDialog.show())
 				           .catch(UserError, showUserError)
-
 			}
 		})
 	}
@@ -1541,5 +1546,40 @@ export class MailViewer {
 			}, DOUBLE_TAP_TIME_MS)
 		}
 		this._lastBodyTouchEndTime = now
+	}
+
+	_renderExternalImageBanner(): Children {
+		if (this._mailBody == null) return null
+
+		// TODO: translate
+		return this._contentBlockingPolicy === ContentBlockingPolicy.Block
+			? m(Banner, {
+				type: BannerType.Info,
+				title: "External content blocked",
+				message: "",
+				icon: Icons.Picture,
+				helpLink: "https://tutanota.com/faq/#load-images",
+				buttonText: "Load content",
+				buttonClick: () => {
+					this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false, isTutanotaTeamMail(this.mail)).html))
+					this._contentBlockingPolicy = ContentBlockingPolicy.Show
+					this._domBodyDeferred = defer()
+					this._replaceInlineImages()
+				},
+			})
+			: this._contentBlockingPolicy === ContentBlockingPolicy.Show
+				? m(Banner, {
+					type: BannerType.Info,
+					title: "Showing external content",
+					message: "",
+					icon: Icons.Picture,
+					helpLink: "https://tutanota.com/faq/#load-images",
+					buttonText: "Always show external content from this sender",
+					buttonClick: () => {
+						this._contentBlockingPolicy = ContentBlockingPolicy.AlwaysShow
+						worker.addAllowedExternalSender(this.mail.sender.address)
+					},
+				})
+				: null
 	}
 }
