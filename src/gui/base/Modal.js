@@ -7,7 +7,7 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
 import {windowFacade} from "../../misc/WindowFacade"
-import {remove} from "../../api/common/utils/ArrayUtils"
+import {last, remove} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNodeBoot()
 
@@ -33,7 +33,12 @@ class Modal {
 		this.view = (): VirtualElement => {
 			return m("#modal.fill-absolute", {
 				oncreate: (vnode) => this._domModal = vnode.dom,
-				onclick: (e: MouseEvent) => this.components.forEach(c => c.component.backgroundClick(e)),
+				onclick: (e: MouseEvent) => {
+					const lastComponent = last(this.components)
+					if (lastComponent) {
+						lastComponent.component.backgroundClick(e)
+					}
+				},
 				style: {
 					'z-index': 99,
 					display: this.visible ? "" : 'none' // display: null not working for IE11

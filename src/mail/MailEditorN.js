@@ -57,8 +57,10 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {TemplatePopup} from "./TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 
 export type MailEditorAttrs = {
@@ -72,7 +74,8 @@ export type MailEditorAttrs = {
 	selectedNotificationLanguage: Stream<string>,
 	inlineImages?: Promise<InlineImages>,
 	_focusEditorOnLoad: () => void,
-	_onSend: () => void
+	_onSend: () => void,
+	_editor: ?Editor
 }
 
 export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>): MailEditorAttrs {
@@ -85,7 +88,8 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		selectedNotificationLanguage: stream(""),
 		inlineImages: inlineImages,
 		_focusEditorOnLoad: () => {},
-		_onSend: () => {}
+		_onSend: () => {},
+		_editor: null
 	}
 }
 
@@ -136,6 +140,8 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
 			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
 		})
+
+		a._editor = this.editor
 
 		const insertImageHandler = isApp()
 			? null
@@ -252,6 +258,14 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			})
 			: null
 
+		const templateButtonAttrs = {
+			label: "templateOpen_label",
+			click: () => openTemplateFeature(this.editor),
+			icon: () => Icons.ListAlt,
+			noRecipientInfoBubble: true
+		}
+
+
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
@@ -260,7 +274,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			injectionsRight: () => {
 				return showConfidentialButton
 					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
-					: [m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+					: [m(ButtonN, templateButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
 			}
 
 		}
@@ -292,7 +306,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			           .filter(r => r.type === RecipientInfoType.EXTERNAL || r.type === RecipientInfoType.UNKNOWN
 				           && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
 			           .map(r => m(TextFieldN, Object.assign({}, createPasswordField(model, r), {
-				           oncreate: vnode => animate(vnode.dom, true),
+				           oncreate: vnode => {animate(vnode.dom, true)},
 				           onbeforeremove: vnode => animate(vnode.dom, false)
 			           })))
 
@@ -508,6 +522,12 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		               shift: true,
 		               exec: send,
 		               help: "send_action"
+	               })
+	               .addShortcut({
+		               key: Keys.SPACE,
+		               ctrl: true,
+		               exec: () => openTemplateFeature(mailEditorAttrs._editor),
+		               help: "templateOpen_label"
 	               }).setCloseHandler(() => closeButtonAttrs.click(newMouseEvent(), domCloseButton))
 
 	if (model.getConversationType() === ConversationType.REPLY || model.toRecipients().length) {
@@ -517,6 +537,27 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	return dialog
 }
 
+
+function openTemplateFeature(editor: ?Editor) {
+	const _editor = assertNotNull(editor)
+	const highlightedText = _editor.getSelectedText()
+	const cursorRect = _editor.getCursorPosition()
+	const editorRect = _editor.getDOM().getBoundingClientRect();
+	const onsubmit = (text) => {
+		_editor.insertHTML(text)
+		_editor.focus()
+	}
+
+	// if cursor is at the bottom from editor, display modal above it
+	let topRect = 0
+	if (window.innerHeight - cursorRect.top < 400) {
+		topRect = window.innerHeight - 400
+	} else {
+		topRect = cursorRect.top
+	}
+	const rectNew = new DomRectReadOnlyPolyfilled(editorRect.left, topRect + 15, cursorRect.width, cursorRect.height);
+	new TemplatePopup(rectNew, onsubmit, highlightedText).show()
+}
 
 /**
  * open a MailEditor

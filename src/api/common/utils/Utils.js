@@ -392,6 +392,9 @@ export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
 export function addressDomain(senderAddress: string): string {
 	return senderAddress.slice(senderAddress.lastIndexOf("@") + 1)
 }
+export function typedEntries<K: string, V>(obj: {[K]: V}): Array<[K, V]> {
+	return downcast(Object.entries(obj))
+}
 
 /**
  * Ignores the fact that Object.keys returns also not owned properties.

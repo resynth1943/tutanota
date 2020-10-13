@@ -27,6 +27,8 @@ export type TextFieldAttrs = {
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
 	onclick?: clickHandler,
+	focusOnCreate?: boolean,
+	onInputCreate?: (vnode: Vnode<*>) => void,
 }
 
 export const Type = Object.freeze({
@@ -52,6 +54,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 	_domLabel: HTMLElement;
 	_domInput: HTMLInputElement;
 	_domInputWrapper: HTMLElement;
+	dom: HTMLElement;
 
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
@@ -135,6 +138,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					"aria-label": lang.getMaybeLazy(a.label),
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
+						if (a.focusOnCreate) {
+							this._domInput.focus()
+						}
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						this._domInput.value = a.value()
 						if (a.type === Type.ExternalPassword) {
@@ -149,6 +155,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 								}
 							})
 						}
+						a.onInputCreate && a.onInputCreate(vnode)
 					},
 					onfocus: (e) => {
 						this.focus(e, a)
@@ -223,6 +230,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					this._domInput = vnode.dom
 					this._domInput.value = a.value()
 					this._domInput.style.height = px(Math.max(a.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+					a.onInputCreate && a.onInputCreate(vnode)
 				},
 				onfocus: (e) => this.focus(e, a),
 				onblur: e => this.blur(e, a),
@@ -237,6 +245,9 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					this._domInput.style.height = '0px'
 					this._domInput.style.height = px(this._domInput.scrollHeight)
 					a.value(this._domInput.value) // update the input on each change
+					if(a.oninput){
+						a.oninput(this._domInput.value, this._domInput)
+					}
 				},
 				onupdate: () => {
 					if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.

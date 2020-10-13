@@ -66,7 +66,7 @@ import {
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
-import type {KeyPress} from "../misc/KeyManager"
+import type {KeyPress, Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"
@@ -102,7 +102,7 @@ import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
 import {CALENDAR_MIME_TYPE} from "../calendar/CalendarUtils"
-import {createAsyncDropdown, createDropdown} from "../gui/base/DropdownN"
+import {createAsyncDropdown, createDropdown, DropdownN, showDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "./MailView"
@@ -122,6 +122,7 @@ import {newMailEditorAsResponse, newMailEditorFromDraft, newMailtoUrlMailEditor}
 import type {MailboxDetail} from "./MailModel"
 import type {ResponseMailParameters} from "./SendMailModel"
 import {defaultSendMailModel} from "./SendMailModel"
+import {TemplatePopup} from "./TemplatePopup"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
@@ -346,7 +347,7 @@ export class MailViewer {
 									if (!client.isMobileDevice()) {
 										this._handleAnchorClick(event, false)
 									}
-								},
+								}
 							},
 							m("#mail-body.selectable.touch-callout.break-word-links", {
 								oncreate: vnode => {

@@ -396,6 +396,7 @@ styles.registerStyle('main', () => {
 		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
 		'.flex-column': {'flex-direction': "column"}, //TODO migrate to .col
 		".col": {'flex-direction': "column"},
+		".row": {'flex-direction': "row"},
 		'.flex-column-reverse': {'flex-direction': "column-reverse"}, //TODO: migrate to col-reverse
 		'.col-reverse': {'flex-direction': "column-reverse"},
 		'.flex': {display: 'flex'},

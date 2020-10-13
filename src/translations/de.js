@@ -1262,6 +1262,9 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"languagePluralCount_label": "{count} Sprachen",
+		"languageSingularCount_label": "{count} Sprache",
+		"languageContentEmpty_label": "Der Inhalt von {language} ist leer!"
 	}
 }

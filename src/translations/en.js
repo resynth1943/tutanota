@@ -197,6 +197,7 @@ module.exports = {
 		"client_label": "Client",
 		"closedSessions_label": "Closed sessions",
 		"closeSession_action": "Close session",
+		"closeTemplate_action": "Close Template Window",
 		"closeWindowConfirmation_msg": "Do you really want to close this window without saving your changes?",
 		"close_alt": "Close",
 		"codeInput_msg": "Enter gift card code",
@@ -341,6 +342,7 @@ module.exports = {
 		"deleteDnsRecords_msg": "Please delete or fix the following DNS records:",
 		"deleteEmails_action": "Delete the selected emails",
 		"deleteEventConfirmation_msg": "Are you sure you want to delete this event?",
+		"deleteLanguageConfirmation_msg": "Are you sure you want to delete the entry \"{language}\"?",
 		"deleteSharedCalendarConfirm_msg": "The calendar \"{calendar}\" is shared with other users.",
 		"delete_action": "Delete",
 		"deletionWarningTitle_msg": "Deletion warning",
@@ -542,6 +544,7 @@ module.exports = {
 		"insertImage_action": "Insert image",
 		"installNow_action": "Install now.",
 		"insufficientBalanceError_msg": "Could not complete transaction due to insufficient account balance. Please provide another payment method.",
+		"insertTemplate_action": "Insert selected Template",
 		"insufficientStorageAdmin_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
 		"insufficientStorageUser_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please contact your administrator.",
 		"insufficientStorageWarning_msg": "Your mailbox has nearly reached the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
@@ -1138,6 +1141,7 @@ module.exports = {
 		"templateHelp_msg": "In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. The template body must contain a \"{link}\" placeholder which will be replaced with the actual link to the encrypted email. You can also include a \"{sender}\" placeholder in the mail body or in the subject which will be replaced with the sender name.",
 		"templateLanguageExists_msg": "Template for the selected language already exists.",
 		"templateMustContain_msg": "Template must contain placeholder {value}",
+		"templateOpen_label": "Show template feature",
 		"termsAcceptedNeutral_msg": "Please accept the terms & conditions.",
 		"termsAndConditionsLink_label": "General terms and conditions",
 		"termsAndConditions_label": "I have read and agree to the following documents:",
@@ -1258,6 +1262,25 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+
+		// Temporary
+
+		"template_label": "Template",
+		"templateEdit_label": "edit Template",
+		"templateMain_label": "Template settings",
+		"addTemplate_label": "add Template",
+		"templateFilter_label": "Filter",
+		"templateExpander_label": "show Templates",
+		"templateTitle_label": "Title",
+		"templateID_label": "ID",
+		"templateTable_title": "Title",
+		"templateTable_id": "ID",
+		"templateSubmit_label": "Submit",
+		"templateTable_content": "Content",
+		"languagePluralCount_label": "{count} languages",
+		"languageSingularCount_label": "{count} language",
+		"languageContentEmpty_label": "The content of {language} is empty!",
+		"deleteLanguageContent_msg" : "Are you sure you want to delete {language}"
 	}
 }
