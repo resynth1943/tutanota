@@ -81,7 +81,7 @@ export class AutocompletePopup implements ModalComponent {
 		]
 	}
 
-	view = () => {
+	view: () => Children = () => {
 		return m(".flex.abs.elevated-bg.plr.border-radius.dropdown-shadow", { // Main Wrapper
 				style: {
 					width: "600px",
@@ -196,18 +196,18 @@ export class AutocompletePopup implements ModalComponent {
 		modal.remove(this)
 	}
 
-	backgroundClick = (e: MouseEvent): void => {
+	backgroundClick(e: MouseEvent): void {
 		this._close()
 	}
 
-	hideAnimation() {
+	hideAnimation(): Promise<void> {
 		return Promise.resolve()
 	}
 
 	onClose(): void {
 	}
 
-	shortcuts() {
+	shortcuts(): Shortcut[] {
 		return this._shortcuts
 	}
 
