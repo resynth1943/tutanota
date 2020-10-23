@@ -5,14 +5,14 @@ import {modal} from "../gui/base/Modal"
 import {px} from "../gui/size"
 import type {Shortcut} from "../misc/KeyManager"
 import type {PosRect} from "../gui/base/Dropdown"
-import {TextFieldN} from "../gui/base/TextFieldN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {TemplateDisplayAttrs} from "./TemplateDisplay"
 import {TemplateDisplay} from "./TemplateDisplay"
 import {searchForID, searchInContent} from "./TemplateSearchFilter.js"
-import {returnTemplates} from "./placeholderTemplates.js"
+import {assertNotNull} from "../api/common/utils/Utils"
 
 export class AutocompletePopup implements ModalComponent {
 	_rect: PosRect
@@ -35,8 +35,9 @@ export class AutocompletePopup implements ModalComponent {
 	constructor(rect: PosRect, onSubmit: (string) => void) {
 		this._height = "270px"
 		this._foundResults = true
-		this._allTemplates = returnTemplates()
+		this._allTemplates = this.LoadTemplates()
 		this._searchResults = this._allTemplates
+		this._setProperties()
 		this._rect = rect
 		this._onSubmit = onSubmit
 		this._filterTextAttrs = {
@@ -213,5 +214,15 @@ export class AutocompletePopup implements ModalComponent {
 
 	popState(e: Event): boolean {
 		return true
+	}
+
+	LoadTemplates(): Array<TemplateDisplayAttrs> {
+		let templates = localStorage.getItem("Templates")
+		if (templates !== null) {
+			templates = assertNotNull(templates)
+			return JSON.parse(templates)
+		} else {
+			return []
+		}
 	}
 }

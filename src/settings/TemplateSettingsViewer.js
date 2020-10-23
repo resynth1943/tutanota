@@ -8,14 +8,18 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import type {EntityUpdateData} from "../api/main/EventController"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {SettingsView} from "./SettingsView"
 import {Icons} from "../gui/base/icons/Icons"
 import type {InputField} from "../api/entities/tutanota/InputField"
+import {Editor} from "../gui/base/Editor"
+import type {TemplateDisplayAttrs} from "../mail/TemplateDisplay"
+import {assertNotNull} from "../api/common/utils/Utils"
 
 export class TemplateSettingsViewer implements UpdatableSettingsViewer {
+	editorDom: HTMLElement;
+	editor: Editor;
 	templateList: ListObject[];
 	_templateTableLines: Stream<Array<TableLineAttrs>>;
 	_enableTemplates: Stream<?boolean>;
@@ -32,8 +36,10 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 	_settingsView: SettingsView;
 	_templateID: Stream<string>
 	_templateOpen: boolean = true;
+	mentionedInlineImages: Array<string>;
 
 	constructor(settingsView: SettingsView) {
+
 		this._settingsView = settingsView
 		if (typeof (deviceConfig.getTemplatesEnabled()) !== "undefined") {
 			this._enableTemplates = deviceConfig.getTemplatesEnabled()
@@ -45,27 +51,10 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 		this._templateTitleName = stream("")
 		this._templateID = stream("")
 		this._templateContent = stream("")
-		this.templateList = []
+		this.templateList = this.loadTemplates()
 	}
 
-	view() {
-		// const enableTemplateAttrs: DropDownSelectorAttrs<boolean> = {
-		// 	label: () => "enableTemplate_label",
-		// 	// helpLabel: () => lang.get("enableTemplate_msg"),
-		// 	items: [
-		// 		{name: lang.get("activated_label"), value: true},
-		// 		{name: lang.get("deactivated_label"), value: false}
-		// 	],
-		// 	selectedValue: this._enableTemplates,
-		// 	selectionChangedHandler: templatesEnabled => {
-		// 		if (templatesEnabled) {
-		// 			deviceConfig.setTemplatesEnabled(this._enableTemplates)
-		// 		} else {
-		// 			deviceConfig.setTemplatesEnabled(this._enableTemplates)
-		// 		}
-		// 	},
-		// 	dropdownWidth: 250
-		// }
+	view(): Children {
 
 		const editTemplateTitleAttrs: TextFieldAttrs = {
 			label: "templateTable_title",
@@ -89,25 +78,19 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const editTemplateContentAttrs: TextFieldAttrs = {
-			label: "templateTable_content",
-			type: TextFieldType.Area,
+		const editTemplateContentAttrs: ContentAttrs = {
 			value: this._templateContent,
-			oninput: (content) => {
-				content = content.trim()
-				if (content !== "") {
-					this._contentInput = content
-				} else {
-					this._contentInput = null
-				}
-			}
+			oncreate: (vnode) => this.editorDom = vnode.dom,
+			oninput: () => {
+				this._contentInput = this.editorDom.innerText
+				console.log(this._contentInput)
+			},
 		}
 
 		const submitTemplate: ButtonAttrs = {
 			label: "templateSubmit_label",
 			type: "bubble",
 			click: () => {
-				this._templateOpen = false
 				console.log("SubmitButton ", this._templateOpen)
 				this.pushToList(this.newListObject())
 				this.store(this.templateList)
@@ -118,25 +101,38 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			label: "templateFilter_label",
 			value: this._templateFilter,
 		}
-		const templateEditor: InputField = {}
 
 		const templateTableButtonAttrs: ButtonAttrs = {
 			label: "addInboxRule_action",
 			icon: () => Icons.Add,
 			click: () => {
-				this._templateOpen = true
-				console.log("TableButton ", this._templateOpen)
-					this._settingsView.detailsViewer = {
-						view: () => m(".h3.mt-l", [
+				this._settingsView.detailsViewer = {
+					view: () => m(".flex.mlr.col", {
+						onkeydown: (e) => {
+							e.stopPropagation()
+						}
+					}, [
+						m(".flex.row.flex-grow-shrink-auto", [
 							m(TextFieldN, editTemplateTitleAttrs),
-							m(TextFieldN, editTemplateIDAttrs),
-							m(TextFieldN, editTemplateContentAttrs),
-							m(ButtonN, submitTemplate),
-							m("div", this.newListObject())
+							m(".ml-l", [
+								m(TextFieldN, editTemplateIDAttrs)
+							])
 						]),
-						entityEventsReceived: () => Promise.resolve(),
-					}
-				console.log("Open template editor")
+						m(".pt-s.text.scroll-x.break-word-links", [
+							m("", {
+								style: {
+									height: "500px",
+									fontSize: "18px",
+								},
+								onclick: () => this.editorDom.focus()
+							}, [
+								m("div[contenteditable=true]", editTemplateContentAttrs)
+							])
+						]),
+						m(ButtonN, submitTemplate),
+					]),
+					entityEventsReceived: () => Promise.resolve(),
+				}
 			}
 		}
 
@@ -155,24 +151,23 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 					// m(DropDownSelectorN, enableTemplateAttrs),
 				]),
 				m(".flex-space-between.items-center.mt-l.mb-s", [
-					m(".h3.mt-l", lang.get("templateEdit_label")),
-					m(ExpanderButtonN, {label: "templateExpander_label", expanded: this._templatesExpanded})
-				]),
-				m(ExpanderPanelN, {expanded: this._templatesExpanded}, [
-					m(TextFieldN, filterSettingTemplatesAttrs),
-					m(TableN, templateTableAttrs),
+					m("", [
+						m(".mb-l", {onkeydown: (e) => e.stopPropagation()},
+							m(TextFieldN, filterSettingTemplatesAttrs)),
+						m(TableN, templateTableAttrs),
+					])
+
 				])
 			])
 		]
 	}
 
-	newListObject() {
-		const object: ListObject = {
+	newListObject(): ListObject {
+		return {
 			title: this._titleInput,
 			id: this._idInput,
 			content: this._contentInput
 		}
-		return object
 	}
 
 	pushToList(object: ListObject) {
@@ -190,6 +185,18 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 		localStorage.setItem("Templates", stringarray)
 	}
 
+	loadTemplates(): ListObject[] {
+		let templates = localStorage.getItem("Templates")
+
+		if(templates !== null){
+			templates = assertNotNull(templates)
+			return JSON.parse(templates)
+		}else {
+			return []
+		}
+
+	}
+
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			let p = Promise.resolve()
@@ -197,6 +204,10 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			})
 		}).then(() => m.redraw())
 	}
+}
+
+export type ContentAttrs = {
+	value: Stream<string>,
 }
 
 export type ListObject = {
