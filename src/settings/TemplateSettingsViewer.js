@@ -7,18 +7,16 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {EntityUpdateData} from "../api/main/EventController"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {SettingsView} from "./SettingsView"
 import {Icons} from "../gui/base/icons/Icons"
-import type {InputField} from "../api/entities/tutanota/InputField"
 import {Editor} from "../gui/base/Editor"
-import type {TemplateDisplayAttrs} from "../mail/TemplateDisplay"
 import {assertNotNull} from "../api/common/utils/Utils"
+import {HtmlEditor} from "../gui/base/HtmlEditor"
 
 export class TemplateSettingsViewer implements UpdatableSettingsViewer {
-	editorDom: HTMLElement;
 	editor: Editor;
 	templateList: ListObject[];
 	_templateTableLines: Stream<Array<TableLineAttrs>>;
@@ -35,7 +33,6 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 	_contentInput: ?string = "";
 	_settingsView: SettingsView;
 	_templateID: Stream<string>
-	_templateOpen: boolean = true;
 	mentionedInlineImages: Array<string>;
 
 	constructor(settingsView: SettingsView) {
@@ -78,20 +75,19 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const editTemplateContentAttrs: ContentAttrs = {
-			value: this._templateContent,
-			oncreate: (vnode) => this.editorDom = vnode.dom,
-			oninput: () => {
-				this._contentInput = this.editorDom.innerText
-				console.log(this._contentInput)
-			},
-		}
+		const editor = new HtmlEditor("templateTable_content")
+			.showBorders()
+			.setMinHeight(200)
 
 		const submitTemplate: ButtonAttrs = {
 			label: "templateSubmit_label",
 			type: "bubble",
 			click: () => {
-				console.log("SubmitButton ", this._templateOpen)
+				let value = editor.getValue()
+				console.log(value)
+				let newValue = value.replace(/^<div[^>]*>|<\/div>$/g, "")
+				console.log(newValue)
+				this._contentInput = newValue
 				this.pushToList(this.newListObject())
 				this.store(this.templateList)
 			}
@@ -119,15 +115,7 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 							])
 						]),
 						m(".pt-s.text.scroll-x.break-word-links", [
-							m("", {
-								style: {
-									height: "500px",
-									fontSize: "18px",
-								},
-								onclick: () => this.editorDom.focus()
-							}, [
-								m("div[contenteditable=true]", editTemplateContentAttrs)
-							])
+							m(editor)
 						]),
 						m(ButtonN, submitTemplate),
 					]),
@@ -188,10 +176,10 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 	loadTemplates(): ListObject[] {
 		let templates = localStorage.getItem("Templates")
 
-		if(templates !== null){
+		if (templates !== null) {
 			templates = assertNotNull(templates)
 			return JSON.parse(templates)
-		}else {
+		} else {
 			return []
 		}
 
