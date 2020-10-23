@@ -8,9 +8,11 @@ import {px, size} from "../size"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
 
 export type ButtonParams = {
-	text: string,
+	text: TranslationKey | lazy<string>,
 	click: () => mixed,
 }
 
@@ -20,17 +22,17 @@ export const BannerType = Object.freeze({
 })
 export type BannerTypeEnum = $Values<typeof BannerType>
 
-export type Attrs = {
+export type BannerAttrs = {
 	icon: AllIconsEnum,
-	title: string,
-	message: string,
-	helpLink?: ?string,
+	title: TranslationKey | lazy<string>,
+	message: TranslationKey | lazy<string>,
+	helpLink?: ?InfoLink,
 	buttons: $ReadOnlyArray<ButtonParams>,
 	type: BannerTypeEnum
 }
 
-export class Banner implements MComponent<Attrs> {
-	view({attrs}: Vnode<Attrs>): Children {
+export class Banner implements MComponent<BannerAttrs> {
+	view({attrs}: Vnode<BannerAttrs>): Children {
 		const colors = getColors(attrs.type)
 		const isVertical = attrs.type === BannerType.Warning
 		return m(MessageBoxN, {
@@ -53,9 +55,9 @@ export class Banner implements MComponent<Attrs> {
 				: null,
 			m(".flex.col", [
 				m("", [
-					m("span.text-break" + (attrs.type === BannerType.Warning ? ".b" : ""), attrs.title),
+					m("span.text-break" + (attrs.type === BannerType.Warning ? ".b" : ""), lang.getMaybeLazy(attrs.title)),
 					isVertical ? m("br") : m("span", " "),
-					m("span.text-break", attrs.message),
+					m("span.text-break", lang.getMaybeLazy(attrs.message)),
 				]),
 				m(".flex", attrs.buttons.map((b) => m("button.border-radius.mt-s.mr-s.center", {
 					style: {
@@ -67,14 +69,14 @@ export class Banner implements MComponent<Attrs> {
 						minWidth: "60px",
 					},
 					onclick: b.click,
-				}, b.text))),
+				}, lang.getMaybeLazy(b.text)))),
 
 			]),
 			m(".flex-grow"),
 			attrs.helpLink
 				? m("a", {
 					style: {"align-self": "end", background: "transparent"},
-					href: attrs.helpLink,
+					href: lang.getInfoLink(attrs.helpLink),
 					target: "_blank",
 				}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: colors.button, display: "block"}}))
 				: null
@@ -101,7 +103,7 @@ type BannerButtonAttrs = {
 	borderColor: string,
 	color: string,
 	click: () => mixed,
-	text: string
+	text: TranslationKey | lazy<string>
 }
 
 export class BannerButton implements MComponent<BannerButtonAttrs> {
@@ -116,6 +118,6 @@ export class BannerButton implements MComponent<BannerButtonAttrs> {
 				minWidth: "60px",
 			},
 			onclick: attrs.click,
-		}, attrs.text)
+		}, lang.getMaybeLazy(attrs.text))
 	}
 }

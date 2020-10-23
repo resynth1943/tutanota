@@ -1263,6 +1263,14 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
+		"requestTooLarge_msg": "Deine Anfrage war zu groß für den Server",
+		// TODO Translate
+		"contentAllowed_msg": "External images are being shown. Do you want to always trust external images from this sender?",
+		"allowExternalContent_label": "Show",
+		"blockExternalContent_label": "Block",
+		"alwaysAllowExternalContent_label": "Trust sender",
+		"disallowExternalContent_label": "Block external content",
+		"ignore_label": "Ignore"
 	}
 }

@@ -29,7 +29,7 @@ import {isTest} from "../../Env"
 import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 
-export function encryptAllowedExternalAddress(key: Aes256Key, address: string, dbIv: Uint8Array) {
+export function encryptAllowedExternalAddress(key: Aes256Key, address: string, dbIv: Uint8Array): Uint8Array {
 	return aes256Encrypt(key, stringToUtf8Uint8Array(address), dbIv, true, false).slice(dbIv.length)
 }
 

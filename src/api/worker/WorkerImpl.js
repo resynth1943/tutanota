@@ -342,7 +342,6 @@ export class WorkerImpl {
 			getEventByUid: (message: Request) => {
 				return locator.calendar.getEventByUid(...message.args)
 			},
-			},
 			addAllowedExternalSender: (message: Request) => {
 				return locator.indexer.addAllowedExternalSender(...message.args)
 			},
