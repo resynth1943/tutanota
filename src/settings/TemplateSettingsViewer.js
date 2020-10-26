@@ -3,7 +3,7 @@ import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import m from "mithril"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType, ButtonColors} from "../gui/base/ButtonN"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {EntityUpdateData} from "../api/main/EventController"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
@@ -12,12 +12,13 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {SettingsView} from "./SettingsView"
 import {Icons} from "../gui/base/icons/Icons"
-import {Editor} from "../gui/base/Editor"
-import {assertNotNull} from "../api/common/utils/Utils"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
+import {CryptoError} from "../api/common/error/CryptoError"
+import {List} from "../gui/base/List"
+import {assertNotNull} from "../api/common/utils/Utils"
+import {createDropdown} from "../gui/base/DropdownN"
 
 export class TemplateSettingsViewer implements UpdatableSettingsViewer {
-	editor: Editor;
 	templateList: ListObject[];
 	_templateTableLines: Stream<Array<TableLineAttrs>>;
 	_enableTemplates: Stream<?boolean>;
@@ -34,64 +35,43 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 	_settingsView: SettingsView;
 	_templateID: Stream<string>
 	mentionedInlineImages: Array<string>;
+	_templateOpen: boolean = true
+	_existingTitle: Stream<string>
+	_existingID: Stream<string>
+	_existingContent: Stream<string>
+	_editor: HtmlEditor
+	_notNull: boolean
+	_keyList: Array<any>
+	_view: boolean
+	_new: boolean
 
 	constructor(settingsView: SettingsView) {
-
 		this._settingsView = settingsView
 		if (typeof (deviceConfig.getTemplatesEnabled()) !== "undefined") {
 			this._enableTemplates = deviceConfig.getTemplatesEnabled()
 		}
 
 		this._templatesExpanded = stream(false)
-		this._templateTableLines = stream([])
 		this._templateFilter = stream("")
 		this._templateTitleName = stream("")
 		this._templateID = stream("")
 		this._templateContent = stream("")
-		this.templateList = this.loadTemplates()
+		this.templateList = []
+		if (localStorage.getItem("Templates") !== null) {
+			this._notNull = true
+		} else {
+			this._notNull = false
+			console.log("Local Storage is empty, creating empty table")
+		}
+		this._view = true
+
 	}
 
 	view(): Children {
 
-		const editTemplateTitleAttrs: TextFieldAttrs = {
-			label: "templateTable_title",
-			value: this._templateTitleName,
-			oninput: (title) => {
-				title = title.trim()
-				this._titleInput = title
-			}
-		}
-
-		const editTemplateIDAttrs: TextFieldAttrs = {
-			label: "templateTable_id",
-			value: this._templateID,
-			oninput: (id) => {
-				id = id.trim()
-				if (id !== "") {
-					this._idInput = id
-				} else {
-					this._idInput = null
-				}
-			}
-		}
-
 		const editor = new HtmlEditor("templateTable_content")
 			.showBorders()
 			.setMinHeight(200)
-
-		const submitTemplate: ButtonAttrs = {
-			label: "templateSubmit_label",
-			type: "bubble",
-			click: () => {
-				let value = editor.getValue()
-				console.log(value)
-				let newValue = value.replace(/^<div[^>]*>|<\/div>$/g, "")
-				console.log(newValue)
-				this._contentInput = newValue
-				this.pushToList(this.newListObject())
-				this.store(this.templateList)
-			}
-		}
 
 		const filterSettingTemplatesAttrs: TextFieldAttrs = {
 			label: "templateFilter_label",
@@ -102,25 +82,13 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			label: "addInboxRule_action",
 			icon: () => Icons.Add,
 			click: () => {
-				this._settingsView.detailsViewer = {
-					view: () => m(".flex.mlr.col", {
-						onkeydown: (e) => {
-							e.stopPropagation()
-						}
-					}, [
-						m(".flex.row.flex-grow-shrink-auto", [
-							m(TextFieldN, editTemplateTitleAttrs),
-							m(".ml-l", [
-								m(TextFieldN, editTemplateIDAttrs)
-							])
-						]),
-						m(".pt-s.text.scroll-x.break-word-links", [
-							m(editor)
-						]),
-						m(ButtonN, submitTemplate),
-					]),
-					entityEventsReceived: () => Promise.resolve(),
-				}
+				this._new = true
+				this._view = true
+				this._templateTitleName = stream("")
+				this._templateID = stream("")
+				this._templateContent = stream("")
+				this._renderCreateOrEdit(editor)
+
 			}
 		}
 
@@ -129,7 +97,7 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: templateTableButtonAttrs,
-			lines: this._templateTableLines()
+			lines: this._notNull ? this._returnTableLines(editor) : []
 		}
 
 		return [
@@ -144,10 +112,63 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 							m(TextFieldN, filterSettingTemplatesAttrs)),
 						m(TableN, templateTableAttrs),
 					])
-
 				])
 			])
 		]
+	}
+
+	_returnTableLines(editor: HtmlEditor): Function {
+		this._keyList = JSON.parse(assertNotNull(localStorage.getItem("Templates")))
+		if (this._notNull) {
+			return this._keyList.map((key, index) => {
+				return {
+					cells: [key.title, key.id],
+					actionButtonAttrs: {
+						label: () => "Custom Label",
+						icon: () => Icons.More,
+						click: createDropdown(() => {
+							let twoButtons = []
+							twoButtons.push({
+								colors: ButtonColors.Header,
+								label: () => "Edit",
+								click: () => {
+									this._view = true
+									this._existingTitle = stream(this._keyList[index].title)
+									this._existingID = stream(this._keyList[index].id)
+									this._existingContent = stream(this._keyList[index].content)
+									this._new = false
+									this._renderCreateOrEdit( editor, index)
+									editor.setValue(this._existingContent())
+								},
+								icon: () => Icons.Edit,
+								type: ButtonType.Dropdown
+							})
+							twoButtons.push({
+								colors: ButtonColors.Header,
+								label: () => "Remove",
+								click: () => this.removeTemplate(index),
+								icon: () => Icons.Trash,
+								type: ButtonType.Dropdown
+							})
+							return twoButtons
+						})
+					}
+				}
+			})
+		}
+	}
+
+	submitEdit(index: number, title: string, id: string, content: string) {
+		this._keyList[index].title = title
+		this._keyList[index].id = id
+		this._keyList[index].content = content
+		localStorage.setItem("Templates", JSON.stringify(this._keyList))
+	}
+
+	removeTemplate(index: number) {
+		this._view = false
+		this._keyList.splice(index, 1)
+		localStorage.setItem("Templates", JSON.stringify(this._keyList))
 	}
 
 	newListObject(): ListObject {
@@ -167,22 +188,17 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	store(list: ListObject[]) {
-		const stringarray = JSON.stringify(list)
-
-		localStorage.setItem("Templates", stringarray)
-	}
-
-	loadTemplates(): ListObject[] {
-		let templates = localStorage.getItem("Templates")
-
-		if (templates !== null) {
-			templates = assertNotNull(templates)
-			return JSON.parse(templates)
+	store(item: ListObject) {
+		const previousArray = localStorage.getItem("Templates")
+		let newArray = []
+		if (previousArray) {
+			newArray = JSON.parse(previousArray)
+			newArray.push(item)
+			localStorage.setItem("Templates", JSON.stringify(newArray))
 		} else {
-			return []
+			newArray.push(item)
+			localStorage.setItem("Templates", JSON.stringify(newArray))
 		}
-
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
@@ -191,6 +207,88 @@ export class TemplateSettingsViewer implements UpdatableSettingsViewer {
 			return p.then(() => {
 			})
 		}).then(() => m.redraw())
+	}
+
+	_renderCreateOrEdit(editor: HtmlEditor, index?: number) {
+		this._templateTitleName = stream("")
+		this._templateID = stream("")
+		this._templateContent = stream("")
+		this._settingsView.detailsViewer = {
+			view: () => this._view ? m(".flex.mlr.col", {
+				onkeydown: (e) => {
+					e.stopPropagation()
+				}
+			}, [
+				m(".flex.row.flex-grow-shrink-auto", [
+					m(TextFieldN, this._new ? {
+						label: "templateTable_title",
+						value: this._templateTitleName,
+						oninput: (title) => {
+							title = title.trim()
+							this._titleInput = title
+						}
+					} : {
+						label: () => "Title",
+						value: this._existingTitle,
+						oninput: () => console.log("input")
+					}),
+					m(".ml-l", [
+						m(TextFieldN, this._new ? {
+							label: "templateTable_id",
+							value: this._templateID,
+							oninput: (id) => {
+								id = id.trim()
+								if (id !== "") {
+									this._idInput = id
+								} else {
+									this._idInput = null
+								}
+							}
+						} : {
+							label: () => "ID",
+							value: this._existingID,
+							oninput: () => console.log("input")
+						})
+					])
+				]),
+				m(".pt-s.text.scroll-x.break-word-links", {style: {width: "800px"}}, [
+					m(editor)
+				]),
+				m("", {
+					style: {
+						width: "320px"
+					}
+				}, m(ButtonN, this._new ? {
+					label: "templateSubmit_label",
+					type: "bubble",
+					click: () => {
+						if (this._templateTitleName !== "") {
+							this._templateTitleName = stream("")
+							this._templateID = stream("")
+							this._templateContent = stream("")
+							this._contentInput = editor.getValue()
+							console.log("SubmitButton ", this._templateOpen)
+							this.store(this.newListObject())
+							this._notNull = true
+							this._view = false
+						} else {
+							alert("Title can't be empty!")
+						}
+					}
+				} : {
+					label: () => "Edit",
+					type: "bubble",
+					click: () => { // submit edit
+						this._view = false
+						this.submitEdit(assertNotNull(index), this._existingTitle(), this._existingID(), editor.getValue())
+						this._existingContent = stream("")
+						this._existingID = stream("")
+						editor.setValue("")
+					}
+				})),
+			]) : null,
+			entityEventsReceived: () => Promise.resolve(),
+		}
 	}
 }
 

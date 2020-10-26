@@ -5,12 +5,13 @@ import {modal} from "../gui/base/Modal"
 import {px} from "../gui/size"
 import type {Shortcut} from "../misc/KeyManager"
 import type {PosRect} from "../gui/base/Dropdown"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {TemplateDisplayAttrs} from "./TemplateDisplay"
 import {TemplateDisplay} from "./TemplateDisplay"
+import {returnTemplates} from "./placeholderTemplates"
 import {searchForID, searchInContent} from "./TemplateSearchFilter.js"
 import {assertNotNull} from "../api/common/utils/Utils"
 
@@ -35,7 +36,7 @@ export class AutocompletePopup implements ModalComponent {
 	constructor(rect: PosRect, onSubmit: (string) => void) {
 		this._height = "270px"
 		this._foundResults = true
-		this._allTemplates = this.LoadTemplates()
+		this._allTemplates = this._loadTemplates()
 		this._searchResults = this._allTemplates
 		this._setProperties()
 		this._rect = rect
@@ -73,7 +74,7 @@ export class AutocompletePopup implements ModalComponent {
 				key: Keys.RETURN,
 				enabled: () => true,
 				exec: () => {
-					this._onSubmit(this._searchResults[this._currentindex].content) // TODO: Remove filter text and #
+					this._onSubmit(this._searchResults[this._currentindex].content)
 					this._close()
 					m.redraw()
 				},
@@ -157,10 +158,15 @@ export class AutocompletePopup implements ModalComponent {
 							}
 						}, m(TemplateDisplay, templateAttrs))
 					})
-					: m("", "Nothing found")
+					: m(".row-selected", {style:{marginTop: "10px", textAlign: "center"}},"Nothing found")
 				), // Template Text END
 			]
 		)
+	}
+
+	_loadTemplates(): Array<TemplateDisplayAttrs> {
+		// returnTemplates()
+		return JSON.parse(assertNotNull(localStorage.getItem("Templates")))
 	}
 
 	_setProperties() { /* calculate height with certain amount of templates and reset selection to first template */
@@ -214,15 +220,5 @@ export class AutocompletePopup implements ModalComponent {
 
 	popState(e: Event): boolean {
 		return true
-	}
-
-	LoadTemplates(): Array<TemplateDisplayAttrs> {
-		let templates = localStorage.getItem("Templates")
-		if (templates !== null) {
-			templates = assertNotNull(templates)
-			return JSON.parse(templates)
-		} else {
-			return []
-		}
 	}
 }
