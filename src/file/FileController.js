@@ -4,7 +4,7 @@ import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/Env"
 import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
-import {asyncImport, downcast, neverNull} from "../api/common/utils/Utils"
+import {asyncImport, downcast, getMailBodyText, neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -15,7 +15,7 @@ import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
-import {mailsToEmlDataFiles} from "../mail/MailUtils"
+import {mailsToEmlDataFiles, mailsToMsgDataFiles} from "../mail/MailUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {nativeApp} from "../native/NativeWrapper"
@@ -277,7 +277,7 @@ export class FileController {
 	 */
 	exportMails(mails: Array<Mail>): void {
 		if (mails.length > 0) {
-			mailsToEmlDataFiles(downcast(mails))
+			mailsToMsgDataFiles(downcast(mails))
 				.then(dataFiles => dataFiles.map(df => ({name: df.name, content: utf8Uint8ArrayToString(df.data)})))
 				.then(emls => nativeApp.invokeNative(new Request('dragExport', emls)))
 		}

@@ -101,6 +101,7 @@ function distBuildConfig() {
 			"plugin-babel": "node_modules/systemjs-plugin-babel/plugin-babel.js",
 			"systemjs-babel-build": "node_modules/systemjs-plugin-babel/systemjs-babel-node.js",
 			"transform-flow-strip-types": "@node/babel-plugin-transform-flow-strip-types/lib/index.js",
+			"transform-object-rest-spread": "@node/babel-plugin-transform-object-rest-spread/lib/index.js",
 		})
 	})
 }
