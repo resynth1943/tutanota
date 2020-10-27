@@ -9,6 +9,7 @@ import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {noOp} from "../api/common/utils/Utils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
+import {base64ToUint8Array} from "../api/common/utils/Encoding"
 
 export default class DesktopUtils {
 
@@ -274,7 +275,7 @@ export default class DesktopUtils {
 		const dirPromise = fs.mkdirp(dirPath)
 		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
 		const legalFiles = files.map(f => ({
-			content: f.content,
+			content: base64ToUint8Array(f.content),
 			name: legalNames[f.name].shift()
 		}))
 		const writePromise = () => Promise.map(legalFiles, f => {

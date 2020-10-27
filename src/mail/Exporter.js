@@ -1,5 +1,5 @@
 // @flow
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {pad} from "../api/common/utils/StringUtils"
 import {load} from "../api/main/Entity"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
@@ -35,22 +35,30 @@ export function mailToEmlFile(mail: Mail, sanitizedHtmlBody: string): Promise<Da
 	})
 }
 
+export function selectMsgFiles(): void {
+	console.log("show file chooser")
+	fileController.showFileChooser(true, ["msg"]).then(files => {
+		msgFiles = files
+		msgFiles.forEach(f => console.log(f.size))
+	})
+}
+
 export function mailToMsgFile(mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
-	let p = Promise.resolve()
-	if (msgFiles.length === 0) {
-		p = fileController.showFileChooser(true, ["msg"]).then(files => {
-			msgFiles = files
-		})
-	}
-	return p.then(() => {
-		let file = msgFiles.find(f => f.name === mail.subject) || msgFiles[0]
+	if (msgFiles.length === 0 || !msgFiles.find(f => f.name === mail.subject)) {
 		let tmpFile = createFile()
-		let filename = [...formatSortableDateTime(mail.sentDate).split(' '), mail.subject].join('-')
+		tmpFile.name = "unknown"
+		tmpFile.mimeType = "application/vnd.ms-outlook"
+		tmpFile.size = "0"
+		return Promise.resolve(createDataFile(tmpFile, new Uint8Array(0)))
+	} else {
+		let file = msgFiles.find(f => f.name === mail.subject)
+		let tmpFile = createFile()
 		tmpFile.name = file.name
 		tmpFile.mimeType = "application/vnd.ms-outlook"
 		tmpFile.size = String(file.data.byteLength)
-		return Promise.resolve(createDataFile(tmpFile, data))
-	})
+		console.log(file.data.byteLength)
+		return Promise.resolve(createDataFile(tmpFile, file.data))
+	}
 }
 
 /**

@@ -65,6 +65,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
+import {selectMsgFiles} from "./Exporter"
 
 assertMainOrNode()
 
@@ -222,7 +223,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.HOME,
 				exec: () => {
-					if (this.mailViewer) this.mailViewer.scrollToTop()
+					selectMsgFiles()
 				},
 				help: "scrollToTop_action"
 			},

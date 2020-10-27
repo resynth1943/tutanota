@@ -79,10 +79,12 @@ export class MailListView implements Component {
 			showStatus: false,
 			className: className,
 			dragStart: (ev, virtualRow, mails) => {
+				console.log("dragstart", ev.altKey, isDesktop())
 				// alt + drag on desktop will attempt to export the mails to the OS.
-				if(ev.altKey && isDesktop()) {
+				if (ev.altKey && isDesktop()) {
 					// interpret as an export drag to the file system
 					ev.preventDefault()
+					console.log("start drag")
 					fileController.exportMails(mails)
 					return true
 				}
@@ -183,8 +185,8 @@ export class MailListView implements Component {
 					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
 				]),
-			m(".rel.flex-grow", m(this.list))
-		])
+				m(".rel.flex-grow", m(this.list))
+			])
 			: m(this.list)
 	}
 

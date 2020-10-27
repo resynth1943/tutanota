@@ -17,7 +17,7 @@ import {sanitizeFilename} from "../api/common/utils/FileUtils"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {mailsToEmlDataFiles, mailsToMsgDataFiles} from "../mail/MailUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
+import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {nativeApp} from "../native/NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -278,7 +278,7 @@ export class FileController {
 	exportMails(mails: Array<Mail>): void {
 		if (mails.length > 0) {
 			mailsToMsgDataFiles(downcast(mails))
-				.then(dataFiles => dataFiles.map(df => ({name: df.name, content: utf8Uint8ArrayToString(df.data)})))
+				.then(dataFiles => dataFiles.map(df => ({name: df.name, content: uint8ArrayToBase64(df.data)})))
 				.then(emls => nativeApp.invokeNative(new Request('dragExport', emls)))
 		}
 	}
