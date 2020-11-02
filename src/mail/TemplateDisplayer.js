@@ -1,18 +1,17 @@
 //@flow
 import m from "mithril"
 import {assertNotNull} from "../api/common/utils/Utils"
+import type {Template} from "../settings/TemplateViewList"
 
 export type TemplateDisplayAttrs = {
-	title: string;
-	content: string;
-	id: ?string;
+	template:Template
 }
 
-export class TemplateDisplay implements MComponent<TemplateDisplayAttrs> {
+export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 	_id: string
 
 	view(vnode: Vnode<TemplateDisplayAttrs>): Children {
-		const {title, content, id} = vnode.attrs
+		const {title, content, id} = vnode.attrs.template
 		this._id = assertNotNull(id)
 		return m(".flex.flex-column", {style: {marginBottom: "3px", marginLeft: "8px", height: "90px"}}, [
 			m(".flex", [
