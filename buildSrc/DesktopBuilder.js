@@ -32,7 +32,7 @@ function build(opts) {
 		version: version,
 		updateUrl: updateUrl,
 		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		sign: nameSuffix !== '-snapshot' && updateUrl !== "",
+		sign: false, // nameSuffix !== '-snapshot' && updateUrl !== "",
 		notarize: notarize,
 		unpacked: unpacked
 	})
