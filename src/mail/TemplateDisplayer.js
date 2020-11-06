@@ -9,9 +9,14 @@ export type TemplateDisplayAttrs = {
 
 export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 	_id: string
+	_length: number
 
 	view(vnode: Vnode<TemplateDisplayAttrs>): Children {
+		this._length = 0
 		const {title, content, id, index} = vnode.attrs.template
+		Object.keys(content).map(() => {
+			this._length++
+		})
 		this._id = assertNotNull(id)
 		return m(".flex.flex-column", {style: {marginBottom: "3px", marginLeft: "8px", height: "auto", width: "100%"}}, [
 			m(".flex.flex-column", [
@@ -29,7 +34,7 @@ export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 							height: "min-content",
 						}
 					}, "#" + this._id.toLowerCase()) : null,
-					m("", {style: {fontSize: "14px", fontWeight: "bold"}}, index === 0 ? "" : index !== 1 ? index + " languages" : index  + " language")
+					m("", {style: {fontSize: "14px", fontWeight: "bold"}}, this._length === 0 ? "" : this._length !== 1 ? this._length + " languages" : this._length  + " language")
 				])
 
 			]),
@@ -45,3 +50,4 @@ export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 		)
 	}
 }
+
