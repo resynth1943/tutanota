@@ -49,6 +49,8 @@ export class TemplatePopup implements ModalComponent {
 	_dropdownDom: HTMLElement
 	_resizeListener: Function
 
+	// TODO: Try preventDefault
+
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		//templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 		this._rect = rect
