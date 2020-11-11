@@ -13,11 +13,11 @@ export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 
 	view(vnode: Vnode<TemplateDisplayAttrs>): Children {
 		this._length = 0
-		const {title, content, id, index} = vnode.attrs.template
+		const {title, content, groupKey} = vnode.attrs.template
 		Object.keys(content).map(() => {
 			this._length++
 		})
-		this._id = assertNotNull(id)
+		this._id = assertNotNull(groupKey)
 		return m(".flex.flex-column", {style: {marginBottom: "3px", marginLeft: "8px", height: "auto", width: "100%"}}, [
 			m(".flex.flex-column", [
 				m("", {
@@ -27,7 +27,7 @@ export class TemplateDisplayer implements MComponent<TemplateDisplayAttrs> {
 					}
 				}, title.length <= 40 ? title : title.substring(0, 40) + "..."),
 				m(".flex    ",  {style:{marginTop: "4px"}} , [
-					id !== "" ? m(".b.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s", {
+					groupKey !== "" ? m(".b.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s", {
 						style: {
 							fontSize: "12px",
 							width: "min-content",
