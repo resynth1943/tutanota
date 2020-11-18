@@ -60,6 +60,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "./TemplatePopup"
 import {TemplatePopup} from "./TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 
@@ -548,15 +549,17 @@ function openTemplateFeature(editor: ?Editor) {
 		_editor.focus()
 	}
 
-	// if cursor is at the bottom from editor, display modal above it
-	let topRect = 0
-	if (window.innerHeight - cursorRect.top < 400) {
-		topRect = window.innerHeight - 400
+	let rect
+	const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
+	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height
+	// By default the popup is shown below the cursor. If there is not enought space move the pop above the cursor
+	if (availableHeightBelowCursor < popUpHeight) {
+		const diff = popUpHeight - availableHeightBelowCursor
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, cursorRect.width, cursorRect.height);
 	} else {
-		topRect = cursorRect.top
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, cursorRect.width, cursorRect.height);
 	}
-	const rectNew = new DomRectReadOnlyPolyfilled(editorRect.left, topRect + 15, cursorRect.width, cursorRect.height);
-	new TemplatePopup(rectNew, onsubmit, highlightedText).show()
+	new TemplatePopup(rect, onsubmit, highlightedText).show()
 }
 
 /**

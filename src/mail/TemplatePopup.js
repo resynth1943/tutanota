@@ -21,6 +21,9 @@ import {TemplateExpander} from "./TemplateExpander"
 import {theme} from "../gui/theme"
 
 
+export const TEMPLATE_POPUP_HEIGHT = 340;
+export const TEMPLATE_POPUP_WIDTH = 375;
+
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
 	_filterTextAttrs: TextFieldAttrs
@@ -49,35 +52,19 @@ export class TemplatePopup implements ModalComponent {
 		this._allTemplates = loadTemplates()
 		this._selectedLanguage = stream(this._allTemplates.length ? Object.keys(this._allTemplates[0].content)[0] : "")
 		this._searchResults = this._allTemplates
-		this._setProperties()
+		//this._setProperties()
 		this._rect = rect
 		this._onSubmit = onSubmit
+
+		// initial search
+		this.search(highlightedText)
+
 		this._filterTextAttrs = {
 			label: () => "Filter... (# to search for Tag)",
 			value: stream(highlightedText),
 			focusOnCreate: true,
 			oninput: (input) => { /* Filter function */
-				this._currentIndex = 0
-				if (input === "") {
-					this._searchResults = this._allTemplates
-				} else if (input.charAt(0) === "#") { // search ID
-					this._searchResults = searchForTag(input, this._allTemplates)
-				} else { // search title / content
-					this._searchResults = searchInContent(input, this._allTemplates)
-				}
-				this._setSelectedLanguage()
-				this._setProperties()
-			},
-			oncreate: () => {
-				if (highlightedText === "") {
-					console.log("text empty")
-				} else if (highlightedText.charAt(0) === "#") {
-					this._searchResults = searchForTag(highlightedText, this._allTemplates)
-				} else {
-					this._searchResults = searchInContent(highlightedText, this._allTemplates)
-				}
-				this._setSelectedLanguage()
-				this._setProperties()
+				this.search(input)
 			},
 			onInputCreate: (vnode) => {
 				this._fieldDom = vnode.dom
@@ -88,7 +75,6 @@ export class TemplatePopup implements ModalComponent {
 				key: Keys.ESC,
 				enabled: () => true,
 				exec: () => {
-					this._onSubmit("")
 					this._close()
 					m.redraw()
 				},
@@ -107,6 +93,19 @@ export class TemplatePopup implements ModalComponent {
 		]
 	}
 
+	search(text: string): void {
+		this._currentIndex = 0
+		if (text === "") {
+			this._searchResults = this._allTemplates
+		} else if (text.charAt(0) === "#") {
+			this._searchResults = searchForTag(text, this._allTemplates)
+		} else {
+			this._searchResults = searchInContent(text, this._allTemplates)
+		}
+		this._setSelectedLanguage()
+		//this._setProperties()
+	}
+
 	view: () => Children = () => {
 		return m(".flex.abs.elevated-bg.plr.border-radius.dropdown-shadow", { // Main Wrapper
 				style: {
@@ -122,7 +121,7 @@ export class TemplatePopup implements ModalComponent {
 					e.stopPropagation()
 				},
 			}, [
-				m(".flex.flex-column", {style: {height: "340px", width: "375px"}}, [ // left
+				m(".flex.flex-column", {style: {height: px(TEMPLATE_POPUP_HEIGHT), width: px(TEMPLATE_POPUP_WIDTH)}}, [ // left
 					m(".flex", { // Header Wrapper
 						style: {
 							flexDirection: "row",
@@ -234,6 +233,7 @@ export class TemplatePopup implements ModalComponent {
 				m(".flex", {
 						onclick: (e) => {
 							this._currentIndex = index // navigation via mouseclick
+							// this._selectedTemplate = template
 							this._fieldDom.focus()
 							this._selectedLanguage = stream(this._searchResults.length ? Object.keys(this._searchResults[this._currentIndex].content)[0] : "")
 							e.stopPropagation()
@@ -282,11 +282,9 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_setProperties() { /* improvement to dynamically calculate height with certain amount of templates and reset selection to first template */
-
 		/*
 			Currently disabled. Remove fixed height from div for height to be calculated individually!
 		 */
-
 		if (this._searchResults.length < 7 && this._searchResults.length !== 0) {
 			this._height = (this._searchResults.length * 47.7167) + 10 + "px"
 		} else if (this._searchResults.length === 0) {
@@ -294,7 +292,6 @@ export class TemplatePopup implements ModalComponent {
 		} else {
 			this._height = "285px"
 		}
-		this._currentIndex = 0
 	}
 
 	_changeSelectionViaKeyboard(action: string) { /* count up or down in templates */
