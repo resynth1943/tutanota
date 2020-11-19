@@ -21,13 +21,13 @@ import type {
 import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/EntityFunctions"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
-import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
 import {groupBy, numberRange, splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import type {BrowserData} from "../../../../src/misc/ClientConstants"
 import {browserDataStub} from "../../TestUtils"
+import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/SearchIndexDb"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
 type KeyToIndexEntriesWithType = {

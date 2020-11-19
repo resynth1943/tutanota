@@ -136,9 +136,10 @@ function babelCompile(src, srcFile) {
 	return babel.transform(src, {
 		"plugins": [
 			"transform-flow-strip-types",
+			"babel-plugin-transform-es2015-modules-commonjs",
 			"transform-class-properties",
 		],
-		"presets": ["es2015"],
+		// "presets": ["es2015"],
 		comments: false,
 		babelrc: false,
 		retainLines: true,

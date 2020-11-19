@@ -3,8 +3,8 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import type {DbTransaction} from "./DbFacade"
-import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
+import type {DbKey, DbTransaction} from "./DbFacade"
+import {GroupDataOS, MetaDataOS} from "./SearchIndexDb"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -51,6 +51,7 @@ import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
+import {newSearchIndexDB} from "./SearchIndexDb"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -84,9 +85,7 @@ export class Indexer {
 		let deferred = defer()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
-			dbFacade: new DbFacade(browserData.indexedDbSupported, () => {
-				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
-			}),
+			dbFacade: newSearchIndexDB(),
 			key: neverNull(null),
 			iv: neverNull(null),
 			initialized: deferred.promise
@@ -294,7 +293,7 @@ export class Indexer {
 			return {id: m.group, type: getMembershipGroupType(m)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id | number, value: GroupData}[]) => {
+			return t.getAll(GroupDataOS).then((loadedGroups: {key: DbKey, value: GroupData}[]) => {
 				let oldGroups = loadedGroups.map((group) => {
 					const id: Id = downcast(group.key)
 					return {id, type: group.value.groupType}

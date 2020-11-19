@@ -1,6 +1,6 @@
 //@flow
 import type {Db} from "./SearchTypes"
-import {SearchTermSuggestionsOS} from "./DbFacade"
+import {SearchTermSuggestionsOS} from "./SearchIndexDb"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {utf8Uint8ArrayToString, stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import {random} from "../crypto/Randomizer"

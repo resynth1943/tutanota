@@ -11,7 +11,7 @@ import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
+import {ElementDataOS, GroupDataOS, MetaDataOS} from "./SearchIndexDb"
 import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, getMailBodyText, neverNull, ProgressMonitor} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
@@ -320,7 +320,7 @@ export class MailIndexer {
 			})
 		})
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
-		const indexLoader = new IndexLoader(this._entityRestClient)
+		const indexLoader = new IndexLoader(this._defaultCachingEntity)
 
 		return Promise.map(mailBoxes, (mBoxData => {
 			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
@@ -420,8 +420,8 @@ export class MailIndexer {
 							                  mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
 						                  }
 						                  this._core._stats.mailcount += mails.length
-						                  // Remove all processed entities from cache
-						                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
+						                  // TODO: Remove all processed entities from cache
+						                  // mails.forEach((m) => indexLoader.removeFromCache(m._id))
 						                  return this._processIndexMails(mails, indexUpdate, indexLoader)
 					                  })
 				}, {concurrency: 2})
@@ -627,23 +627,14 @@ type TimeRange = [number, number]
 type MboxIndexData = {mailListIds: Array<Id>, newestTimestamp: number, ownerGroup: Id}
 
 class IndexLoader {
-	_entityCache: EntityRestCache;
-	_entity: EntityClient;
-	_cachingEntity: EntityClient;
-
-	constructor(restClient: EntityRestInterface) {
-		this._entityCache = new EntityRestCache(restClient)
-		this._entity = new EntityClient(restClient)
-		this._cachingEntity = new EntityClient(this._entityCache)
+	entityClient: EntityClient
+	constructor(entityCLient: EntityClient) {
+		this.entityClient = entityCLient
 	}
 
 	loadMailsWithCache(mailListId: Id, [rangeStart, rangeEnd]: TimeRange): Promise<{elements: Array<Mail>, loadedCompletely: boolean}> {
-		return this._cachingEntity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
+		return this.entityClient.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
 			timestampToGeneratedId(rangeEnd), MAIL_INDEXER_CHUNK)
-	}
-
-	removeFromCache(id: IdTuple) {
-		this._entityCache._tryRemoveFromCache(MailTypeRef, listIdPart(id), elementIdPart(id))
 	}
 
 	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
@@ -669,7 +660,7 @@ class IndexLoader {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return Promise.map(byChunk, (chunk) => {
 			return chunk.length > 0
-				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
+				? this.entityClient.loadMultipleEntities(typeRef, listId, chunk)
 				: Promise.resolve([])
 		}, {concurrency: 2})
 		              .then(entityResults => flat(entityResults))

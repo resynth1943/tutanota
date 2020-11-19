@@ -23,6 +23,7 @@ import {ShareFacade} from "./facades/ShareFacade"
 import {RestClient} from "./rest/RestClient"
 import {SuspensionHandler} from "./SuspensionHandler"
 import {EntityClient} from "../common/EntityClient"
+import {newEntityCacheDb} from "./rest/EntityCacheDb"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -59,7 +60,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient)
 
 	locator._browserData = browserData
-	let cache = new EntityRestCache(entityRestClient)
+	let cache = new EntityRestCache(entityRestClient, newEntityCacheDb())
 	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
