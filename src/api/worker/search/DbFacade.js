@@ -314,7 +314,11 @@ export class IndexedDbTransaction implements DbTransaction {
 						}
 					}
 					result.push(cursor.value)
-					cursor.continue()
+					if (result.length < count) {
+						cursor.continue()
+					} else {
+						callback(null, result)
+					}
 				} else {
 					callback(null, result)
 				}
