@@ -5,7 +5,8 @@ import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
-	GENERATED_MIN_ID, getElementId,
+	GENERATED_MIN_ID,
+	getElementId,
 	getLetId,
 	HttpMethod,
 	isSameTypeRef,
@@ -32,9 +33,9 @@ import {DbFacade} from "../search/DbFacade"
 import type {EntityCacheEntry, EntityCacheListInfoEntry} from "./EntityCacheDb"
 import {EntityListInfoOS, EntityRestCacheOS} from "./EntityCacheDb"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/InstanceMapper"
-import {uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {resolveSessionKey} from "../crypto/CryptoFacade"
 import {lastThrow} from "../../common/utils/ArrayUtils"
+import {getPerformanceTimestamp} from "../search/IndexUtils"
 
 const ValueType = EC.ValueType
 
@@ -64,9 +65,9 @@ export class EntityRestCache implements EntityRestInterface {
 	_ignoredTypes: TypeRef<any>[];
 	_entityRestClient: EntityRestInterface;
 	_db: DbFacade;
-	_temporarySK: Aes128Key = uint8ArrayToBitArray(
-		new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
-	)
+	// _temporarySK: Aes128Key = uint8ArrayToBitArray(
+	// 	new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
+	// )
 
 	/**
 	 * stores all contents that would be stored on the server, otherwise
@@ -394,7 +395,9 @@ export class EntityRestCache implements EntityRestInterface {
 
 	async _provideFromCache<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<Array<T>> {
 		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
+		const timeStart = getPerformanceTimestamp()
 		const entries = await transaction.getRange(EntityRestCacheOS, [typeRef.app, typeRef.type, listId], start, count, reverse)
+		console.log(`reading ${typeRef.type} range (${entries.length}) took ${getPerformanceTimestamp() - timeStart}ms`)
 		const model = await resolveTypeReference(typeRef)
 		// TODO: filter by listInfo here so that elements outside of range are not returned
 		return Promise.mapSeries(entries, async (e) => {
@@ -515,11 +518,14 @@ export class EntityRestCache implements EntityRestInterface {
 	}
 
 	async _getFromCache<T>(typeRef: TypeRef<T>, listId: ?Id, id: Id): Promise<?T> {
+		const start = getPerformanceTimestamp()
 		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
 		const data = await transaction.get(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", id])
+		console.log(`reading ${typeRef.type} took ${getPerformanceTimestamp() - start}ms`)
 		if (data) {
 			const typeModel = await resolveTypeReference(typeRef)
-			return decryptAndMapToInstance(typeModel, data, this._temporarySK)
+			const sessionKey = await resolveSessionKey(await resolveTypeReference(typeRef), data)
+			return decryptAndMapToInstance(typeModel, data, sessionKey)
 		} else {
 			return null
 		}
@@ -542,13 +548,16 @@ export class EntityRestCache implements EntityRestInterface {
 			elementId = originalEntity._id
 		}
 		const typeModel = await resolveTypeReference(entity._type)
-		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS, EntityListInfoOS])
 		const sessionKey = await resolveSessionKey(typeModel, entity)
 		const data: EntityCacheEntry = await encryptAndMapToLiteral(typeModel, entity, sessionKey)
 
+		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS, EntityListInfoOS])
+
 		const typeRef = entity._type
+		const timeStart = getPerformanceTimestamp()
 		// noinspection ES6MissingAwait
 		transaction.put(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", elementId], data)
+		console.log(`writing ${typeRef.type} took ${getPerformanceTimestamp() - timeStart}ms`)
 
 		if (listId) {
 			const oldListInfo = await transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
