@@ -24,9 +24,10 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
 		const {content} = attrs.template
 
-		return m("flex.flex-column", {
+		return m(".flex.flex-column", {
 			style: {
-				width: "375px"
+				flexGrow: "1",
+				maxHeight: "296px"
 			},
 			onkeydown: (e) => {
 				if (e.keyCode === 9) {
@@ -37,7 +38,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				}
 			}
 		}, [
-			m("", {style: {marginTop: "-12px"}}, [
+			m("", {style: {marginTop: "-12px", marginBottom: "4px"}}, [
 				m(DropDownSelectorN, {
 					label: () => "Choose Language",
 					items: this._returnLanguages(content),
@@ -54,7 +55,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 					},
 				})
 			]),
-			m("", {style: {overflow: "scroll", height: "246.8833px", width: "355px", overflowWrap: "break-word"}},
+			m(".flex", {style: {overflow: "scroll", overflowWrap: "anywhere"}},
 				m.trust(content[attrs.language])
 			)
 		])

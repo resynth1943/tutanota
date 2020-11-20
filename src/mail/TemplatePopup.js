@@ -19,10 +19,14 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TemplateExpander} from "./TemplateExpander"
 import {theme} from "../gui/theme"
 import type {LanguageCode} from "../misc/LanguageViewModel"
+import {createDropdown} from "../gui/base/DropdownN"
+import {lang, languageByCode} from "../misc/LanguageViewModel"
+import {Dialog} from "../gui/base/Dialog"
+import {DropDownSelector} from "../gui/base/DropDownSelector"
 
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
-export const TEMPLATE_POPUP_WIDTH = 375;
+export const TEMPLATE_POPUP_WIDTH = 750;
 
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
@@ -39,8 +43,9 @@ export class TemplatePopup implements ModalComponent {
 	_selected: boolean
 	_cursorHover: boolean
 	_expanded: boolean
-	_height: string
+	//_height: string
 	_currentIndex: number = 0
+	_initialWindowWidth: number
 
 	_selectedLanguage: Stream<LanguageCode>
 	_availableLanguages: Array<Object>
@@ -49,7 +54,8 @@ export class TemplatePopup implements ModalComponent {
 	_dropdownDom: HTMLElement
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
-		this._height = "270px"
+		//this._height = "270px"
+		this._initialWindowWidth = window.innerWidth
 		this._allTemplates = loadTemplates()
 		this._selectedLanguage = stream(Object.keys(this._allTemplates[0].content)[0])
 		this._searchResults = this._allTemplates
@@ -87,11 +93,7 @@ export class TemplatePopup implements ModalComponent {
 				key: Keys.RETURN,
 				enabled: () => true,
 				exec: () => {
-					if (this._selectedTemplate) {
-						this._onSubmit((this._selectedTemplate.content[this._selectedLanguage()]))
-						this._close()
-						m.redraw()
-					}
+					this._sizeDependingSubmit()
 				},
 				help: "insertTemplate_action"
 			},
@@ -114,26 +116,19 @@ export class TemplatePopup implements ModalComponent {
 	view: () => Children = () => {
 		return m(".flex.abs.elevated-bg.plr.border-radius.dropdown-shadow", { // Main Wrapper
 				style: {
-					width: "750px",
-					margin: "1px",
+					width: this._isScreenWideEnough() ? px(TEMPLATE_POPUP_WIDTH) : px(TEMPLATE_POPUP_WIDTH / 2),
+					height: px(TEMPLATE_POPUP_HEIGHT),
 					top: px(this._rect.top),
-					left: px(this._rect.left),
-					flexDirection: "row",
-					height: this._height + "px",
-					cursor: this._cursorHover ? "pointer" : "default",
+					left: this._isScreenWideEnough() ? px(this._rect.left + (this._getWindowWidthChange() / 2)) : px(window.innerWidth / 20),
+					margin: "1px",
+					flexDirection: "row", cursor: this._cursorHover ? "pointer" : "default",
 				},
 				onclick: (e) => {
 					e.stopPropagation()
 				},
 			}, [
-				m(".flex.flex-column", {style: {height: px(TEMPLATE_POPUP_HEIGHT), width: px(TEMPLATE_POPUP_WIDTH)}}, [ // left
+				m(".flex.flex-column", {style: {flex: "1", marginLeft: "-2px", marginRight: "3px",}}, [ // left
 					m(".flex", { // Header Wrapper
-						style: {
-							flexDirection: "row",
-							height: "70px",
-							marginBottom: "-20px",
-							width: "375px"
-						},
 						onkeydown: (e) => { /* simulate scroll with arrow keys */
 							if (e.keyCode === 40) { // DOWN
 								this._changeSelectionViaKeyboard("next")
@@ -142,7 +137,9 @@ export class TemplatePopup implements ModalComponent {
 								this._changeSelectionViaKeyboard("previous")
 							} else if (e.keyCode === 9) { // TAB
 								e.preventDefault()
-								this._dropdownDom.focus()
+								if (this._isScreenWideEnough()) {
+									this._dropdownDom.focus()
+								}
 							}
 						},
 					}, [
@@ -156,10 +153,8 @@ export class TemplatePopup implements ModalComponent {
 					]), // Header Wrapper END
 					m(".flex.flex-column.scroll", { // left list
 							style: {
-								height: this._height,
 								overflowY: "show",
 								marginBottom: "3px",
-								width: "375px"
 							},
 							oncreate: (vnode) => {
 								this._scrollDom = vnode.dom
@@ -170,17 +165,19 @@ export class TemplatePopup implements ModalComponent {
 					), // left end
 				]),
 				[
-					this._containsResult() && this._selectedTemplate ? this._renderTemplateExpander(this._selectedTemplate) : null
+					this._containsResult() && this._selectedTemplate
+					&& this._isScreenWideEnough() ? this._renderTemplateExpander(this._selectedTemplate) : null
 				],
 			],
 		)
 	}
 
 	_renderTemplateExpander(template: Template): Children {
-		return m("", {
+		return m(".flex.flex-column", {
 			style: {
-				height: "340px",
-				marginLeft: "7px"
+				marginLeft: "3px",
+				marginRight: "-2px",
+				flex: "1"
 			}
 		}, [
 			m(TemplateExpander, {
@@ -198,9 +195,6 @@ export class TemplatePopup implements ModalComponent {
 			}),
 			m(".flex", {
 				style: {
-					width: "340px",
-					marginLeft: "auto",
-					marginRight: "5px",
 					justifyContent: "right"
 				}
 			}, [
@@ -253,7 +247,6 @@ export class TemplatePopup implements ModalComponent {
 						}
 					}, [
 						m(TemplatePopupResultRow, {template}),
-						// this._selected ? m("", m(ButtonN, submitButtonAttrs)) : null,
 						this._isSelectedTemplate(template) ? m(Icon, {
 							icon: Icons.ArrowForward,
 							style: {marginTop: "auto", marginBottom: "auto"}
@@ -267,7 +260,6 @@ export class TemplatePopup implements ModalComponent {
 	_isSelected(index: number): boolean {
 		return (index === this._currentIndex)
 	}
-
 
 	_setSelectedTemplate(template: Template) {
 		this._selectedTemplate = template
@@ -287,16 +279,61 @@ export class TemplatePopup implements ModalComponent {
 		}
 	}
 
+	_isScreenWideEnough(): boolean {
+		return window.innerWidth > (TEMPLATE_POPUP_WIDTH + 20)
+	}
+
+	_getWindowWidthChange(): number {
+		console.log("Change:", window.innerWidth - this._initialWindowWidth)
+		return window.innerWidth - this._initialWindowWidth
+	}
+
 	_setProperties() { /* improvement to dynamically calculate height with certain amount of templates and reset selection to first template */
 		/*
 			Currently disabled. Remove fixed height from div for height to be calculated individually!
-		 */
+
 		if (this._searchResults.length < 7 && this._searchResults.length !== 0) {
 			this._height = (this._searchResults.length * 47.7167) + 10 + "px"
 		} else if (this._searchResults.length === 0) {
 			this._height = "40px"
 		} else {
 			this._height = "285px"
+		}
+		*/
+
+	}
+
+	_sizeDependingSubmit() {
+		if (this._isScreenWideEnough() && this._selectedTemplate) {
+			this._onSubmit(this._selectedTemplate.content[this._selectedLanguage()])
+			this._close()
+			m.redraw()
+		} else if (!this._isScreenWideEnough() && this._selectedTemplate) {
+			let languages = (Object.keys(this._selectedTemplate.content)).map(code => {
+				return {name: lang.get(languageByCode[code].textId), value: code}
+			})
+			if (languages.length > 1) {
+				let selectedLanguage: Stream<LanguageCode> = stream(languages[0].value)
+				let languageChooser = new DropDownSelector("chooseLanguage_action", null, languages, selectedLanguage, 250)
+				let submitContentAction = (dialog) => {
+					if (this._selectedTemplate) {
+						this._onSubmit(this._selectedTemplate.content[selectedLanguage()])
+						dialog.close()
+						this._close()
+						m.redraw()
+					}
+				}
+				Dialog.showActionDialog({
+					title: lang.get("chooseLanguage_action"),
+					child: {view: () => m(languageChooser)},
+					allowOkWithReturn: true,
+					okAction: submitContentAction
+				})
+			} else if (languages.length === 1 && this._selectedTemplate){
+				this._onSubmit(this._selectedTemplate.content[this._selectedLanguage()])
+				this._close()
+				m.redraw()
+			}
 		}
 	}
 

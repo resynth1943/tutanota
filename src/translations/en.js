@@ -190,6 +190,7 @@ module.exports = {
 		"chooseNumber_msg": "Please click on one of your phone numbers below to receive your Tutanota password as text message.",
 		"choosePhotos_action": "Photos",
 		"choose_label": "Choose ...",
+		"chooseLanguage_action": "Choose Language",
 		"clearFolder_action": "Clear folder",
 		"clickNumber_msg": "Please click on your phone number below to receive your Tutanota password as text message.",
 		"clickToUpdate_msg": "Click here if you want to apply it now, or let us auto install on quit.",

@@ -100,7 +100,6 @@ export class TemplateEditor {
 						let newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
 						let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 						let addLanguageOkAction = (dialog) => {
-							console.log("newlanguagecode: ", newLanguageCode())
 							this._setLanguageContent()
 							this._selectedLanguage(newLanguageCode())
 							this._addedLanguages.push(languageByCode[newLanguageCode()])

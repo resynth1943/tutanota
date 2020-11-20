@@ -194,6 +194,7 @@ module.exports = {
 		"chooseNumber_msg": "Bitte klicke auf eine deiner Telefonnummern, um das Tutanota-Passwort per SMS zu erhalten.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Bitte auswählen ...",
+		"chooseLanguage_action": "Wähle eine Sprache",
 		"clearFolder_action": "Ordner leeren",
 		"clickNumber_msg": "Bitte klicke auf deine Telefonnummer, um das Tutanota-Passwort per SMS zu erhalten.",
 		"clickToUpdate_msg": "Hier klicken um sie sofort zu installieren.",
