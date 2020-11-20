@@ -2,7 +2,7 @@
 
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, typedEntries} from "../api/common/utils/Utils"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import m from "mithril"
@@ -18,27 +18,32 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import {Icons} from "../gui/base/icons/Icons"
 import {createDropdown} from "../gui/base/DropdownN"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {lang, languages} from "../misc/LanguageViewModel"
+import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
+import type {Language, LanguageCode} from "../misc/LanguageViewModel"
+
+
+// TODO: REPLACE ALL DYNAMIC LABELS WITH TRANSLATIONKEYS !!
+
 
 export class TemplateEditor {
 	_templateContentEditor: HtmlEditor
 	_templateTag: Stream<string>
 	_templateTitle: Stream<string>
 	_templateContents: Stream<string>
-	_selectedLanguage: Stream<string>
+	_selectedLanguage: Stream<LanguageCode>
 	_dialog: Dialog
 	newTemplate: Template
 	_selectedValue: Stream<string> = stream("Test")
-	_allLanguages: string[]
+	_allLanguages: Language[]
 	view: Function
-	_languageContent: {string: string}
-	_addedLanguages: string[]
+	_languageContent: {[LanguageCode]: string}
+	_addedLanguages: Language[]
 
-	constructor(keyList: Array<Template>, template: ?Template, entityUpdate: EntityEventsListener) {
+	constructor(allImportedTemplates: Array<Template>, template: ?Template, entityUpdate: EntityEventsListener) {
 		this._templateTitle = stream("")
 		this._templateTag = stream("")
 		this._templateContents = stream("")
-		this._selectedLanguage = stream("")
+		this._selectedLanguage = stream()
 		this._allLanguages = []
 		this._initLanguages()
 		this._languageContent = {}
@@ -47,23 +52,7 @@ export class TemplateEditor {
 		this._templateContentEditor = new HtmlEditor(() => "Content", {enabled: true})
 			.showBorders()
 			.setMinHeight(500)
-
-		if (template) {
-			this._templateTitle(neverNull(template).title)
-			this._templateTag(neverNull(template).tag || "")
-			this._templateContents(neverNull(template).content[this._selectedLanguage()])
-			Object.keys(template.content).map(language => {
-				this._addedLanguages.push(language)
-			})
-			for (const [key, value] of Object.entries(template.content)) {
-				this._languageContent[key] = value
-			}
-			this._templateContentEditor.setValue(template.content[this._addedLanguages[0]])
-		} else {
-			this._addedLanguages.push("English") // replace with default language
-			this._templateContentEditor.setValue("")
-		}
-		this._selectedLanguage(this._addedLanguages[0])
+		this._initEditorValues(template)
 
 		const titleAttrs: TextFieldAttrs = {
 			label: () => "Title",
@@ -77,7 +66,7 @@ export class TemplateEditor {
 
 		const languageAttrs: TextFieldAttrs = {
 			label: () => "Language",
-			value: this._selectedLanguage,
+			value: this._selectedLanguage.map((code) => this._getTranslatedLanguage(code)),
 			injectionsRight: () => [
 				this._addedLanguages.length > 1 ? m(ButtonN, removeButtonAttrs) : null,
 				m(ButtonN, languageButtonAttrs)
@@ -86,23 +75,21 @@ export class TemplateEditor {
 		}
 
 		const languageButtonAttrs: ButtonAttrs = {
-			label: () => "More",
+			label: () => "Languages",
 			type: ButtonType.Action,
 			icon: () => Icons.More,
 			click: createDropdown(() => {
-				template ? template.content[this._selectedLanguage()] = this._templateContentEditor.getValue() : this._languageContent[this._selectedLanguage()] = this._templateContentEditor.getValue()
-				let toSortLanguages = this._reorganizeLanguages()
+				template ? this._setLanguageContent(template) : this._setLanguageContent()
+				let additionalLanguages = this._reorganizeLanguages()
 				let buttons = []
-				let i
-				for (i = 0; i < this._addedLanguages.length; i++) {
-					let temp = this._addedLanguages[i]
+				for (let addedLanguage of this._addedLanguages) {
+					let tempTranslatedLanguage = lang.get(addedLanguage.textId)
 					buttons.push({
-						label: () => temp,
+						label: () => tempTranslatedLanguage,
 						click: () => {
-							template ? this._templateContentEditor.setValue(template.content[temp]) : this._templateContentEditor.setValue(this._languageContent[temp])
-							this._languageContent[this._selectedLanguage()] = this._templateContentEditor.getValue()
-							this._selectedLanguage(temp)
-							console.log("temp: ", temp, "LanguageContent: ", this._languageContent)
+							template ? this._templateContentEditor.setValue(template.content[addedLanguage.code]) : this._templateContentEditor.setValue(this._languageContent[addedLanguage.code])
+							this._setLanguageContent()
+							this._selectedLanguage(addedLanguage.code)
 						},
 						type: ButtonType.Dropdown
 					})
@@ -110,12 +97,13 @@ export class TemplateEditor {
 				buttons.push({
 					label: () => "Add Language",
 					click: () => {
-						let newLanguageCode: Stream<string> = stream(toSortLanguages[0].value)
-						let tagName = new DropDownSelector("addLanguage_action", null, toSortLanguages, newLanguageCode, 250)
+						let newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
+						let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 						let addLanguageOkAction = (dialog) => {
-							this._languageContent[this._selectedLanguage()] = this._templateContentEditor.getValue()
+							console.log("newlanguagecode: ", newLanguageCode())
+							this._setLanguageContent()
 							this._selectedLanguage(newLanguageCode())
-							this._addedLanguages.push(newLanguageCode())
+							this._addedLanguages.push(languageByCode[newLanguageCode()])
 							this._templateContentEditor.setValue("")
 							dialog.close()
 						}
@@ -139,11 +127,11 @@ export class TemplateEditor {
 			Type: ButtonType.Action,
 			click: () => {
 
-				return Dialog.confirm(() => lang.get("deleteLanguageConfirmation_msg", {"{language}" : this._selectedLanguage()})).then((confirmed) => {
+				return Dialog.confirm(() => lang.get("deleteLanguageConfirmation_msg", {"{language}": this._getTranslatedLanguage(this._selectedLanguage())})).then((confirmed) => {
 					if (confirmed) {
 						delete this._languageContent[this._selectedLanguage()]
 						this._addedLanguages.splice(this._addedLanguages.indexOf(this._selectedLanguage()), 1)
-						this._selectedLanguage(this._addedLanguages[0])
+						this._selectedLanguage(this._addedLanguages[0].code)
 						this._templateContentEditor.setValue(this._languageContent[this._selectedLanguage()])
 					}
 					return confirmed
@@ -166,14 +154,16 @@ export class TemplateEditor {
 				Dialog.error(() => "Title is empty!")
 				return
 			}
+			this._setLanguageContent()
+			const hasContent = this._checkContent()
+			if (!hasContent) {
+				return
+			}
 
 			if (!template) {
-				this._languageContent[this._selectedLanguage()] = this._templateContentEditor.getValue()
-				const hasContent = this._checkContent()
-				if(!hasContent){return}
-				this.newTemplate = createTemplate(this._templateTitle(), this._templateTag(), this._languageContent, keyList.length)
-				keyList.push(this.newTemplate)
-				localStorage.setItem("Templates", JSON.stringify(keyList))
+				this.newTemplate = createTemplate(this._templateTitle(), this._templateTag(), this._languageContent, allImportedTemplates.length)
+				allImportedTemplates.push(this.newTemplate)
+				localStorage.setItem("Templates", JSON.stringify(allImportedTemplates))
 				entityUpdate([
 					{
 						application: "tutanota",
@@ -185,15 +175,8 @@ export class TemplateEditor {
 				], "fake-owner-id")
 
 			} else {
-				template.content[this._selectedLanguage()] = this._templateContentEditor.getValue()
-				this._languageContent[this._selectedLanguage()] = this._templateContentEditor.getValue()
-				const hasContent = this._checkContent()
-				if(!hasContent){return}
-				console.log("selected Language", this._selectedLanguage(), "content:", this._templateContentEditor.getValue())
-				keyList[(template.index)].title = this._templateTitle()
-				keyList[(template.index)].tag = this._templateTag()
-				keyList[(template.index)].content = this._languageContent
-				localStorage.setItem("Templates", JSON.stringify(keyList))
+				// template.content[this._selectedLanguage()] = this._templateContentEditor.getValue()
+				this._writeToLocalstorage(allImportedTemplates, template)
 				entityUpdate([
 						{
 							application: "tutanota",
@@ -210,7 +193,7 @@ export class TemplateEditor {
 		}
 
 		let dialogCloseAction = () => {
-			template ? template.content = keyList[template.index].content : null
+			template ? template.content = allImportedTemplates[template.index].content : null
 			this._dialog.close()
 		}
 
@@ -223,30 +206,77 @@ export class TemplateEditor {
 		this._dialog.show()
 	}
 
+	_setLanguageContent(template?: Template) {
+		const getValue = this._templateContentEditor.getValue()
+		if (template) {
+			template.content[this._selectedLanguage()] = getValue
+		}
+		this._languageContent[this._selectedLanguage()] = getValue
+	}
+
+	_getDefaultLanguage(): ?Language {
+		return this._allLanguages.find(t => t.code === "en")
+	}
+
+	_writeToLocalstorage(A: Array<Template>, template: Template) {
+		A[(template.index)].title = this._templateTitle()
+		A[(template.index)].tag = this._templateTag()
+		A[(template.index)].content = this._languageContent
+		localStorage.setItem("Templates", JSON.stringify(A))
+	}
+
 	_checkContent(): boolean {
-		const regex = /(<([^>]+)>)/ig
-		const contentArr = Object.entries(this._languageContent)
+		let content
+		let languageCode
+		let hasContent
+		const contentArr = typedEntries(this._languageContent)
 		for (let i = 0; i < contentArr.length; i++) {
-			let content = String(contentArr[i][1])
-			const langErr = contentArr[i][0]
-			const hasContent = !!content.replace(regex, "").length
+			content = String(contentArr[i][1])
+			languageCode = contentArr[i][0]
+			hasContent = !!content.replace(/(<([^>]+)>)/ig, "").length
 			if (!hasContent) {
-				Dialog.error(() => lang.get("languageContentEmpty_label", {"{language}" : langErr}))
+				Dialog.error(() => lang.get("languageContentEmpty_label", {"{language}": this._getTranslatedLanguage(languageCode)}))
 				return false
 			}
 		}
 		return true
 	}
 
+	_initEditorValues(template: ?Template) {
+		if (template) {
+			this._templateTitle(neverNull(template).title)
+			this._templateTag(neverNull(template).tag || "")
+			this._templateContents(neverNull(template).content[this._selectedLanguage()])
+			Object.keys(template.content).map(language => { // push existing languages of template to added languages
+				this._addedLanguages.push(languageByCode[language])
+			})
+			for (const [key, value] of typedEntries(template.content)) { // store content for each language
+				this._languageContent[key] = value
+			}
+			this._templateContentEditor.setValue(template.content[this._addedLanguages[0].code])
+		} else { // if it's a new template set the default language
+			const defaultLanguage = this._getDefaultLanguage()
+			if (defaultLanguage) {
+				this._addedLanguages.push(defaultLanguage)
+				this._templateContentEditor.setValue("")
+			}
+		}
+		this._selectedLanguage(this._addedLanguages[0].code)
+	}
+
+	_getTranslatedLanguage(code: LanguageCode): string {
+		return lang.get(languageByCode[code].textId)
+	}
+
 	_initLanguages() {
-		languages.map(language => {
-			this._allLanguages.push(lang.get(language.textId))
+		languages.forEach(language => {
+			this._allLanguages.push(language)
 		})
 	}
 
 	_reorganizeLanguages(): Array<Object> {
-		const sortedArray = this._allLanguages.map((language) => {
-			return {name: language, value: language}
+		const sortedArray = this._allLanguages.map((l) => {
+			return {name: lang.get(l.textId), value: l.code}
 		})
 		sortedArray.sort(function (a, b) { // Sort
 			var textA = a.name.toUpperCase();
@@ -257,7 +287,7 @@ export class TemplateEditor {
 		for (j = 0; j < this._addedLanguages.length; j++) {
 			let k
 			for (k = 0; k < sortedArray.length; k++) {
-				if (sortedArray[k].value === this._addedLanguages[j]) {
+				if (sortedArray[k].value === this._addedLanguages[j].code) {
 					sortedArray.splice(k, 1)
 				}
 			}

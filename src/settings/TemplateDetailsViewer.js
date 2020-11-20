@@ -16,6 +16,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {theme} from "../gui/theme"
+import {lang, languageByCode} from "../misc/LanguageViewModel"
 
 export class TemplateDetailsViewer {
 	view: Function
@@ -80,7 +81,7 @@ export class TemplateDetailsViewer {
 					m(TextFieldN, tagAttrs),
 
 					typedEntries(template.content).map(([language, content]) => m(".flex.flex-column", [
-						m(".h4.mt-l", language),
+						m(".h4.mt-l", lang.get(languageByCode[language].textId)),
 						m("",{style: {borderBottom: `2px solid ${theme.content_border}`}} , m.trust(content))
 					]))
 				])

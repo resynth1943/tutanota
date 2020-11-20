@@ -1265,6 +1265,7 @@ module.exports = {
 		"you_label": "Du",
 		"languagePluralCount_label": "{count} Sprachen",
 		"languageSingularCount_label": "{count} Sprache",
-		"languageContentEmpty_label": "Der Inhalt von {language} ist leer!"
+		"languageContentEmpty_label": "Der Inhalt von {language} ist leer!",
+		"templateFilter_label": "Filter... (# um nach Tags zu suchen)"
 	}
 }

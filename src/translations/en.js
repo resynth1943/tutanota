@@ -1270,7 +1270,7 @@ module.exports = {
 		"templateEdit_label": "edit Template",
 		"templateMain_label": "Template settings",
 		"addTemplate_label": "add Template",
-		"templateFilter_label": "Filter",
+		"templateFilter_label": "Filter... (# to search for Tag)",
 		"templateExpander_label": "show Templates",
 		"templateTitle_label": "Title",
 		"templateID_label": "ID",

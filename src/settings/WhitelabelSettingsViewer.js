@@ -5,7 +5,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {load, loadAll, loadRange, serviceRequest, update} from "../api/main/Entity"
-import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {downcast, getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -554,7 +554,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					icon: () => Icons.Add
 				},
 				lines: customerProperties.notificationMailTemplates.map((template) => {
-					const langName = lang.get(languageByCode[template.language].textId)
+					const langName = lang.get(languageByCode[downcast(template.language)].textId)
 					return {
 						cells: [langName, template.subject],
 						actionButtonAttrs: attachDropdown(

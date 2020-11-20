@@ -13,6 +13,7 @@ import {elementIdPart, isSameId} from "../api/common/EntityFunctions"
 import {SettingsView} from "./SettingsView"
 import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {TemplateEditor} from "./TemplateEditor"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 
 export class TemplateListView implements UpdatableSettingsViewer {
 	_templateFilter: Stream<string>
@@ -93,7 +94,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 
 	_showDialogWindow(existingTitle?: string, existingID?: string, existingContent?: string, index?: number, allowCancel: boolean = true) {
-		new TemplateEditor(this._keyList,null, (updates) => {
+		new TemplateEditor(this._keyList, null, (updates) => {
 			return this.entityEventsReceived(updates)
 		})
 	}
@@ -106,7 +107,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
-			return this._list.entityEventReceived( update.instanceId, update.operation)
+			return this._list.entityEventReceived(update.instanceId, update.operation)
 		}).then(() => {
 			this._settingsView.detailsViewer = null
 			m.redraw()
@@ -158,7 +159,7 @@ export class TemplateRow {
 
 }
 
-export function createTemplate(title: string, tag: string, content: {string: string}, index: number): Template {
+export function createTemplate(title: string, tag: string, content: {[LanguageCode]: string}, index: number): Template {
 	return {
 		_id: ["localstorage", title], // should be replaced to real list id when stored as list in database
 		title: title,
@@ -187,6 +188,6 @@ export type Template = {
 	_id: IdTuple;
 	title: string,
 	tag: ?string,
-	content: {[language: string]: string},
+	content: {[language: LanguageCode]: string},
 	index: number,
 }

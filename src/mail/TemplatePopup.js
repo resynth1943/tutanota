@@ -15,10 +15,10 @@ import type {Template} from "../settings/TemplateListView"
 import {loadTemplates} from "../settings/TemplateListView"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TemplateExpander} from "./TemplateExpander"
 import {theme} from "../gui/theme"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
@@ -32,6 +32,7 @@ export class TemplatePopup implements ModalComponent {
 
 	_allTemplates: Array<Template>
 	_searchResults: Array<Template>
+	_selectedTemplate: ?Template
 
 	_onSubmit: (string) => void
 
@@ -41,7 +42,7 @@ export class TemplatePopup implements ModalComponent {
 	_height: string
 	_currentIndex: number = 0
 
-	_selectedLanguage: Stream<string>
+	_selectedLanguage: Stream<LanguageCode>
 	_availableLanguages: Array<Object>
 
 	_fieldDom: HTMLElement
@@ -50,9 +51,10 @@ export class TemplatePopup implements ModalComponent {
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		this._height = "270px"
 		this._allTemplates = loadTemplates()
-		this._selectedLanguage = stream(this._allTemplates.length ? Object.keys(this._allTemplates[0].content)[0] : "")
+		this._selectedLanguage = stream(Object.keys(this._allTemplates[0].content)[0])
 		this._searchResults = this._allTemplates
 		//this._setProperties()
+		this._selectedTemplate = this._searchResults.length ? this._searchResults[0] : null
 		this._rect = rect
 		this._onSubmit = onSubmit
 
@@ -60,11 +62,12 @@ export class TemplatePopup implements ModalComponent {
 		this.search(highlightedText)
 
 		this._filterTextAttrs = {
-			label: () => "Filter... (# to search for Tag)",
+			label: "templateFilter_label",
 			value: stream(highlightedText),
 			focusOnCreate: true,
 			oninput: (input) => { /* Filter function */
 				this.search(input)
+				this._selectedTemplate = this._searchResults ? this._searchResults[0] : null
 			},
 			onInputCreate: (vnode) => {
 				this._fieldDom = vnode.dom
@@ -84,9 +87,11 @@ export class TemplatePopup implements ModalComponent {
 				key: Keys.RETURN,
 				enabled: () => true,
 				exec: () => {
-					this._getSelectedTemplate() ? this._onSubmit((this._getSelectedTemplate()).content[this._selectedLanguage()]) : null
-					this._close()
-					m.redraw()
+					if (this._selectedTemplate) {
+						this._onSubmit((this._selectedTemplate.content[this._selectedLanguage()]))
+						this._close()
+						m.redraw()
+					}
 				},
 				help: "insertTemplate_action"
 			},
@@ -102,7 +107,7 @@ export class TemplatePopup implements ModalComponent {
 		} else {
 			this._searchResults = searchInContent(text, this._allTemplates)
 		}
-		this._setSelectedLanguage()
+		this._containsResult() ? this._setSelectedLanguage() : null
 		//this._setProperties()
 	}
 
@@ -165,7 +170,7 @@ export class TemplatePopup implements ModalComponent {
 					), // left end
 				]),
 				[
-					this._containsResult() ? this._renderTemplateExpander(this._getSelectedTemplate()) : null
+					this._containsResult() && this._selectedTemplate ? this._renderTemplateExpander(this._selectedTemplate) : null
 				],
 			],
 		)
@@ -233,29 +238,23 @@ export class TemplatePopup implements ModalComponent {
 				m(".flex", {
 						onclick: (e) => {
 							this._currentIndex = index // navigation via mouseclick
-							// this._selectedTemplate = template
 							this._fieldDom.focus()
-							this._selectedLanguage = stream(this._searchResults.length ? Object.keys(this._searchResults[this._currentIndex].content)[0] : "")
-							e.stopPropagation()
-
-						},
-						ondblclick: (e) => {
-							this._onSubmit(this._searchResults[index].content[this._selectedLanguage()])
-							this._close()
+							this._selectedTemplate = template
+							this._selectedLanguage = stream(this._searchResults.length ? Object.keys(template.content)[0] : "en") // TODO: remove "en"
 							e.stopPropagation()
 						},
 						onmouseover: () => {
 							this._cursorHover = true
 						},
 						onmouseleave: () => this._cursorHover = false,
-						class: this._isSelected(index) ? "row-selected" : "", /* show row as selected when using arrow keys */
+						class: this._isSelectedTemplate(template) ? "row-selected" : "", /* show row as selected when using arrow keys */
 						style: {
-							borderLeft: this._isSelected(index) ? "4px solid" : "4px solid transparent"
+							borderLeft: this._isSelectedTemplate(template) ? "4px solid" : "4px solid transparent"
 						}
 					}, [
 						m(TemplatePopupResultRow, {template}),
 						// this._selected ? m("", m(ButtonN, submitButtonAttrs)) : null,
-						this._isSelected(index) ? m(Icon, {
+						this._isSelectedTemplate(template) ? m(Icon, {
 							icon: Icons.ArrowForward,
 							style: {marginTop: "auto", marginBottom: "auto"}
 						}) : m("", {style: {width: "17.1px", height: "16px"}}),
@@ -269,8 +268,13 @@ export class TemplatePopup implements ModalComponent {
 		return (index === this._currentIndex)
 	}
 
-	_getSelectedTemplate(): Template {
-		return this._searchResults[this._currentIndex]
+
+	_setSelectedTemplate(template: Template) {
+		this._selectedTemplate = template
+	}
+
+	_isSelectedTemplate(template: Template): boolean {
+		return (this._selectedTemplate === template)
 	}
 
 	_containsResult(): boolean {
@@ -278,7 +282,9 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_setSelectedLanguage() {
-		this._selectedLanguage = stream(this._searchResults.length ? Object.keys(this._searchResults[this._currentIndex].content)[0] : "")
+		if (this._selectedTemplate && this._searchResults.length) {
+			this._selectedLanguage = stream(Object.keys(this._selectedTemplate.content)[0])
+		}
 	}
 
 	_setProperties() { /* improvement to dynamically calculate height with certain amount of templates and reset selection to first template */
@@ -302,6 +308,7 @@ export class TemplatePopup implements ModalComponent {
 				left: 0,
 				behavior: 'smooth'
 			})
+
 		} else if (action === "previous" && this._currentIndex > 0) {
 			this._currentIndex--
 			this._scrollDom.scroll({
@@ -310,6 +317,7 @@ export class TemplatePopup implements ModalComponent {
 				behavior: 'smooth'
 			})
 		}
+		this._setSelectedTemplate(this._searchResults[this._currentIndex])
 		this._setSelectedLanguage()
 	}
 
