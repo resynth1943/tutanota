@@ -234,7 +234,7 @@ export class TemplatePopup implements ModalComponent {
 							this._currentIndex = index // navigation via mouseclick
 							this._fieldDom.focus()
 							this._selectedTemplate = template
-							this._selectedLanguage = stream(this._searchResults.length ? Object.keys(template.content)[0] : "en") // TODO: remove "en"
+							this._selectedLanguage = stream(Object.keys(template.content)[0])
 							e.stopPropagation()
 						},
 						onmouseover: () => {
@@ -284,7 +284,6 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_getWindowWidthChange(): number {
-		console.log("Change:", window.innerWidth - this._initialWindowWidth)
 		return window.innerWidth - this._initialWindowWidth
 	}
 
