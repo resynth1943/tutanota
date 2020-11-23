@@ -122,7 +122,6 @@ import {newMailEditorAsResponse, newMailEditorFromDraft, newMailtoUrlMailEditor}
 import type {MailboxDetail} from "./MailModel"
 import type {ResponseMailParameters} from "./SendMailModel"
 import {defaultSendMailModel} from "./SendMailModel"
-import {TemplatePopup} from "./TemplatePopup"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"

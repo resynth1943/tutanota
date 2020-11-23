@@ -21,9 +21,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import type {Language, LanguageCode} from "../misc/LanguageViewModel"
 
-
 // TODO: REPLACE ALL DYNAMIC LABELS WITH TRANSLATIONKEYS !!
-
 
 export class TemplateEditor {
 	_templateContentEditor: HtmlEditor

@@ -19,11 +19,9 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TemplateExpander} from "./TemplateExpander"
 import {theme} from "../gui/theme"
 import type {LanguageCode} from "../misc/LanguageViewModel"
-import {createDropdown} from "../gui/base/DropdownN"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_WIDTH = 750;
