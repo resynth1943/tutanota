@@ -79,10 +79,9 @@ export class TemplateDetailsViewer {
 				m("", [
 					m(TextFieldN, titleAttrs),
 					m(TextFieldN, tagAttrs),
-
 					typedEntries(template.content).map(([language, content]) => m(".flex.flex-column", [
 						m(".h4.mt-l", lang.get(languageByCode[language].textId)),
-						m("",{style: {borderBottom: `2px solid ${theme.content_border}`}} , m.trust(content))
+						m(".editor-border", m.trust(content))
 					]))
 				])
 			])

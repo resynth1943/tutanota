@@ -2,7 +2,6 @@
 import m from "mithril"
 import type {Template} from "../settings/TemplateListView"
 import {lang} from "../misc/LanguageViewModel"
-import {theme} from "../gui/theme"
 
 export type TemplateResultRowAttrs = {
 	template: Template
@@ -21,7 +20,7 @@ export class TemplatePopupResultRow implements MComponent<TemplateResultRowAttrs
 				width: "100%",
 			}
 		}, [
-			m(".text-ellipsis", {style: {width: "260px"}}, title),
+			m(".text-ellipsis", title),
 			m(".flex.badge-line-height", [
 				tag ? m(".b.small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s", {
 					style: {

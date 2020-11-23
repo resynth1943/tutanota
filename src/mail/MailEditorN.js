@@ -61,7 +61,6 @@ import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Util
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "./TemplatePopup"
-import {TemplatePopup} from "./TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 
 export type MailEditorAttrs = {
@@ -553,11 +552,14 @@ function openTemplateFeature(editor: ?Editor) {
 	const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
 	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height
 	// By default the popup is shown below the cursor. If there is not enought space move the pop above the cursor
+
+	const popUpWidth = editorRect.right - editorRect.left;
+	console.log("calculated width:", popUpWidth)
 	if (availableHeightBelowCursor < popUpHeight) {
 		const diff = popUpHeight - availableHeightBelowCursor
-		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, cursorRect.width, cursorRect.height);
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, popUpWidth, cursorRect.height);
 	} else {
-		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, cursorRect.width, cursorRect.height);
+		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height);
 	}
 	new TemplatePopup(rect, onsubmit, highlightedText).show()
 }

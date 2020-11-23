@@ -22,9 +22,10 @@ import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
+import {windowFacade} from "../misc/WindowFacade"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
-export const TEMPLATE_POPUP_WIDTH = 750;
+export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 500;
 
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
@@ -39,9 +40,7 @@ export class TemplatePopup implements ModalComponent {
 	_onSubmit: (string) => void
 
 	_selected: boolean
-	_cursorHover: boolean
 	_expanded: boolean
-	//_height: string
 	_currentIndex: number = 0
 	_initialWindowWidth: number
 
@@ -52,7 +51,6 @@ export class TemplatePopup implements ModalComponent {
 	_dropdownDom: HTMLElement
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
-		//this._height = "270px"
 		this._initialWindowWidth = window.innerWidth
 		this._allTemplates = loadTemplates()
 		this._selectedLanguage = stream(Object.keys(this._allTemplates[0].content)[0])
@@ -96,6 +94,10 @@ export class TemplatePopup implements ModalComponent {
 				help: "insertTemplate_action"
 			},
 		]
+
+		windowFacade.addResizeListener(() => {
+			this._close()
+		})
 	}
 
 	search(text: string): void {
@@ -112,72 +114,72 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	view: () => Children = () => {
+		const showTwoColumns = this._isScreenWideEnough() && this._containsResult()
 		return m(".flex.abs.elevated-bg.plr.border-radius.dropdown-shadow", { // Main Wrapper
 				style: {
-					width: this._isScreenWideEnough() ? px(TEMPLATE_POPUP_WIDTH) : px(TEMPLATE_POPUP_WIDTH / 2),
+					width: px(this._rect.width),
 					height: px(TEMPLATE_POPUP_HEIGHT),
 					top: px(this._rect.top),
-					left: this._isScreenWideEnough() ? px(this._rect.left + (this._getWindowWidthChange() / 2)) : px(window.innerWidth / 20),
-					margin: "1px",
-					flexDirection: "row", cursor: this._cursorHover ? "pointer" : "default",
+					left: px(this._rect.left)
 				},
 				onclick: (e) => {
 					e.stopPropagation()
 				},
 			}, [
-				m(".flex.flex-column", {style: {flex: "1", marginLeft: "-2px", marginRight: "3px",}}, [ // left
-					m(".flex", { // Header Wrapper
-						onkeydown: (e) => { /* simulate scroll with arrow keys */
-							if (e.keyCode === 40) { // DOWN
-								this._changeSelectionViaKeyboard("next")
-							} else if (e.keyCode === 38) { // UP
-								e.preventDefault()
-								this._changeSelectionViaKeyboard("previous")
-							} else if (e.keyCode === 9) { // TAB
-								e.preventDefault()
-								if (this._isScreenWideEnough()) {
-									this._dropdownDom.focus()
-								}
-							}
-						},
-					}, [
-						m("", { // left Textfield
-								style: {
-									marginTop: "-12px",
-									flex: "1 0 auto",
-								},
-							}, m(TextFieldN, this._filterTextAttrs)
-						), // Filter Text
-					]), // Header Wrapper END
-					m(".flex.flex-column.scroll", { // left list
-							style: {
-								overflowY: "show",
-								marginBottom: "3px",
-							},
-							oncreate: (vnode) => {
-								this._scrollDom = vnode.dom
-							},
-						}, this._containsResult() ?
-						this._searchResults.map((template, index) => this._renderTemplateList(template, index))
-						: m(".row-selected", {style: {marginTop: "10px", textAlign: "center"}}, "Nothing found")
-					), // left end
-				]),
-				[
-					this._containsResult() && this._selectedTemplate
-					&& this._isScreenWideEnough() ? this._renderTemplateExpander(this._selectedTemplate) : null
-				],
+				m(".flex.flex-column.flex-grow-shrink-half" + (showTwoColumns ? ".pr" : ""), this._renderLeftColumn()),
+				showTwoColumns ? m(".flex.flex-column.flex-grow-shrink-half", this._renderRightColumn()) : null,
 			],
 		)
 	}
 
+	_renderLeftColumn(): Children {
+		return [
+			m(".flex", { // Header Wrapper
+				onkeydown: (e) => { /* simulate scroll with arrow keys */
+					if (e.keyCode === 40) { // DOWN
+						this._changeSelectionViaKeyboard("next")
+					} else if (e.keyCode === 38) { // UP
+						e.preventDefault()
+						this._changeSelectionViaKeyboard("previous")
+					} else if (e.keyCode === 9) { // TAB
+						e.preventDefault()
+						if (this._isScreenWideEnough()) {
+							this._dropdownDom.focus()
+						}
+					}
+				},
+			}, [
+				m("", { // left Textfield
+						style: {
+							marginTop: "-12px",
+							flex: "1 0 auto",
+						},
+					}, m(TextFieldN, this._filterTextAttrs)
+				), // Filter Text
+			]), // Header Wrapper END
+			m(".flex.flex-column.scroll", { // left list
+					style: {
+						overflowY: "show",
+						marginBottom: "3px",
+					},
+					oncreate: (vnode) => {
+						this._scrollDom = vnode.dom
+					},
+				}, this._containsResult() ?
+				this._searchResults.map((template, index) => this._renderTemplateList(template, index))
+				: m(".row-selected", {style: {marginTop: "10px", textAlign: "center"}}, "Nothing found")
+			), // left end
+		]
+	}
+
+	_renderRightColumn(): Children {
+		return this._selectedTemplate
+			? this._renderTemplateExpander(this._selectedTemplate)
+			: null
+	}
+
 	_renderTemplateExpander(template: Template): Children {
-		return m(".flex.flex-column", {
-			style: {
-				marginLeft: "3px",
-				marginRight: "-2px",
-				flex: "1"
-			}
-		}, [
+		return [
 			m(TemplateExpander, {
 				template,
 				language: this._selectedLanguage(),
@@ -207,7 +209,7 @@ export class TemplatePopup implements ModalComponent {
 				}),
 			])
 
-		])
+		]
 	}
 
 	_renderTemplateList(template: Template, index: number): Children {
@@ -222,7 +224,7 @@ export class TemplatePopup implements ModalComponent {
 		// 	type: ButtonType.Primary,
 		// 	title: () => "Submit"
 		// }
-		return m(".flex.flex-column", {
+		return m(".flex.flex-column.click", {
 				style: {
 					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				}
@@ -235,10 +237,6 @@ export class TemplatePopup implements ModalComponent {
 							this._selectedLanguage = stream(Object.keys(template.content)[0])
 							e.stopPropagation()
 						},
-						onmouseover: () => {
-							this._cursorHover = true
-						},
-						onmouseleave: () => this._cursorHover = false,
 						class: this._isSelectedTemplate(template) ? "row-selected" : "", /* show row as selected when using arrow keys */
 						style: {
 							borderLeft: this._isSelectedTemplate(template) ? "4px solid" : "4px solid transparent"
@@ -278,7 +276,7 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_isScreenWideEnough(): boolean {
-		return window.innerWidth > (TEMPLATE_POPUP_WIDTH + 20)
+		return window.innerWidth > (TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH)
 	}
 
 	_getWindowWidthChange(): number {
@@ -326,7 +324,7 @@ export class TemplatePopup implements ModalComponent {
 					allowOkWithReturn: true,
 					okAction: submitContentAction
 				})
-			} else if (languages.length === 1 && this._selectedTemplate){
+			} else if (languages.length === 1 && this._selectedTemplate) {
 				this._onSubmit(this._selectedTemplate.content[this._selectedLanguage()])
 				this._close()
 				m.redraw()

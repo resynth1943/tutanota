@@ -55,7 +55,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 					},
 				})
 			]),
-			m(".flex", {style: {overflow: "scroll", overflowWrap: "anywhere"}},
+			m(".scroll", {style: { overflowWrap: "anywhere"}},
 				m.trust(content[attrs.language])
 			)
 		])

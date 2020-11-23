@@ -285,11 +285,7 @@ export class Editor implements ImageHandler {
 		range.selectNode(this._squire.getRoot())
 		this._squire.removeAllFormatting(range)
 	}
-
-	undo() {
-		this._squire.undo()
-	}
-
+	
 	getSelectedText(): string {
 		return this._squire.getSelectedText()
 	}
