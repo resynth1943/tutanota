@@ -7,6 +7,8 @@ import {lang, languageByCode} from "../misc/LanguageViewModel"
 import type {SelectorItem} from "../gui/base/DropDownSelectorN"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import {typedKeys} from "../api/common/utils/Utils.js"
+import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
+import {px, size} from "../gui/size"
 
 
 export type TemplateExpanderAttrs = {
@@ -20,14 +22,11 @@ export type TemplateExpanderAttrs = {
 export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 	_dropDownDom: HTMLElement
 
-
 	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
 		const {content} = attrs.template
-
-		return m(".flex.flex-column", {
+		return m(".flex.flex-column.flex-grow", {
 			style: {
-				flexGrow: "1",
-				maxHeight: "296px"
+				maxHeight: px(TEMPLATE_POPUP_HEIGHT - size.button_height) // subtract footer-button height to prevent overflow of content
 			},
 			onkeydown: (e) => {
 				if (e.keyCode === 9) {
@@ -38,24 +37,23 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				}
 			}
 		}, [
-			m("", {style: {marginTop: "-12px", marginBottom: "4px"}}, [
+			m(".mt-negative-s", [
 				m(DropDownSelectorN, {
 					label: () => "Choose Language",
 					items: this._returnLanguages(content),
 					selectedValue: stream(attrs.language),
 					dropdownWidth: 250,
-					onButtonCreate: (vnode2) => {
-						this._dropDownDom = vnode2.dom
-						attrs.onDropdownCreate(vnode2)
+					onButtonCreate: (buttonVnode) => {
+						this._dropDownDom = buttonVnode.dom
+						attrs.onDropdownCreate(buttonVnode)
 					},
 					selectionChangedHandler: (value) => {
-						console.log("Value: ", value)
 						attrs.onLanguageSelected(value)
 						attrs.onReturnFocus()
 					},
 				})
 			]),
-			m(".scroll", {style: { overflowWrap: "anywhere"}},
+			m(".scroll.pt", {style: {overflowWrap: "anywhere"}},
 				m.trust(content[attrs.language])
 			)
 		])

@@ -550,11 +550,10 @@ function openTemplateFeature(editor: ?Editor) {
 
 	let rect
 	const availableHeightBelowCursor = window.innerHeight - cursorRect.bottom
-	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height
-	// By default the popup is shown below the cursor. If there is not enought space move the pop above the cursor
+	const popUpHeight = TEMPLATE_POPUP_HEIGHT + 10 // height + 10px offset for space from the bottom of the screen
 
+	// By default the popup is shown below the cursor. If there is not enough space move the popup above the cursor
 	const popUpWidth = editorRect.right - editorRect.left;
-	console.log("calculated width:", popUpWidth)
 	if (availableHeightBelowCursor < popUpHeight) {
 		const diff = popUpHeight - availableHeightBelowCursor
 		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom - diff, popUpWidth, cursorRect.height);
