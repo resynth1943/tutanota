@@ -33,9 +33,12 @@ import {DbFacade} from "../search/DbFacade"
 import type {EntityCacheEntry, EntityCacheListInfoEntry} from "./EntityCacheDb"
 import {EntityListInfoOS, EntityRestCacheOS} from "./EntityCacheDb"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/InstanceMapper"
-import {resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
 import {lastThrow} from "../../common/utils/ArrayUtils"
 import {getPerformanceTimestamp} from "../search/IndexUtils"
+import {uint8ArrayToBitArray} from "../crypto/CryptoUtils"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {decryptKey} from "../crypto/KeyCryptoUtils"
 
 const ValueType = EC.ValueType
 
@@ -65,9 +68,9 @@ export class EntityRestCache implements EntityRestInterface {
 	_ignoredTypes: TypeRef<any>[];
 	_entityRestClient: EntityRestInterface;
 	_db: DbFacade;
-	// _temporarySK: Aes128Key = uint8ArrayToBitArray(
-	// 	new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
-	// )
+	_tempDbKey: Aes128Key = uint8ArrayToBitArray(
+		new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
+	)
 
 	/**
 	 * stores all contents that would be stored on the server, otherwise
@@ -406,7 +409,8 @@ export class EntityRestCache implements EntityRestInterface {
 			console.log("Surprise!")
 		}
 		return Promise.mapSeries(filtered, async (e) => {
-			const sessionKey = await resolveSessionKey(model, e)
+			// const sessionKey = await resolveSessionKey(model, e)
+			const sessionKey = e._ownerEncSessionKey ? decryptKey(this._tempDbKey, base64ToUint8Array(e._ownerEncSessionKey)) : null
 			return decryptAndMapToInstance(model, e, sessionKey)
 		})
 		// let range = listCache.allRange
@@ -555,6 +559,11 @@ export class EntityRestCache implements EntityRestInterface {
 		const typeModel = await resolveTypeReference(entity._type)
 		const sessionKey = await resolveSessionKey(typeModel, entity)
 		const data: EntityCacheEntry = await encryptAndMapToLiteral(typeModel, entity, sessionKey)
+		// Instance might be unencrypted and not hae session key.
+		if (sessionKey != null) {
+			// we override encrypted version of the key so that it's not encrypted with owner key anymore but with our local key
+			data._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(this._tempDbKey, sessionKey))
+		}
 
 		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS, EntityListInfoOS])
 
