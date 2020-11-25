@@ -397,7 +397,7 @@ export class EntityRestCache implements EntityRestInterface {
 		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
 		const timeStart = getPerformanceTimestamp()
 		const entries = await transaction.getRange(EntityRestCacheOS, [typeRef.app, typeRef.type, listId], start, count, reverse)
-		console.log(`reading ${typeRef.type} range (${entries.length}) took ${getPerformanceTimestamp() - timeStart}ms`)
+		perfLog(`reading ${typeRef.type} range (${entries.length})`, timeStart)
 		const model = await resolveTypeReference(typeRef)
 		// TODO: filter by listInfo here so that elements outside of range are not returned
 		return Promise.mapSeries(entries, async (e) => {
@@ -521,7 +521,7 @@ export class EntityRestCache implements EntityRestInterface {
 		const start = getPerformanceTimestamp()
 		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
 		const data = await transaction.get(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", id])
-		console.log(`reading ${typeRef.type} took ${getPerformanceTimestamp() - start}ms`)
+		perfLog(`reading ${typeRef.type}`, start)
 		if (data) {
 			const typeModel = await resolveTypeReference(typeRef)
 			const sessionKey = await resolveSessionKey(await resolveTypeReference(typeRef), data)
@@ -532,6 +532,7 @@ export class EntityRestCache implements EntityRestInterface {
 	}
 
 	_isInCacheRange(path: string, listId: Id, id: Id): boolean {
+		// TODO: needed for deciding whether to process entity event
 		return false
 		// return this._listEntities[path] != null && this._listEntities[path][listId] != null
 		// 	&& !firstBiggerThanSecond(id, this._listEntities[path][listId].upperRangeId)
@@ -557,18 +558,21 @@ export class EntityRestCache implements EntityRestInterface {
 		const timeStart = getPerformanceTimestamp()
 		// noinspection ES6MissingAwait
 		transaction.put(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", elementId], data)
-		console.log(`writing ${typeRef.type} took ${getPerformanceTimestamp() - timeStart}ms`)
 
+		let withListInfo = ""
 		if (listId) {
 			const oldListInfo = await transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
 			if (!oldListInfo) {
 				const newListInfo: EntityCacheListInfoEntry = {upperRangeId: elementId, lowerRangeId: elementId}
+				withListInfo = "with listInfo"
 				// noinspection ES6MissingAwait
 				transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId || ""], newListInfo)
 			}
 		}
 
-		return transaction.wait()
+		await transaction.wait()
+
+		perfLog(`writing ${typeRef.type} ${withListInfo}`, timeStart)
 		// if (entity._id instanceof Array) {
 		// 	if (!this._listEntities[path]) {
 		// 		this._listEntities[path] = {}
@@ -600,4 +604,8 @@ export class EntityRestCache implements EntityRestInterface {
 		transaction.delete(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", id])
 		await transaction.wait()
 	}
+}
+
+function perfLog(message: string, start: number) {
+	// console.log(`${message} took ${getPerformanceTimestamp() - start}ms`)
 }

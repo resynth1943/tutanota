@@ -295,11 +295,11 @@ export class IndexedDbTransaction implements DbTransaction {
 			let direction: IDBDirection
 			if (reverse) {
 				// $FlowIssue[prop-missing]
-				range = IDBKeyRange.upperBound(fixedKey.concat(start))
+				range = IDBKeyRange.upperBound(fixedKey.concat(start), /*open*/true) // <
 				direction = 'prev'
 			} else {
 				// $FlowIssue[prop-missing]
-				range = IDBKeyRange.lowerBound(fixedKey.concat(start))
+				range = IDBKeyRange.lowerBound(fixedKey.concat(start), /*open*/true) // >
 				direction = 'next'
 			}
 			const request = index ? os.index(index).openCursor(range, direction) : os.openCursor(range, direction)
