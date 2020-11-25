@@ -214,9 +214,7 @@ export class EntityRestCache implements EntityRestInterface {
 	}
 
 	async _loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		let path = typeRefToPath(typeRef)
-		// const listCache = (this._listEntities[path] && this._listEntities[path][listId]) ? this._listEntities[path][listId] : null
-		const listInfo: ?EntityCacheListInfoEntry = await this._getListInfo(typeRef, listId)
+		const listInfo: ?EntityCacheListInfoEntry = await this._loadListInfo(typeRef, listId)
 		// check which range must be loaded from server
 		if (!listInfo || (start === GENERATED_MAX_ID && reverse && listInfo.upperRangeId !== GENERATED_MAX_ID)
 			|| (start === GENERATED_MIN_ID && !reverse && listInfo.lowerRangeId !== GENERATED_MIN_ID)) {
@@ -265,7 +263,7 @@ export class EntityRestCache implements EntityRestInterface {
 				})
 			} else {
 				// all elements are located in the cache.
-				return Promise.resolve(this._provideFromCache(typeRef, listId, start, count, reverse))
+				return this._provideFromCache(listInfo, typeRef, listId, start, count, reverse)
 			}
 		} else if ((firstBiggerThanSecond(start, listInfo.upperRangeId) && !reverse) // Start is outside the range.
 			|| (firstBiggerThanSecond(listInfo.lowerRangeId, start) && reverse)) {
@@ -285,7 +283,7 @@ export class EntityRestCache implements EntityRestInterface {
 				// put the new elements into the cache
 				await this._handleElementRangeResult(typeRef, listInfo, listId, loadStartId, count, reverse, ((entities: any): T[]), count)
 				// provide from cache with the actual start id
-				let resultElements = await this._provideFromCache(typeRef, listId, start, count, reverse)
+				let resultElements = await this._provideFromCache(listInfo, typeRef, listId, start, count, reverse)
 				if (((entities: any): T[]).length < count || resultElements.length === count) {
 					// either all available elements have been loaded from target or the requested number of elements could be provided from cache
 					return resultElements
@@ -299,38 +297,38 @@ export class EntityRestCache implements EntityRestInterface {
 				}
 			})
 		} else {
-			let msg = "invalid range request. path: " + path + " list: " + listId + " start: " + start + " count: "
-				+ count + " reverse: " + String(reverse) + " lower: " + listInfo.lowerRangeId + " upper: "
-				+ listInfo.upperRangeId
-			return Promise.reject(new Error(msg))
+			const path = typeRefToPath(typeRef)
+			const msg = `invalid range request. path: ${path} list: ${listId} start: ${start} count: ${count} reverse: ${String(reverse)} lower: ${listInfo.lowerRangeId} upper: ${listInfo.upperRangeId}`
+			throw new Error(msg)
 		}
 	}
 
-	async _getListInfo<T: ListElement>(typeRef: TypeRef<T>, listId: Id): Promise<?EntityCacheListInfoEntry> {
+	async _loadListInfo<T: ListElement>(typeRef: TypeRef<T>, listId: Id): Promise<?EntityCacheListInfoEntry> {
 		const transaction = await this._db.createTransaction(true, [EntityListInfoOS])
 		return transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
 	}
 
-	async _handleElementRangeResult<T: ListElement>(typeRef: TypeRef<T>, listCache: EntityCacheListInfoEntry, listId: Id, start: Id,
-	                                                count: number, reverse: boolean, elements: T[], targetCount: number): Promise<T[]> {
+	async _handleElementRangeResult<T: ListElement>(typeRef: TypeRef<T>, listInfo: EntityCacheListInfoEntry, listId: Id, start: Id,
+	                                                count: number, reverse: boolean, elements: T[], targetCount: number
+	): Promise<T[]> {
 		let elementsToAdd = elements
 		if (elements.length > 0) {
 			// Ensure that elements are cached in ascending (not reverse) order
 			if (reverse) {
 				elementsToAdd = elements.reverse()
 				if (elements.length < targetCount) {
-					listCache.lowerRangeId = GENERATED_MIN_ID
+					listInfo.lowerRangeId = GENERATED_MIN_ID
 				} else {
 					// After reversing the list the first element in the list is the lower range limit
-					listCache.lowerRangeId = getLetId(elements[0])[1]
+					listInfo.lowerRangeId = getElementId(elements[0])
 				}
 			} else {
 				// Last element in the list is the upper range limit
 				if (elements.length < targetCount) {
 					// all elements have been loaded, so the upper range must be set to MAX_ID
-					listCache.upperRangeId = GENERATED_MAX_ID
+					listInfo.upperRangeId = GENERATED_MAX_ID
 				} else {
-					listCache.upperRangeId = getLetId(elements[elements.length - 1])[1]
+					listInfo.upperRangeId = getLetId(elements[elements.length - 1])[1]
 				}
 			}
 			for (let i = 0; i < elementsToAdd.length; i++) {
@@ -339,15 +337,15 @@ export class EntityRestCache implements EntityRestInterface {
 		} else {
 			// all elements have been loaded, so the range must be set to MAX_ID / MIN_ID
 			if (reverse) {
-				listCache.lowerRangeId = GENERATED_MIN_ID
+				listInfo.lowerRangeId = GENERATED_MIN_ID
 			} else {
-				listCache.upperRangeId = GENERATED_MAX_ID
+				listInfo.upperRangeId = GENERATED_MAX_ID
 			}
 		}
 		const transaction = await this._db.createTransaction(false, [EntityListInfoOS])
-		transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId], listCache)
+		transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId], listInfo)
 		await transaction.wait()
-		return this._provideFromCache(typeRef, listId, start, count, reverse)
+		return this._provideFromCache(listInfo, typeRef, listId, start, count, reverse)
 	}
 
 	/**
@@ -355,13 +353,15 @@ export class EntityRestCache implements EntityRestInterface {
 	 * order to read no duplicate values.
 	 * @return returns the new start and count value.
 	 */
-	async _getNumberOfElementsToRead<T>(listCache: EntityCacheListInfoEntry, typeRef: TypeRef<*>, listId: Id, start: Id, count: number, reverse: boolean): Promise<{newStart: string, newCount: number}> {
-		const allRangeList = (await this._provideFromCache(typeRef, listId, start, count, reverse)).map(getElementId)
+	async _getNumberOfElementsToRead<T>(listInfo: EntityCacheListInfoEntry, typeRef: TypeRef<*>, listId: Id, start: Id, count: number,
+	                                    reverse: boolean
+	): Promise<{newStart: string, newCount: number}> {
+		const allRangeList = (await this._provideFromCache(listInfo, typeRef, listId, start, count, reverse)).map(getElementId)
 		let elementsToRead = count
 		let startElementId = start
 
 		const startIncluded = allRangeList[0] === start
-		if ((!reverse && listCache.upperRangeId === GENERATED_MAX_ID) || (reverse && listCache.lowerRangeId === GENERATED_MIN_ID)) {
+		if ((!reverse && listInfo.upperRangeId === GENERATED_MAX_ID) || (reverse && listInfo.lowerRangeId === GENERATED_MIN_ID)) {
 			// we have already loaded the complete range in the desired direction, so we do not have to load from server
 			elementsToRead = 0
 		} else if (allRangeList.length === 0) { // Element range is empty, so read all elements
@@ -371,7 +371,7 @@ export class EntityRestCache implements EntityRestInterface {
 			// elementsToRead = count - (allRangeList.length - 1)
 			elementsToRead = count - allRangeList.length
 			startElementId = lastThrow(allRangeList) // use the highest/lowest (for reverse) id in allRange as start element
-		} else if (listCache.lowerRangeId === start || (firstBiggerThanSecond(start, listCache.lowerRangeId)
+		} else if (listInfo.lowerRangeId === start || (firstBiggerThanSecond(start, listInfo.lowerRangeId)
 			&& (firstBiggerThanSecond(allRangeList[0], start)))
 		) { // Start element is not in allRange but has been used as start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
 			if (!reverse) { // if not reverse read only elements that are not in allRange
@@ -380,9 +380,9 @@ export class EntityRestCache implements EntityRestInterface {
 				elementsToRead = count - allRangeList.length
 			}
 			// if reverse read all elements, we don't have it in the range
-		} else if (listCache.upperRangeId === start
+		} else if (listInfo.upperRangeId === start
 			|| (firstBiggerThanSecond(start, lastThrow(allRangeList))
-				&& (firstBiggerThanSecond(listCache.upperRangeId, start)))
+				&& (firstBiggerThanSecond(listInfo.upperRangeId, start)))
 		) { // Start element is not in allRange but has been used as start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
 			if (reverse) { // if not reverse read only elements that are not in allRange
 				startElementId = allRangeList[0] // use the lowest id in allRange as start element
@@ -393,14 +393,19 @@ export class EntityRestCache implements EntityRestInterface {
 		return {newStart: startElementId, newCount: elementsToRead}
 	}
 
-	async _provideFromCache<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<Array<T>> {
+	async _provideFromCache<T>(listInfo: EntityCacheListInfoEntry, typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+	                           reverse: boolean
+	): Promise<Array<T>> {
 		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
 		const timeStart = getPerformanceTimestamp()
 		const entries = await transaction.getRange(EntityRestCacheOS, [typeRef.app, typeRef.type, listId], start, count, reverse)
 		perfLog(`reading ${typeRef.type} range (${entries.length})`, timeStart)
 		const model = await resolveTypeReference(typeRef)
-		// TODO: filter by listInfo here so that elements outside of range are not returned
-		return Promise.mapSeries(entries, async (e) => {
+		const filtered = entries.filter(e => isInRangeOf(listInfo, getElementId(e)))
+		if (filtered.length !== entries.length) {
+			console.log("Surprise!")
+		}
+		return Promise.mapSeries(filtered, async (e) => {
 			const sessionKey = await resolveSessionKey(model, e)
 			return decryptAndMapToInstance(model, e, sessionKey)
 		})
@@ -475,7 +480,6 @@ export class EntityRestCache implements EntityRestInterface {
 	async _processCreateEvent(typeRef: TypeRef<*>, update: EntityUpdate, batch: Array<EntityUpdate>): $Promisable<EntityUpdate | null> { // do not return undefined
 		const {instanceListId, instanceId} = update
 		if (instanceListId) {
-			const path = typeRefToPath(typeRef)
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
 			if (deleteEvent && isSameTypeRef(MailTypeRef, typeRef)) { // It is a move event
 				const element = await this._getFromCache(typeRef, deleteEvent.instanceListId, instanceId)
@@ -485,7 +489,7 @@ export class EntityRestCache implements EntityRestInterface {
 					await this._putIntoCache(element)
 					return update
 				}
-			} else if (this._isInCacheRange(path, instanceListId, instanceId)) {
+			} else if (await this._isInCacheRange(typeRef, instanceListId, instanceId)) {
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
 				           .then(entity => this._putIntoCache(entity))
 				           .return(update)
@@ -531,12 +535,12 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	_isInCacheRange(path: string, listId: Id, id: Id): boolean {
-		// TODO: needed for deciding whether to process entity event
-		return false
-		// return this._listEntities[path] != null && this._listEntities[path][listId] != null
-		// 	&& !firstBiggerThanSecond(id, this._listEntities[path][listId].upperRangeId)
-		// 	&& !firstBiggerThanSecond(this._listEntities[path][listId].lowerRangeId, id)
+	async _isInCacheRange(typeRef: TypeRef<*>, listId: Id, id: Id): Promise<boolean> {
+		const listInfo = await this._loadListInfo(typeRef, listId)
+		if (listInfo == null) {
+			return false
+		}
+		return isInRangeOf(listInfo, id)
 	}
 
 	async _putIntoCache(originalEntity: any): Promise<void> {
@@ -559,44 +563,22 @@ export class EntityRestCache implements EntityRestInterface {
 		// noinspection ES6MissingAwait
 		transaction.put(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", elementId], data)
 
-		let withListInfo = ""
-		if (listId) {
-			const oldListInfo = await transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
-			if (!oldListInfo) {
-				const newListInfo: EntityCacheListInfoEntry = {upperRangeId: elementId, lowerRangeId: elementId}
-				withListInfo = "with listInfo"
-				// noinspection ES6MissingAwait
-				transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId || ""], newListInfo)
-			}
-		}
+		// TODO: we probably don't need to do this. Either element is not in the range and we don't want to modify listInfo or it's a
+		//  range request already and we will modify range anyway.
+		// let withListInfo = ""
+		// if (listId) {
+		// 	const oldListInfo = await transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
+		// 	if (!oldListInfo) {
+		// 		const newListInfo: EntityCacheListInfoEntry = {upperRangeId: elementId, lowerRangeId: elementId}
+		// 		withListInfo = "with listInfo"
+		// 		// noinspection ES6MissingAwait
+		// 		transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId || ""], newListInfo)
+		// 	}
+		// }
 
 		await transaction.wait()
 
-		perfLog(`writing ${typeRef.type} ${withListInfo}`, timeStart)
-		// if (entity._id instanceof Array) {
-		// 	if (!this._listEntities[path]) {
-		// 		this._listEntities[path] = {}
-		// 	}
-		// 	let listId = entity._id[0]
-		// 	let id = entity._id[1]
-		// 	if (!this._listEntities[path][listId]) {
-		// 		// first element in this list
-		// 		this._listEntities[path][listId] = {allRange: [id], lowerRangeId: id, upperRangeId: id, elements: {}}
-		// 		this._listEntities[path][listId].elements[id] = entity
-		// 	} else {
-		// 		// if the element already exists in the cache, overwrite it
-		// 		// add new element to existing list if necessary
-		// 		this._listEntities[path][listId].elements[id] = entity
-		// 		if (this._isInCacheRange(path, listId, id)) {
-		// 			this._insertIntoRange(this._listEntities[path][listId].allRange, id)
-		// 		}
-		// 	}
-		// } else {
-		// 	if (!this._entities[path]) {
-		// 		this._entities[path] = {}
-		// 	}
-		// 	this._entities[path][entity._id] = entity
-		// }
+		perfLog(`writing ${typeRef.type}`, timeStart)
 	}
 
 	async _tryRemoveFromCache(typeRef: TypeRef<any>, listId: ?Id, id: Id): Promise<void> {
@@ -608,4 +590,9 @@ export class EntityRestCache implements EntityRestInterface {
 
 function perfLog(message: string, start: number) {
 	// console.log(`${message} took ${getPerformanceTimestamp() - start}ms`)
+}
+
+
+function isInRangeOf(listInfo: EntityCacheListInfoEntry, id: Id): boolean {
+	return !firstBiggerThanSecond(id, listInfo.upperRangeId) && !firstBiggerThanSecond(listInfo.lowerRangeId, id)
 }
