@@ -666,6 +666,11 @@ styles.registerStyle('main', () => {
 			'align-items': 'center',
 			position: "relative"
 		},
+		'.folder-row-no-margin': {
+			'border-left': px(size.border_selection) + ' solid transparent',
+			'align-items': 'center',
+			position: "relative"
+		},
 		'.folder-counter': {
 			position: 'absolute',
 			top: px(0),

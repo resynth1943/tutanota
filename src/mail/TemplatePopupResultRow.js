@@ -1,7 +1,9 @@
 //@flow
 import m from "mithril"
-import type {Template} from "../settings/TemplateListView"
+import type {Template} from "./TemplateModel"
 import {lang} from "../misc/LanguageViewModel"
+import {TEMPLATE_LIST_ENTRY_HEIGHT} from "./TemplatePopup"
+import {px} from "../gui/size"
 
 export type TemplateResultRowAttrs = {
 	template: Template
@@ -16,7 +18,7 @@ export class TemplatePopupResultRow implements MComponent<TemplateResultRowAttrs
 		return m(".flex.flex-column", {
 			style: {
 				marginLeft: "8px",
-				height: "47.7167px",
+				height: px(TEMPLATE_LIST_ENTRY_HEIGHT),//"47.7167px",
 				width: "100%",
 			}
 		}, [
@@ -28,21 +30,6 @@ export class TemplatePopupResultRow implements MComponent<TemplateResultRowAttrs
 						height: "min-content",
 					}
 				}, "#" + tag.toLowerCase()) : null,
-				languageCount > 1
-					? m(".smaller", {
-						style: {
-							marginLeft: "auto",
-							marginRight: "0px",
-							marginTop: "-7px"
-						}
-					}, lang.get("languagePluralCount_label", {"{count}": languageCount}))
-					: m(".smaller", {
-						style: {
-							marginLeft: "auto",
-							marginRight: "0px",
-							marginTop: "-7px"
-						}
-					}, lang.get("languageSingularCount_label", {"{count}": languageCount}))
 			]),
 		])
 	}

@@ -14,6 +14,7 @@ import {SettingsView} from "./SettingsView"
 import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {TemplateEditor} from "./TemplateEditor"
 import type {LanguageCode} from "../misc/LanguageViewModel"
+import type {Template} from "../mail/TemplateModel"
 
 export class TemplateListView implements UpdatableSettingsViewer {
 	_templateFilter: Stream<string>
@@ -184,10 +185,3 @@ export function loadTemplates(): Array<Template> {
 }
 
 
-export type Template = {
-	_id: IdTuple;
-	title: string,
-	tag: ?string,
-	content: {[language: LanguageCode]: string},
-	index: number,
-}

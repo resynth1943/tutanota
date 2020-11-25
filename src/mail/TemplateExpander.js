@@ -2,13 +2,14 @@
 import m from "mithril"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
-import type {Template} from "../settings/TemplateListView"
+import type {Template} from "./TemplateModel"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import type {SelectorItem} from "../gui/base/DropDownSelectorN"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import {typedKeys} from "../api/common/utils/Utils.js"
 import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
 import {px, size} from "../gui/size"
+import {Keys} from "../api/common/TutanotaConstants"
 
 
 export type TemplateExpanderAttrs = {
@@ -29,7 +30,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				maxHeight: px(TEMPLATE_POPUP_HEIGHT - size.button_height) // subtract footer-button height to prevent overflow of content
 			},
 			onkeydown: (e) => {
-				if (e.keyCode === 9) {
+				if (e.keyCode === Keys.TAB) {
 					e.preventDefault()
 					if (document.activeElement === this._dropDownDom) {
 						attrs.onReturnFocus()

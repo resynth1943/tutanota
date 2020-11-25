@@ -62,6 +62,7 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "./TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {templateModel, TemplateModel} from "./TemplateModel"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -560,7 +561,8 @@ function openTemplateFeature(editor: ?Editor) {
 	} else {
 		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height);
 	}
-	new TemplatePopup(rect, onsubmit, highlightedText).show()
+	templateModel.init().then( new TemplatePopup(rect, onsubmit, highlightedText).show() )
+	//new TemplatePopup(rect, onsubmit, highlightedText).show()
 }
 
 /**
