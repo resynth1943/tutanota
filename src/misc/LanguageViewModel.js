@@ -12,6 +12,16 @@ export type DateTimeFormatOptions = {
 	hourCycle?: string
 }
 
+/**
+ * Language = {code, textId}
+ * "code" is the 2 letter abbr. of the language ("en", "ar")
+ * "textId" corresponds to a code ("languageEnglish_label", "languageArabic_label")
+ *
+ * lang.get(textId) will return the translated languages
+ * languageByCode[code] will return the whole language Object
+ * in all cases lang.get(languageByCode[code].textId) will always return the translated language from a code
+ */
+
 export const LanguageNames = Object.freeze({
 	ar: 'languageArabic_label',
 	bg: 'languageBulgarian_label',
@@ -22,12 +32,12 @@ export const LanguageNames = Object.freeze({
 	de_sie: 'languageGermanSie_label',
 	el: 'languageGreek_label',
 	en: 'languageEnglish_label',
-	en_gb: 'languageEnglishUk_label',                                                                        //  Language is an object with {code, textId}
-	es: 'languageSpanish_label',                                                                             //  the "code" is the 2 letter abbr. of the language, such as "en", "ar", ...
-	et: 'languageEstonian_label',                                                                            //  the code also has a corresponding textId, which is the language label, such as "languageEnglish_label", "languageArabic_label", ...
-	fa_ir: 'languagePersian_label',                                                                		     //  calling lang.get on such a textId will return the translated language
-	fi: 'languageFinnish_label',                                                                   		     //  If you only have a code of a language, you can call languageByCode[code] to get the whole language Object
-	fr: 'languageFrench_label',                                                                    		     //  => lang.get(languageByCode[code].textId) will return the translated language in all cases
+	en_gb: 'languageEnglishUk_label',
+	es: 'languageSpanish_label',
+	et: 'languageEstonian_label',
+	fa_ir: 'languagePersian_label',
+	fi: 'languageFinnish_label',
+	fr: 'languageFrench_label',
 	gl: 'languageGalician_label',
 	hi: 'languageHindi_label',
 	hr: 'languageCroatian_label',

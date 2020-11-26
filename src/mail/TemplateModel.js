@@ -1,11 +1,13 @@
 // @flow
 
 import type {LanguageCode} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
+import {getLanguage, lang, languages} from "../misc/LanguageViewModel"
 import {createTemplate} from "../settings/TemplateListView"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {assertNotNull, downcast} from "../api/common/utils/Utils"
+import type {NavAction} from "./TemplatePopup"
+import {SELECT_NEXT_TEMPLATE} from "./TemplatePopup"
 
 export type Template = {
 	_id: IdTuple;
@@ -17,7 +19,6 @@ export type Template = {
 
 /*
 * Model for Templates
-*
 */
 
 export class TemplateModel {
@@ -51,6 +52,7 @@ export class TemplateModel {
 		} else {
 			this._searchResults = searchInContent(text, this._allTemplates)
 		}
+		this.setSelectedTemplate(this.containsResult() ? this._searchResults[0] : null)
 	}
 
 	containsResult(): boolean {
@@ -80,6 +82,10 @@ export class TemplateModel {
 		return this._selectedTemplate
 	}
 
+	getSelectedTemplateIndex(template: Template): number {
+		return this._searchResults.indexOf(template)
+	}
+
 	setSelectedLanguage(lang: LanguageCode) {
 		this._selectedLanguage = lang
 	}
@@ -89,7 +95,18 @@ export class TemplateModel {
 		this._updateSelectedLanguage()
 	}
 
-	saveSaveTemplate() {
+	selectNextTemplate(action: NavAction):boolean {
+		const selectedIndex = this.getSelectedTemplateIndex(assertNotNull(this._selectedTemplate))
+		const nextIndex = selectedIndex + (action === SELECT_NEXT_TEMPLATE ? 1 : -1)
+		if (nextIndex >= 0 && nextIndex < this._searchResults.length) {
+			const nextSelectedTemplate = this._searchResults[nextIndex]
+			this.setSelectedTemplate(nextSelectedTemplate)
+			return true
+		}
+		return false
+	}
+
+	saveTemplate() {
 
 	}
 }

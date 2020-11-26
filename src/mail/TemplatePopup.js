@@ -22,11 +22,14 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
 import {templateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
+import {assertNotNull} from "../api/common/utils/Utils"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
 export const TEMPLATE_LIST_ENTRY_HEIGHT = 47;
 export const TEMPLATE_LIST_ENTRY_WIDTH = 354;
+export const SELECT_NEXT_TEMPLATE = "next";
+export const SELECT_PREV_TEMPLATE = "previous";
 export type NavAction = "previous" | "next";
 
 /*
@@ -34,22 +37,17 @@ export type NavAction = "previous" | "next";
 *	Also allows user to change desired language when pasting.
 */
 
-// FIXME: CHANGE TRANSLATIONKEYS!!!
-
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
 	_filterTextAttrs: TextFieldAttrs
 	_shortcuts: Shortcut[]
 	_scrollDom: HTMLElement
 	_onSubmit: (string) => void
-	_currentIndex: number = 0
 	_initialWindowWidth: number
 	_availableLanguages: Array<Object>
 	_filterTextFieldDom: HTMLElement
 	_dropdownDom: HTMLElement
 	_resizeListener: Function
-
-	// TODO: Try preventDefault
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		//templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
@@ -63,16 +61,13 @@ export class TemplatePopup implements ModalComponent {
 
 		// initial search
 		templateModel.search(highlightedText)
-		templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 
 		this._filterTextAttrs = {
 			label: "templateFilter_label",
 			value: stream(highlightedText),
 			focusOnCreate: true,
 			oninput: (input) => { /* Filter function */
-				this._currentIndex = 0
 				templateModel.search(input)
-				templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 			},
 			onInputCreate: (vnode) => {
 				this._filterTextFieldDom = vnode.dom
@@ -131,10 +126,14 @@ export class TemplatePopup implements ModalComponent {
 			m(".mt-negative-s", { // Header Wrapper
 				onkeydown: (e) => { /* simulate scroll with arrow keys */
 					if (isKeyPressed(e.keyCode, Keys.DOWN)) { // DOWN
-						this._changeSelectionViaKeyboard("next")
+						const changedSelection = templateModel.selectNextTemplate(SELECT_NEXT_TEMPLATE)
+						if(changedSelection)
+							this._scroll()
 					} else if (isKeyPressed(e.keyCode, Keys.UP)) { // UP
-						e.preventDefault()
-						this._changeSelectionViaKeyboard("previous")
+						e.preventDefault() // prevent cursor to go the left of the input field
+						const changedSelection = templateModel.selectNextTemplate(SELECT_PREV_TEMPLATE)
+						if(changedSelection)
+							this._scroll()
 					} else if (isKeyPressed(e.keyCode, Keys.TAB)) { // TAB
 						e.preventDefault()
 						if (this._isScreenWideEnough()) {
@@ -163,7 +162,6 @@ export class TemplatePopup implements ModalComponent {
 			}, [
 				m(".flex.template-list-row" + (templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {
 						onclick: (e) => {
-							this._currentIndex = index // navigation via mouseclick
 							this._filterTextFieldDom.focus()
 							templateModel.setSelectedTemplate(template)
 							e.stopPropagation()
@@ -248,18 +246,10 @@ export class TemplatePopup implements ModalComponent {
 		}
 	}
 
-	_changeSelectionViaKeyboard(action: NavAction) { /* count up or down in templates */
-		const nextIndex = this._currentIndex + (action === "next" ? 1 : -1)
-		if (nextIndex >= 0 && nextIndex < templateModel.getSearchResults().length) {
-			this._currentIndex = nextIndex
-			this._scroll()
-		}
-		templateModel.setSelectedTemplate(templateModel.getSearchResults()[this._currentIndex])
-	}
-
 	_scroll() {
+		const selectedTemplate = assertNotNull(templateModel.getSelectedTemplate())
 		this._scrollDom.scroll({
-			top: (TEMPLATE_LIST_ENTRY_HEIGHT * this._currentIndex),
+			top: (TEMPLATE_LIST_ENTRY_HEIGHT * templateModel.getSelectedTemplateIndex(selectedTemplate)),
 			left: 0,
 			behavior: 'smooth'
 		})
