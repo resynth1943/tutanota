@@ -72,41 +72,8 @@ export class EntityRestCache implements EntityRestInterface {
 		new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
 	)
 
-	/**
-	 * stores all contents that would be stored on the server, otherwise
-	 */
-	// _entities: {[key: string]: {[key: Id]: Object}};
-	//	Example:
-	//	_entities = {
-	//		'path': { 		// element type
-	//			'element1Id': 'element1',
-	//			'element2Id': 'element2'
-	//		    // and so on
-	//		},
-	//      // and so on
-	//  }
-	// _listEntities: {[key: string]: {[key: Id]: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}}};
-	//	Example:
-	//    _listEntities {
-	//		'path': { 		// list element type
-	//			'listId': {
-	//				allRange: ['listElement1Id', 'listElement2Id'],
-	//              lowerRangeId: listElement1Id,
-	//              upperRangeId: GENERATED_MAX_ID,
-	//              elements: {
-	//				    'listElement1Id': 'listElement1',
-	//				    'listElement2Id': 'listElement2',
-	//    				// and so on
-	//              }
-	//			},
-	//          // and so on
-	//		},
-	//      // and so on
-	//	}
 	constructor(entityRestClient: EntityRestInterface, db: DbFacade) {
 		this._entityRestClient = entityRestClient
-		// this._entities = {}
-		// this._listEntities = {}
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
 			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef, RejectedSenderTypeRef
@@ -405,47 +372,11 @@ export class EntityRestCache implements EntityRestInterface {
 		perfLog(`reading ${typeRef.type} range (${entries.length})`, timeStart)
 		const model = await resolveTypeReference(typeRef)
 		const filtered = entries.filter(e => isInRangeOf(listInfo, getElementId(e)))
-		if (filtered.length !== entries.length) {
-			console.log("Surprise!")
-		}
 		return Promise.mapSeries(filtered, async (e) => {
 			// const sessionKey = await resolveSessionKey(model, e)
-			const sessionKey = e._ownerEncSessionKey ? decryptKey(this._tempDbKey, base64ToUint8Array(e._ownerEncSessionKey)) : null
+			const sessionKey = e._dbEncSessionKey ? decryptKey(this._tempDbKey, e._dbEncSessionKey) : null
 			return decryptAndMapToInstance(model, e, sessionKey)
 		})
-		// let range = listCache.allRange
-		// let ids: Id[] = []
-		// if (reverse) {
-		// 	let i
-		// 	for (i = range.length - 1; i >= 0; i--) {
-		// 		if (firstBiggerThanSecond(start, range[i])) {
-		// 			break
-		// 		}
-		// 	}
-		// 	if (i >= 0) {
-		// 		let startIndex = i + 1 - count
-		// 		if (startIndex < 0) { // start index may be negative if more elements have been requested than available when getting elements reverse.
-		// 			startIndex = 0
-		// 		}
-		// 		ids = range.slice(startIndex, i + 1)
-		// 		ids.reverse()
-		// 	} else {
-		// 		ids = []
-		// 	}
-		// } else {
-		// 	let i
-		// 	for (i = 0; i < range.length; i++) {
-		// 		if (firstBiggerThanSecond(range[i], start)) {
-		// 			break
-		// 		}
-		// 	}
-		// 	ids = range.slice(i, i + count)
-		// }
-		// let result: T[] = []
-		// for (let a = 0; a < ids.length; a++) {
-		// 	result.push(clone((listCache.elements[ids[a]]: any)))
-		// }
-		// return result
 	}
 
 	/**
@@ -562,7 +493,7 @@ export class EntityRestCache implements EntityRestInterface {
 		// Instance might be unencrypted and not hae session key.
 		if (sessionKey != null) {
 			// we override encrypted version of the key so that it's not encrypted with owner key anymore but with our local key
-			data._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(this._tempDbKey, sessionKey))
+			data._dbEncSessionKey = encryptKey(this._tempDbKey, sessionKey)
 		}
 
 		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS, EntityListInfoOS])
