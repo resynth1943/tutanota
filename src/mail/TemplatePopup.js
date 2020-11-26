@@ -13,7 +13,6 @@ import {TemplatePopupResultRow} from "./TemplatePopupResultRow"
 import type {Template} from "./TemplateModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TemplateExpander} from "./TemplateExpander"
 import {theme} from "../gui/theme"
 import type {LanguageCode} from "../misc/LanguageViewModel"
@@ -25,8 +24,16 @@ import {templateModel} from "./TemplateModel"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
-export const TEMPLATE_LIST_ENTRY_HEIGHT = 47;//47.7167;
-export type NavAction = string;
+export const TEMPLATE_LIST_ENTRY_HEIGHT = 47;
+export const TEMPLATE_LIST_ENTRY_WIDTH = 354;
+export type NavAction = "previous" | "next";
+
+/*
+*	Creates a Modal/Popup that allows user to paste templates directly into the Maileditor.
+*	Also allows user to change desired language when pasting.
+*/
+
+// FIXME: CHANGE TRANSLATIONKEYS!!!
 
 export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
@@ -39,18 +46,17 @@ export class TemplatePopup implements ModalComponent {
 	_currentIndex: number = 0
 	_initialWindowWidth: number
 
-	_selectedLanguage: Stream<LanguageCode>
 	_availableLanguages: Array<Object>
 
 	_filterTextFieldDom: HTMLElement
 	_dropdownDom: HTMLElement
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
-		this._initialWindowWidth = window.innerWidth
-		templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null) // -> calls search results -> search results arent initialized without search()
+		templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 		templateModel.setSelectedLanguage(templateModel.containsResult() ? Object.keys(templateModel.getSearchResults()[0].content)[0] : "en")
 		this._rect = rect
 		this._onSubmit = onSubmit
+		this._initialWindowWidth = window.innerWidth
 
 		// initial search
 		templateModel.search(highlightedText)
@@ -87,10 +93,6 @@ export class TemplatePopup implements ModalComponent {
 				help: "insertTemplate_action"
 			},
 		]
-
-		windowFacade.addResizeListener(() => {
-			this._close()
-		})
 	}
 
 	view: () => Children = () => {
@@ -106,6 +108,14 @@ export class TemplatePopup implements ModalComponent {
 					// prevent closing pop up
 					e.stopPropagation()
 				},
+			oncreate: () => {
+				windowFacade.addResizeListener(() => {
+					this._close()
+				})
+			},
+			onremove: () => {
+				windowFacade.removeResizeListener(() => {})
+			},
 			}, [
 				m(".flex.flex-column.flex-grow-shrink-half" + (showTwoColumns ? ".pr" : ""), this._renderLeftColumn()),
 				showTwoColumns ? m(".flex.flex-column.flex-grow-shrink-half", this._renderRightColumn()) : null,
@@ -136,7 +146,7 @@ export class TemplatePopup implements ModalComponent {
 					},
 				}, templateModel.containsResult() ?
 				templateModel.getSearchResults().map((template, index) => this._renderTemplateListRow(template, index))
-				: m(".row-selected.text-center.pt", "Nothing found")
+				: m(".row-selected.text-center.pt", "Nothing found") // TODO: Add TranslationKey
 			), // left end
 		]
 	}
@@ -144,6 +154,7 @@ export class TemplatePopup implements ModalComponent {
 	_renderTemplateListRow(template: Template, index: number): Children {
 		return m(".flex.flex-column.click", {
 				style: {
+					maxWidth: this._isScreenWideEnough() ? px(TEMPLATE_LIST_ENTRY_WIDTH) : px(this._rect.width - 20), // subtract 20px because of padding left and right
 					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				}
 			}, [
@@ -156,7 +167,7 @@ export class TemplatePopup implements ModalComponent {
 							e.stopPropagation()
 						},
 					}, [
-						m(TemplatePopupResultRow, {template}),
+						m(TemplatePopupResultRow, {template: template}),
 						templateModel.isSelectedTemplate(template) ? m(Icon, {
 							icon: Icons.ArrowForward,
 							style: {marginTop: "auto", marginBottom: "auto"}
@@ -172,33 +183,18 @@ export class TemplatePopup implements ModalComponent {
 		if (template) {
 			return [
 				m(TemplateExpander, {
-					template,
-					language: templateModel.getSelectedLanguage(),
+					template: template,
 					onDropdownCreate: (vnode) => {
 						this._dropdownDom = vnode.dom
 					},
-					onLanguageSelected: (lang) => {
-						templateModel.setSelectedLanguage(lang)
-					},
 					onReturnFocus: () => {
 						this._filterTextFieldDom.focus()
+					},
+					onSubmitted: (text) => {
+						this._onSubmit(text)
+						this._close()
 					}
-				}),
-				m(".flex", {
-					style: {
-						justifyContent: "right"
-					}
-				}, [
-					m(ButtonN, {
-						label: () => "Submit",
-						click: (e) => {
-							this._onSubmit(template.content[templateModel.getSelectedLanguage()])
-							this._close()
-							e.stopPropagation()
-						},
-						type: ButtonType.Primary,
-					}),
-				])
+				})
 			]
 		} else {
 			return null
@@ -281,7 +277,6 @@ export class TemplatePopup implements ModalComponent {
 
 	backgroundClick(e: MouseEvent): void {
 		this._close()
-		console.log(e.target)
 	}
 
 	hideAnimation(): Promise<void> {

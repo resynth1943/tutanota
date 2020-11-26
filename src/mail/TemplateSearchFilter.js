@@ -1,42 +1,40 @@
 //@flow
+import type {Template} from "./TemplateModel"
 
-
-export function searchForTag(input: string, list: any[]): Array<any> {
-	let results = []
+export function searchForTag(input: string, list: Template[]): Array<Template> {
+	let matchedTags = []
 	let queryString = input.substring(1).trim().toLowerCase() // remove # and whitespaces at end from input
 	list.forEach(template => {
 			if (template.tag) {
 				let templateTag = template.tag.toLowerCase()
 				if (templateTag.includes(queryString)) {
-					results.push(template)
+					matchedTags.push(template)
 				}
 			}
 		}
 	)
-	return results
+	return matchedTags
 }
 
-export function searchInContent(input: string, list: any[]): Array<any> {                     // ~ + - * / \ ? & $ %
-	let results = []
-	let resultsContent = []
+export function searchInContent(input: string, list: Template[]): Array<Template> {
+	let matchedTitles = []
+	let matchedContents = []
 	let queryString = input.trim().toLowerCase()
 	list.forEach(template => {
-		if (template.title) {
+		if (template.title) { // search in title
 			let templateTitle = template.title.toLowerCase()
 			if (templateTitle.includes(queryString)) {
-				results.push(template)
+				matchedTitles.push(template)
 			}
 		}
-	})
-
-	list.forEach(template => {
-		for (const [lang, content] of Object.entries(template.content)) {
+		for (const [lang, content] of Object.entries(template.content)) { // search in every language content of current template
 			if (String(content).toLowerCase().includes(queryString)) {
-				if (!results.includes(template) && !resultsContent.includes(template)) {
-					resultsContent.push(template)
+				if (!matchedTitles.includes(template) && !matchedContents.includes(template)) { // only add if its not already found in title or in other language
+					matchedContents.push(template)
 				}
 			}
 		}
 	})
-	return results.concat(resultsContent)
+
+	return matchedTitles.concat(matchedContents) // prioritize match in title over match in content
 }

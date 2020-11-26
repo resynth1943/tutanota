@@ -1,5 +1,4 @@
 // @flow
-
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 import {neverNull, typedEntries} from "../api/common/utils/Utils"
@@ -21,7 +20,9 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import type {Language, LanguageCode} from "../misc/LanguageViewModel"
 
-// TODO: REPLACE ALL DYNAMIC LABELS WITH TRANSLATIONKEYS !!
+/*
+	Creates an Editor Popup in which you can create a new template or edit an existing one
+*/
 
 export class TemplateEditor {
 	_templateContentEditor: HtmlEditor
@@ -36,6 +37,8 @@ export class TemplateEditor {
 	view: Function
 	_languageContent: {[LanguageCode]: string}
 	_addedLanguages: Language[]
+
+	_submitter: (string) => void
 
 	constructor(allImportedTemplates: Array<Template>, template: ?Template, entityUpdate: EntityEventsListener) {
 		this._templateTitle = stream("")
@@ -52,18 +55,19 @@ export class TemplateEditor {
 			.setMinHeight(500)
 		this._initEditorValues(template)
 
+		// Initialize Attributes for TextFields and Buttons
 		const titleAttrs: TextFieldAttrs = {
-			label: () => "Title",
+			label: () => "Title", // TODO: Add TranslationKey
 			value: this._templateTitle
 		}
 
 		const tagAttrs: TextFieldAttrs = {
-			label: () => "Tag",
+			label: () => "Tag", // TODO: Add TranslationKey
 			value: this._templateTag
 		}
 
 		const languageAttrs: TextFieldAttrs = {
-			label: () => "Language",
+			label: () => "Language", // TODO: Add TranslationKey
 			value: this._selectedLanguage.map((code) => this._getTranslatedLanguage(code)),
 			injectionsRight: () => [
 				this._addedLanguages.length > 1 ? m(ButtonN, removeButtonAttrs) : null,
@@ -73,7 +77,7 @@ export class TemplateEditor {
 		}
 
 		const languageButtonAttrs: ButtonAttrs = {
-			label: () => "Languages",
+			label: () => "Languages", // TODO: Add TranslationKey
 			type: ButtonType.Action,
 			icon: () => Icons.More,
 			click: createDropdown(() => {
@@ -93,7 +97,7 @@ export class TemplateEditor {
 					})
 				}
 				buttons.push({
-					label: () => "Add Language",
+					label: () => "Add Language", // TODO: Add TranslationKey
 					click: () => {
 						let newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
 						let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
@@ -119,7 +123,7 @@ export class TemplateEditor {
 		}
 
 		const removeButtonAttrs: ButtonAttrs = {
-			label: () => "Remove language",
+			label: () => "Remove language", // TODO: Add TranslationKey
 			icon: () => Icons.Trash,
 			Type: ButtonType.Action,
 			click: () => {
@@ -145,10 +149,10 @@ export class TemplateEditor {
 			])
 		}
 
-		let dialogOkAction = () => {
+		let dialogOkAction = () => { // Dialog action for saving a template
 			this._templateContents(this._templateContentEditor.getValue())
-			if (!this._templateTitle()) {
-				Dialog.error(() => "Title is empty!")
+			if (!this._templateTitle()) { // check if title or content is empty
+				Dialog.error(() => "Title is empty!") // TODO: Add TranslationKey
 				return
 			}
 			this._setLanguageContent()
@@ -157,7 +161,7 @@ export class TemplateEditor {
 				return
 			}
 
-			if (!template) {
+			if (!template) { // if no template exists, create a new one
 				this.newTemplate = createTemplate(this._templateTitle(), this._templateTag(), this._languageContent, allImportedTemplates.length)
 				allImportedTemplates.push(this.newTemplate)
 				localStorage.setItem("Templates", JSON.stringify(allImportedTemplates))
@@ -171,8 +175,7 @@ export class TemplateEditor {
 					}
 				], "fake-owner-id")
 
-			} else {
-				// template.content[this._selectedLanguage()] = this._templateContentEditor.getValue()
+			} else { // if its an existing template, save new values
 				this._writeToLocalstorage(allImportedTemplates, template)
 				entityUpdate([
 						{
@@ -197,7 +200,7 @@ export class TemplateEditor {
 		let headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [{label: 'cancel_action', click: dialogCloseAction, type: ButtonType.Secondary}],
 			right: [{label: 'save_action', click: dialogOkAction, type: ButtonType.Primary}],
-			middle: template ? () => "Edit Template" : () => "Create Template"
+			middle: template ? () => "Edit Template" : () => "Create Template" // TODO: Add TranslationKey
 		}
 		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 		this._dialog.show()
@@ -271,7 +274,7 @@ export class TemplateEditor {
 		})
 	}
 
-	_reorganizeLanguages(): Array<Object> {
+	_reorganizeLanguages(): Array<Object> { // sorts the languages and removes added languages from additional languages
 		const sortedArray = this._allLanguages.map((l) => {
 			return {name: lang.get(l.textId), value: l.code}
 		})

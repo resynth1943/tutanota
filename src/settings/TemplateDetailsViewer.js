@@ -25,19 +25,19 @@ export class TemplateDetailsViewer {
 	constructor(template: Template, keyList: Array<Template>, entityUpdate: EntityEventsListener) {
 
 		const titleAttrs: TextFieldAttrs = {
-			label: () => "Title",
+			label: () => "Title", // TODO: Add TranslationKey
 			value: stream(template.title),
 			disabled: true
 		}
 
 		const tagAttrs: TextFieldAttrs = {
-			label: () => "Tag",
+			label: () => "Tag", // TODO: Add TranslationKey
 			value: stream(neverNull(template.tag)),
 			disabled: true
 		}
 
 		const EditButtonAttrs: ButtonAttrs = {
-			label: () => "Edit",
+			label: () => "Edit",// TODO: Add TranslationKey
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
@@ -46,11 +46,11 @@ export class TemplateDetailsViewer {
 		}
 
 		const RemoveButtonAttrs: ButtonAttrs = {
-			label: () => "Remove",
+			label: () => "Remove", // TODO: Add TranslationKey
 			icon: () => Icons.Trash,
 			type: ButtonType.Action,
 			click: () => {
-				Dialog.confirm(() => "Are you sure you want to delete the Template?").then((confirmed) => {
+				Dialog.confirm(() => "Are you sure you want to delete the Template?").then((confirmed) => { // TODO: Add TranslationKey
 					if (confirmed) {
 						keyList.splice(template.index, 1)
 						localStorage.setItem("Templates", JSON.stringify(keyList))
@@ -72,7 +72,7 @@ export class TemplateDetailsViewer {
 		this.view = () => {
 			return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 				m(".h4.mt-l", [
-					m("", "Template Settings"),
+					m("", "Template Settings"), // TODO: Add TranslationKey
 					m(ButtonN, EditButtonAttrs),
 					m(ButtonN, RemoveButtonAttrs),
 				]),

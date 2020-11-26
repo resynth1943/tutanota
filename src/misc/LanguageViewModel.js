@@ -1,6 +1,6 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/Env"
-import {asyncImport, downcast, typedEntries} from "../api/common/utils/Utils"
+import {asyncImport, downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import type {TranslationKeyType} from "./TranslationKey"
 
@@ -59,12 +59,13 @@ export type LanguageCode = $Keys<typeof LanguageNames>
 export type Language = {code: LanguageCode, textId: TranslationKey}
 
 export const languageByCode: {[LanguageCode]: Language}= {}
-for (let [code, textId] of typedEntries(LanguageNames)) {
+// cannot import typedEntries here for some reason
+for (let [code, textId] of downcast(Object.entries(LanguageNames))) {
 	languageByCode[code] = {code, textId}
 }
 
 
-export const languages: $ReadOnlyArray<{code: LanguageCode, textId: TranslationKey}> = typedEntries(LanguageNames).map(([code, textId]) => {
+export const languages: $ReadOnlyArray<{code: LanguageCode, textId: TranslationKey}> = downcast(Object.entries(LanguageNames)).map(([code, textId]) => {
 	return {code, textId}
 })
 

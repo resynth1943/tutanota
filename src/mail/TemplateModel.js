@@ -1,10 +1,11 @@
 // @flow
 
 import type {LanguageCode} from "../misc/LanguageViewModel"
-import {loadTemplates} from "../settings/TemplateListView"
+import {createTemplate} from "../settings/TemplateListView"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import stream from "mithril/stream/stream.js"
+import {assertNotNull} from "../api/common/utils/Utils"
 
 export type Template = {
 	_id: IdTuple;
@@ -13,6 +14,11 @@ export type Template = {
 	content: {[language: LanguageCode]: string},
 	index: number,
 }
+
+/*
+* Model for Templates
+*
+*/
 
 export class TemplateModel {
 	_allTemplates: Array<Template>
@@ -26,14 +32,14 @@ export class TemplateModel {
 		this._allTemplates = []
 		this._searchResults = []
 		this._selectedTemplate = null
-		this._lazyLoadedTemplates = new LazyLoaded( () => {
+		this._lazyLoadedTemplates = new LazyLoaded(() => {
 			this._allTemplates = loadTemplates()
 			this._searchResults = this._allTemplates
 			return Promise.resolve()
 		})
 	}
 
-	init():Promise<void> {
+	init(): Promise<void> {
 		return this._lazyLoadedTemplates.getAsync()
 	}
 
@@ -82,7 +88,28 @@ export class TemplateModel {
 		this._selectedTemplate = template
 	}
 
+	sortTemplates() {
+		this._searchResults.sort(function (a, b) { // Sort
+			var titleA = a.title.toUpperCase();
+			var titleB = b.title.toUpperCase();
+			return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
+		})
+	}
+
 }
 
 export const templateModel: TemplateModel = new TemplateModel()
+
+export function loadTemplates(): Array<Template> {
+	if (localStorage.getItem("Templates") !== null) {
+		const parsedTemplates = JSON.parse(assertNotNull(localStorage.getItem("Templates"))) // Global variable that represents current Localstorage Array
+		if (parsedTemplates instanceof Array) {
+			return parsedTemplates.map((storedTemplate, index) => createTemplate(storedTemplate.title, storedTemplate.tag, storedTemplate.content, index))
+		} else {
+			return []
+		}
+	} else {
+		return []
+	}
+}
 

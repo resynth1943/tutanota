@@ -160,6 +160,9 @@ styles.registerStyle('main', () => {
 		'.overflow-x-hidden': {
 			'overflow-x': 'hidden'
 		},
+		'.overflow-wrap': {
+			'overflow-wrap': 'anywhere'
+		},
 
 
 		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
@@ -430,6 +433,7 @@ styles.registerStyle('main', () => {
 		'.justify-between': {'justify-content': 'space-between'},
 		'.justify-end': {'justify-content': 'flex-end'},
 		'.justify-start': {'justify-content': 'flex-start'},
+		'.justify-right': {'justify-content': 'right'},
 		'.child-grow > *': {flex: "1 1 auto"},
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},

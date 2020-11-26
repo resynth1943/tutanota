@@ -1,8 +1,6 @@
 //@flow
 
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
-import {assertNotNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -15,9 +13,13 @@ import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {TemplateEditor} from "./TemplateEditor"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import type {Template} from "../mail/TemplateModel"
+import {loadTemplates} from "../mail/TemplateModel"
+
+/*
+
+*/
 
 export class TemplateListView implements UpdatableSettingsViewer {
-	_templateFilter: Stream<string>
 	_keyList: Array<Template>
 	_dialog: Dialog
 	_list: List<Template, TemplateRow>
@@ -26,25 +28,23 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
-		console.log("new Template list view")
 		this._keyList = loadTemplates()
 
 		const listConfig: ListConfig<Template, TemplateRow> = {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				console.log("fetch templates before loaded completely", this._keyList)
 				this._list.setLoadedCompletely()
-				console.log("fetch templates", this._keyList)
 				return Promise.resolve(this._keyList)
 			},
 			loadSingle: (elementId) => {
 				return Promise.resolve(this._keyList.find(template => isSameId(elementIdPart(template._id), elementId)))
 			},
 			sortCompare: (a: Template, b: Template) => {
-				// TODO: See compare function of Array.sort
-				return 0
+				var titleA = a.title.toUpperCase();
+				var titleB = b.title.toUpperCase();
+				return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
 			},
-			elementSelected: (templates: Array<Template>, elementClicked, selectionChanged, multiSelectionActive) => {
+			elementSelected: (templates: Array<Template>, elementClicked) => {
 				if (elementClicked) {
 					this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], this._keyList, (updates) => {
 						return this.entityEventsReceived(updates)
@@ -72,7 +72,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg"),
 		}
-		this._templateFilter = stream("")
 		this._list = new List(listConfig)
 		this._list.loadInitial()
 	}
@@ -82,7 +81,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		return m(".flex.flex-column.fill-absolute", [
 			m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
 				m(".mr-negative-s.align-self-end", m(ButtonN, {
-					label: () => "Add template",
+					label: () => "Add template", // TODO: Add TranslationKey
 					type: ButtonType.Primary,
 					click: () => {
 						this._showDialogWindow()
@@ -115,10 +114,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		})
 	}
 
-	/*reloadList(newTemplate: Template) {
-		this._list._addToLoadedEntities(newTemplate)
-	}*/
-
 }
 
 export class TemplateRow {
@@ -129,7 +124,7 @@ export class TemplateRow {
 	_domTemplateId: HTMLElement;
 
 	constructor() {
-		this.top = 0
+		this.top = 0 // is needed because of the list component
 	}
 
 	update(template: Template, selected: boolean): void {
@@ -141,7 +136,6 @@ export class TemplateRow {
 		} else {
 			this.domElement.classList.remove("row-selected")
 		}
-
 		this._domTemplateTitle.textContent = template.title
 		this._domTemplateId.textContent = template.tag ? template.tag : ""
 	}
@@ -170,18 +164,6 @@ export function createTemplate(title: string, tag: string, content: {[LanguageCo
 	}
 }
 
-export function loadTemplates(): Array<Template> {
-	console.log("load templates", localStorage.getItem("Templates"))
-	if (localStorage.getItem("Templates") !== null) {
-		const parsedTemplates = JSON.parse(assertNotNull(localStorage.getItem("Templates"))) // Global variable that represents current Localstorage Array
-		if (parsedTemplates instanceof Array) {
-			return parsedTemplates.map((storedTemplate, index) => createTemplate(storedTemplate.title, storedTemplate.tag, storedTemplate.content, index))
-		} else {
-			return []
-		}
-	} else {
-		return []
-	}
-}
+
 
 
