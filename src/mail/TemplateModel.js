@@ -1,11 +1,11 @@
 // @flow
 
 import type {LanguageCode} from "../misc/LanguageViewModel"
+import {lang} from "../misc/LanguageViewModel"
 import {createTemplate} from "../settings/TemplateListView"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import stream from "mithril/stream/stream.js"
-import {assertNotNull} from "../api/common/utils/Utils"
+import {assertNotNull, downcast} from "../api/common/utils/Utils"
 
 export type Template = {
 	_id: IdTuple;
@@ -24,11 +24,11 @@ export class TemplateModel {
 	_allTemplates: Array<Template>
 	_searchResults: Array<Template>
 	_selectedTemplate: ?Template
-	_selectedLanguage: Stream<LanguageCode>
+	_selectedLanguage: LanguageCode
 	_lazyLoadedTemplates: LazyLoaded<void>
 
 	constructor() {
-		this._selectedLanguage = stream()
+		this._selectedLanguage = downcast(lang.code)
 		this._allTemplates = []
 		this._searchResults = []
 		this._selectedTemplate = null
@@ -51,7 +51,6 @@ export class TemplateModel {
 		} else {
 			this._searchResults = searchInContent(text, this._allTemplates)
 		}
-		this.updateSelectedLanguage()
 	}
 
 	containsResult(): boolean {
@@ -62,9 +61,10 @@ export class TemplateModel {
 		return (this._selectedTemplate === template)
 	}
 
-	updateSelectedLanguage() {
+	_updateSelectedLanguage() {
 		if (this._selectedTemplate && this._searchResults.length) {
-			this._selectedLanguage(Object.keys(this._selectedTemplate.content)[0])
+			// TODO prefer current language from LanguageViewModel
+			this._selectedLanguage = Object.keys(this._selectedTemplate.content)[0]
 		}
 	}
 
@@ -73,7 +73,7 @@ export class TemplateModel {
 	}
 
 	getSelectedLanguage(): LanguageCode {
-		return this._selectedLanguage()
+		return this._selectedLanguage
 	}
 
 	getSelectedTemplate(): ?Template {
@@ -81,21 +81,17 @@ export class TemplateModel {
 	}
 
 	setSelectedLanguage(lang: LanguageCode) {
-		this._selectedLanguage(lang)
+		this._selectedLanguage = lang
 	}
 
 	setSelectedTemplate(template: ?Template) {
 		this._selectedTemplate = template
+		this._updateSelectedLanguage()
 	}
 
-	sortTemplates() {
-		this._searchResults.sort(function (a, b) { // Sort
-			var titleA = a.title.toUpperCase();
-			var titleB = b.title.toUpperCase();
-			return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
-		})
-	}
+	saveSaveTemplate() {
 
+	}
 }
 
 export const templateModel: TemplateModel = new TemplateModel()

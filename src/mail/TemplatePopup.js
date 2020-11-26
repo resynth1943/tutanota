@@ -21,6 +21,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
 import {templateModel} from "./TemplateModel"
+import {isKeyPressed} from "../misc/KeyManager"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -40,26 +41,27 @@ export class TemplatePopup implements ModalComponent {
 	_filterTextAttrs: TextFieldAttrs
 	_shortcuts: Shortcut[]
 	_scrollDom: HTMLElement
-
 	_onSubmit: (string) => void
-
 	_currentIndex: number = 0
 	_initialWindowWidth: number
-
 	_availableLanguages: Array<Object>
-
 	_filterTextFieldDom: HTMLElement
 	_dropdownDom: HTMLElement
+	_resizeListener: Function
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
-		templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
-		templateModel.setSelectedLanguage(templateModel.containsResult() ? Object.keys(templateModel.getSearchResults()[0].content)[0] : "en")
+		//templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 		this._rect = rect
 		this._onSubmit = onSubmit
 		this._initialWindowWidth = window.innerWidth
+		this._resizeListener = () => {
+			console.log("popup resize listener")
+			this._close()
+		}
 
 		// initial search
 		templateModel.search(highlightedText)
+		templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 
 		this._filterTextAttrs = {
 			label: "templateFilter_label",
@@ -68,7 +70,7 @@ export class TemplatePopup implements ModalComponent {
 			oninput: (input) => { /* Filter function */
 				this._currentIndex = 0
 				templateModel.search(input)
-				templateModel.setSelectedTemplate(templateModel.getSearchResults() ? templateModel.getSearchResults()[0] : null)
+				templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 			},
 			onInputCreate: (vnode) => {
 				this._filterTextFieldDom = vnode.dom
@@ -108,14 +110,13 @@ export class TemplatePopup implements ModalComponent {
 					// prevent closing pop up
 					e.stopPropagation()
 				},
-			oncreate: () => {
-				windowFacade.addResizeListener(() => {
-					this._close()
-				})
-			},
-			onremove: () => {
-				windowFacade.removeResizeListener(() => {})
-			},
+
+				oncreate: () => {
+					windowFacade.addResizeListener(this._resizeListener)
+				},
+				onremove: () => {
+					windowFacade.removeResizeListener(this._resizeListener)
+				},
 			}, [
 				m(".flex.flex-column.flex-grow-shrink-half" + (showTwoColumns ? ".pr" : ""), this._renderLeftColumn()),
 				showTwoColumns ? m(".flex.flex-column.flex-grow-shrink-half", this._renderRightColumn()) : null,
@@ -127,12 +128,12 @@ export class TemplatePopup implements ModalComponent {
 		return [
 			m(".mt-negative-s", { // Header Wrapper
 				onkeydown: (e) => { /* simulate scroll with arrow keys */
-					if (e.keyCode === Keys.DOWN.code) { // DOWN
+					if (isKeyPressed(e.keyCode, Keys.DOWN)) { // DOWN
 						this._changeSelectionViaKeyboard("next")
-					} else if (e.keyCode === Keys.UP.code) { // UP
+					} else if (isKeyPressed(e.keyCode, Keys.UP)) { // UP
 						e.preventDefault()
 						this._changeSelectionViaKeyboard("previous")
-					} else if (e.keyCode === Keys.TAB.code) { // TAB
+					} else if (isKeyPressed(e.keyCode, Keys.TAB)) { // TAB
 						e.preventDefault()
 						if (this._isScreenWideEnough()) {
 							this._dropdownDom.focus()
@@ -158,12 +159,11 @@ export class TemplatePopup implements ModalComponent {
 					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				}
 			}, [
-				m(".flex.folder-row-no-margin" + (templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {
+				m(".flex.template-list-row" + (templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {
 						onclick: (e) => {
 							this._currentIndex = index // navigation via mouseclick
 							this._filterTextFieldDom.focus()
 							templateModel.setSelectedTemplate(template)
-							templateModel.updateSelectedLanguage()
 							e.stopPropagation()
 						},
 					}, [
@@ -184,6 +184,7 @@ export class TemplatePopup implements ModalComponent {
 			return [
 				m(TemplateExpander, {
 					template: template,
+					model: templateModel,
 					onDropdownCreate: (vnode) => {
 						this._dropdownDom = vnode.dom
 					},
@@ -246,17 +247,12 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_changeSelectionViaKeyboard(action: NavAction) { /* count up or down in templates */
-		if (action === "next" && this._currentIndex <= templateModel.getSearchResults().length - 2) {
-			this._currentIndex++
-			this._scroll()
-
-		} else if (action === "previous" && this._currentIndex > 0) {
-			this._currentIndex--
+		const nextIndex = this._currentIndex + (action === "next" ? 1 : -1)
+		if (nextIndex >= 0 && nextIndex < templateModel.getSearchResults().length) {
+			this._currentIndex = nextIndex
 			this._scroll()
 		}
 		templateModel.setSelectedTemplate(templateModel.getSearchResults()[this._currentIndex])
-		templateModel.updateSelectedLanguage()
-
 	}
 
 	_scroll() {

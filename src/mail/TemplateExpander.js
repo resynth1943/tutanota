@@ -1,42 +1,43 @@
 // @flow
 import m from "mithril"
+import type {SelectorItem} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
-import {lang, languageByCode} from "../misc/LanguageViewModel"
-import type {SelectorItem} from "../gui/base/DropDownSelectorN"
 import type {LanguageCode} from "../misc/LanguageViewModel"
+import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {typedKeys} from "../api/common/utils/Utils.js"
 import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
 import {px} from "../gui/size"
 import {Keys} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {templateModel} from "./TemplateModel"
 import type {Template} from "./TemplateModel"
+import {TemplateModel} from "./TemplateModel"
+import {isKeyPressed} from "../misc/KeyManager"
 
-/*
-	TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
-	The Popup handles whether the Expander should be rendered or not, depending on available width-space.
-*/
-
+/**
+ * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
+ * The Popup handles whether the Expander should be rendered or not, depending on available width-space.
+ */
 export type TemplateExpanderAttrs = {
 	template: Template,
 	onDropdownCreate: (vnode: Vnode<*>) => void,
 	onReturnFocus: () => void,
 	onSubmitted: (string) => void,
+	model: TemplateModel
 }
 
 export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 	_dropDownDom: HTMLElement
 
 	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
-		const template = attrs.template
-		const selectedLanguage = templateModel.getSelectedLanguage()
+		const {template, model} = attrs
+		const selectedLanguage = model.getSelectedLanguage()
 		return m(".flex.flex-column.flex-grow", {
 			style: {
 				maxHeight: px(TEMPLATE_POPUP_HEIGHT) // maxHeight has to be set, because otherwise the content would overflow outside the flexbox
 			},
 			onkeydown: (e) => {
-				if (e.keyCode === Keys.TAB) {
+				if (isKeyPressed(e.keyCode, Keys.TAB)) {
 					e.preventDefault()
 					if (document.activeElement === this._dropDownDom) {
 						attrs.onReturnFocus()
@@ -55,7 +56,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 						attrs.onDropdownCreate(buttonVnode)
 					},
 					selectionChangedHandler: (value) => {
-						templateModel.setSelectedLanguage(value)
+						model.setSelectedLanguage(value)
 						attrs.onReturnFocus()
 					},
 				})

@@ -670,7 +670,7 @@ styles.registerStyle('main', () => {
 			'align-items': 'center',
 			position: "relative"
 		},
-		'.folder-row-no-margin': {
+		'.template-list-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
 			'align-items': 'center',
 			position: "relative"
