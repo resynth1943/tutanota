@@ -45,6 +45,7 @@ import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
+import type {Entity} from "../../../src/api/common/EntityFunctions"
 
 
 type TestIdGenerator = {
@@ -167,7 +168,7 @@ o.spec("SendMailModel", function () {
 		locator.init(worker) // because it is used in certain parts of the code
 
 		entity = new EntityClient(worker)
-		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {
+		mockedAttributeReferences.push(mockAttribute(entity, entity.loadRoot, <T: Entity>(typeRef: TypeRef<T>, groupId: Id) => {
 			if (isSameTypeRef(typeRef, ContactListTypeRef)) {
 				return Promise.resolve(downcast({contacts: testIdGenerator.newId()}))
 			} else {

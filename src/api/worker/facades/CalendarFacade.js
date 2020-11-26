@@ -6,14 +6,7 @@ import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
-import {
-	elementIdPart,
-	getListId,
-	HttpMethod,
-	isSameId,
-	listIdPart,
-	uint8arrayToCustomId
-} from "../../common/EntityFunctions"
+import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
@@ -204,8 +197,8 @@ export class CalendarFacade {
 				.then((group) => {
 					// remove the user from the cache before loading it again to make sure we get the latest version.
 					// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-					this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
-					return this._entity.load(UserTypeRef, neverNull(userGroup.user))
+					return this._entityRestCache.removeFromCache(UserTypeRef, null, neverNull(userGroup.user))
+					           .then(() => this._entity.load(UserTypeRef, neverNull(userGroup.user)))
 					           .then(user => {
 						           this._loginFacade._user = user
 						           return {user, group}
@@ -284,7 +277,7 @@ export class CalendarFacade {
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)
-						.catch(NotFoundError, () => null)
+					           .catch(NotFoundError, () => null)
 				}
 			})
 	}

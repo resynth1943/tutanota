@@ -55,12 +55,33 @@ export const LOAD_MULTIPLE_LIMIT = 100
 
 export const READ_ONLY_HEADER = "read-only"
 
+export type Entity = {
+	/* Should be TypeRef<self> but Flow doesn't allow it. */
+	_type: TypeRef<*>,
+	// Should be included but cannot be unified with types without this property.
+	// _ownerEncSessionKey?: ?Uint8Array,
+}
+
+export type Element = {
+	_id: Id
+}
+
+export type ListElement = {
+	_id: IdTuple
+}
+
+export type ElementEntity = Entity & Element
+
+export type ListElementEntity = Entity & ListElement
+
+export type SomeEntity = ElementEntity | ListElementEntity
+
 /**
  * Attention: TypeRef must be defined as class and not as Flow type because object types use structural typing and TypeRef does not
  * reference T. See https://github.com/facebook/flow/issues/3348
  * T should be bound to entities but we have no type to define them yet.
  */
-export class TypeRef<T> {
+export class TypeRef<T: Entity> {
 	+app: string;
 	+type: string;
 
@@ -91,7 +112,7 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		})
 }
 
-export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
+export function create<T: Entity>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	let i = {
 		_type: typeRef
 	}
@@ -142,7 +163,9 @@ function _getDefaultValue(value: ModelValue): any {
 	throw new Error(`no default value for ${JSON.stringify(value)}`)
 }
 
-export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface, extraHeaders?: Params): Promise<Id> {
+export function _setupEntity<T: SomeEntity>(listId: ?Id, instance: T, target: EntityRestInterface,
+                                            extraHeaders?: Params
+): Promise<Id> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (typeModel.type === Type.ListElement) {
@@ -156,7 +179,7 @@ export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInte
 	})
 }
 
-export function _updateEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
+export function _updateEntity<T: SomeEntity>(instance: T, target: EntityRestInterface): Promise<void> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		if (!(instance: any)._id) throw new Error("Id must be defined")
@@ -165,7 +188,7 @@ export function _updateEntity<T>(instance: T, target: EntityRestInterface): Prom
 	})
 }
 
-export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promise<void> {
+export function _eraseEntity<T: SomeEntity>(instance: T, target: EntityRestInterface): Promise<void> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		_verifyType(typeModel)
 		var ids = _getIds(instance, typeModel)
@@ -173,7 +196,9 @@ export function _eraseEntity<T>(instance: T, target: EntityRestInterface): Promi
 	})
 }
 
-export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, target: EntityRestInterface, extraHeaders?: Params): Promise<T> {
+export function _loadEntity<T: SomeEntity>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params,
+                                           target: EntityRestInterface, extraHeaders?: Params
+): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
 		let listId = null
@@ -199,7 +224,9 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 /**
  * load multiple does not guarantee order or completeness of returned elements.
  */
-export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
+export function _loadMultipleEntities<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[],
+                                                     target: EntityRestInterface, extraHeaders?: Params
+): Promise<T[]> {
 	// split the ids into chunks
 	let idChunks = [];
 	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
@@ -218,8 +245,9 @@ export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, eleme
 	})
 }
 
-export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
-                                    extraHeaders?: Params): Promise<T[]> {
+export function _loadEntityRange<T: SomeEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+                                                reverse: boolean, target: EntityRestInterface,
+                                                extraHeaders?: Params): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		let queryParams = {
@@ -253,8 +281,9 @@ export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((Id, Id) => 
 	}
 }
 
-export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
-                                                         rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
+export function _loadReverseRangeBetween<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id,
+                                                               target: EntityRestInterface, rangeItemLimit: number, extraHeaders?: Params
+): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target, extraHeaders)
@@ -277,7 +306,8 @@ export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, li
 	})
 }
 
-function loadedReverseRangeCompletely<T:ListElement>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>): boolean {
+function loadedReverseRangeCompletely<T:ListElementEntity>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>
+): boolean {
 	if (loadedEntities.length < rangeItemLimit) {
 		const lastLoaded = last(loadedEntities)
 		const lastFiltered = last(filteredEntities)
@@ -349,11 +379,11 @@ export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number
 }
 
 
-export function sortCompareByReverseId<T: ListElement>(entity1: T, entity2: T): number {
+export function sortCompareByReverseId<T: ListElementEntity>(entity1: T, entity2: T): number {
 	return compareNewestFirst(getElementId(entity1), getElementId(entity2))
 }
 
-export function sortCompareById<T: ListElement>(entity1: T, entity2: T): number {
+export function sortCompareById<T: ListElementEntity>(entity1: T, entity2: T): number {
 	return compareOldestFirst(getElementId(entity1), getElementId(entity2))
 }
 
@@ -375,14 +405,6 @@ export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple): boolean {
 
 export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
-}
-
-export type Element = {
-	_id: Id
-}
-
-export type ListElement = {
-	_id: IdTuple
 }
 
 export function getEtId(entity: Element): Id {

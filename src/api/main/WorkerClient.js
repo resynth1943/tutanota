@@ -1,7 +1,7 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
 import {objToError, Queue, Request} from "../common/WorkerProtocol"
-import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
+import type {ElementEntity, HttpMethodEnum, ListElementEntity, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
@@ -447,7 +447,9 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('resolveSessionKey', arguments))
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params
+	): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 

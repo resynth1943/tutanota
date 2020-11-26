@@ -1,7 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {Element, HttpMethodEnum, ListElement} from "../common/EntityFunctions"
+import type {Entity, HttpMethodEnum, ListElementEntity, SomeEntity} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -39,8 +39,6 @@ assertMainOrNode()
 
 // TODO write testcases
 
-type SomeEntity = Element | ListElement
-
 /** @deprecated use EntityClient implementation instead */
 export function setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {
 	return _setupEntity(listId, instance, worker)
@@ -73,20 +71,20 @@ export function loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, el
  * load multiple does not guarantee order or completeness of returned elements.
  * @deprecated use EntityClient implementation instead
  */
-export function loadMultipleList<T: ListElement>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
+export function loadMultipleList<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
 ): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, restInterface)
 }
 
 /** @deprecated use EntityClient implementation instead */
-export function loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
-                                          reverse: boolean): Promise<T[]> {
+export function loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+                                                reverse: boolean): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, worker)
 }
 
 
 /** @deprecated use EntityClient implementation instead */
-export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
+export function loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
 			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
@@ -95,7 +93,7 @@ export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: 
 	})
 }
 
-function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
+function _loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef)
 		.then(getFirstIdIsBiggerFnForType)
 		.then((isFirstIdBigger) => {
@@ -120,11 +118,13 @@ function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, en
 }
 
 /** @deprecated use EntityClient implementation instead */
-export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
+export function loadReverseRangeBetween<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id,
+                                                              rangeItemLimit: number = RANGE_ITEM_LIMIT
+): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return _loadReverseRangeBetween(typeRef, listId, start, end, worker, rangeItemLimit)
 }
 
-export function loadVersion<T>(instance: T, version: Id): Promise<T> {
+export function loadVersion<T: SomeEntity>(instance: T, version: Id): Promise<T> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version")
 		return load((instance: any)._type, (instance: any)._id, {version})
@@ -160,12 +160,12 @@ export function loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promi
 
 type Service = SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum
 
-export function serviceRequest<T>(service: Service, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>,
-                                  queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
+export function serviceRequest<T: Entity>(service: Service, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>,
+                                          queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
 	return worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 
-export function serviceRequestVoid<T>(service: Service, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params,
-                                      sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
+export function serviceRequestVoid<T: Entity>(service: Service, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params,
+                                              sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
 	return worker.serviceRequest(service, method, requestEntity, null, queryParams, sk, extraHeaders)
 }

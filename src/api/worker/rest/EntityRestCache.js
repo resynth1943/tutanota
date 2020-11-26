@@ -1,7 +1,7 @@
 // @flow
 import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
-import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
+import type {ElementEntity, HttpMethodEnum, ListElementEntity} from "../../common/EntityFunctions"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -14,7 +14,7 @@ import {
 	TypeRef
 } from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {assertNotNull, clone, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
+import {assertNotNull, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
@@ -29,16 +29,8 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
-import {DbFacade} from "../search/DbFacade"
-import type {EntityCacheEntry, EntityCacheListInfoEntry} from "./EntityCacheDb"
-import {EntityListInfoOS, EntityRestCacheOS} from "./EntityCacheDb"
-import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/InstanceMapper"
-import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
+import type {EntityCacheDb, EntityCacheListInfoEntry} from "./EntityCacheDb"
 import {lastThrow} from "../../common/utils/ArrayUtils"
-import {getPerformanceTimestamp} from "../search/IndexUtils"
-import {uint8ArrayToBitArray} from "../crypto/CryptoUtils"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
-import {decryptKey} from "../crypto/KeyCryptoUtils"
 
 const ValueType = EC.ValueType
 
@@ -65,25 +57,22 @@ assertWorkerOrNode()
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class EntityRestCache implements EntityRestInterface {
-	_ignoredTypes: TypeRef<any>[];
-	_entityRestClient: EntityRestInterface;
-	_db: DbFacade;
-	_tempDbKey: Aes128Key = uint8ArrayToBitArray(
-		new Uint8Array([196, 197, 17, 110, 240, 178, 69, 96, 121, 240, 231, 95, 83, 30, 149, 131])
-	)
+	+_ignoredTypes: TypeRef<any>[];
+	+_entityRestClient: EntityRestInterface;
+	+_db: EntityCacheDb;
 
-	constructor(entityRestClient: EntityRestInterface, db: DbFacade) {
+	constructor(entityRestClient: EntityRestInterface, db: EntityCacheDb) {
 		this._entityRestClient = entityRestClient
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
 			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef, RejectedSenderTypeRef
 		]
 		this._db = db
-		db.open("restCacheTempId")
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
-	                 extraHeaders?: Params): Promise<any> {
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
+	): Promise<any> {
 		if (method === HttpMethod.GET && !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))) {
 			if ((typeRef.app === "monitor") || (queryParameter && queryParameter["version"])) {
 				// monitor app and version requests are never cached
@@ -105,8 +94,9 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	async _loadEntityRange<T: ListElement>(typeRef: TypeRef<T>, queryParameter: ?Params, listId: Id, method: HttpMethodEnum, entity: ?T,
-	                                       extraHeaders: ?Params): Promise<Array<T>> {
+	async _loadEntityRange<T: ListElementEntity>(typeRef: TypeRef<T>, queryParameter: ?Params, listId: Id, method: HttpMethodEnum,
+	                                             entity: ?T, extraHeaders: ?Params
+	): Promise<Array<T>> {
 		const typeModel = await resolveTypeReference(typeRef)
 		if (typeModel.values["_id"].type === ValueType.GeneratedId) {
 			const params = neverNull(queryParameter)
@@ -126,10 +116,11 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	async _loadSingle<T>(typeRef: TypeRef<T>, listId: ?Id, id: Id, method: HttpMethodEnum, entity: ?T, queryParameter: ?Params,
-	                     extraHeaders: ?Params): Promise<T> {
+	async _loadSingle<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, listId: ?Id, id: Id, method: HttpMethodEnum, entity: ?T,
+	                                                        queryParameter: ?Params, extraHeaders: ?Params
+	): Promise<T> {
 		// load single entity
-		const cached = await this._getFromCache(typeRef, listId, id)
+		const cached = await this._db.loadSingle(typeRef, listId, id)
 		if (cached) {
 			return cached
 		} else {
@@ -152,13 +143,14 @@ export class EntityRestCache implements EntityRestInterface {
 			&& queryParameter["reverse"] != null
 	}
 
-	async _loadMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: Id, entity: ?T, queryParameter: Params,
-	                       extraHeaders?: Params): Promise<Array<T>> {
+	async _loadMultiple<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: Id, entity: ?T,
+	                                                          queryParameter: Params, extraHeaders?: Params
+	): Promise<Array<T>> {
 		const ids: Array<Id> = queryParameter["ids"].split(",")
 		const notInCache: Array<Id> = []
 		const cachedEntities: Array<T> = []
 		const cachedItems: Array<[Id, ?T]> = await Promise.mapSeries(ids, async (itemId: Id) => {
-			const loaded = await this._getFromCache(typeRef, listId, itemId)
+			const loaded = await this._db.loadSingle(typeRef, listId, itemId)
 			return [itemId, loaded]
 		})
 
@@ -183,8 +175,8 @@ export class EntityRestCache implements EntityRestInterface {
 		return fromServer.concat(cachedEntities)
 	}
 
-	async _loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		const listInfo: ?EntityCacheListInfoEntry = await this._loadListInfo(typeRef, listId)
+	async _loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		const listInfo = await this._db.loadListInfo(typeRef, listId)
 		// check which range must be loaded from server
 		if (!listInfo || (start === GENERATED_MAX_ID && reverse && listInfo.upperRangeId !== GENERATED_MAX_ID)
 			|| (start === GENERATED_MIN_ID && !reverse && listInfo.lowerRangeId !== GENERATED_MIN_ID)) {
@@ -203,18 +195,8 @@ export class EntityRestCache implements EntityRestInterface {
 			let newListCache: EntityCacheListInfoEntry
 			if (!listInfo) {
 				newListCache = {upperRangeId: start, lowerRangeId: start}
-				// if (!this._listEntities[path]) {
-				// 	this._listEntities[path] = {}
-				// }
-				// newListCache = {allRange: [], lowerRangeId: start, upperRangeId: start, elements: {}}
-				// this._listEntities[path][listId] = newListCache
 			} else {
 				newListCache = listInfo
-				// TODO: save new list info here?
-				// newListCache = listCache
-				// newListCache.allRange = []
-				// newListCache.lowerRangeId = start
-				// newListCache.upperRangeId = start
 			}
 			return this._handleElementRangeResult(typeRef, newListCache, listId, start, count, reverse, entities, count)
 		} else if (!firstBiggerThanSecond(start, listInfo.upperRangeId)
@@ -273,13 +255,8 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	async _loadListInfo<T: ListElement>(typeRef: TypeRef<T>, listId: Id): Promise<?EntityCacheListInfoEntry> {
-		const transaction = await this._db.createTransaction(true, [EntityListInfoOS])
-		return transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
-	}
-
-	async _handleElementRangeResult<T: ListElement>(typeRef: TypeRef<T>, listInfo: EntityCacheListInfoEntry, listId: Id, start: Id,
-	                                                count: number, reverse: boolean, elements: T[], targetCount: number
+	async _handleElementRangeResult<T: ListElementEntity>(typeRef: TypeRef<T>, listInfo: EntityCacheListInfoEntry, listId: Id, start: Id,
+	                                                      count: number, reverse: boolean, elements: T[], targetCount: number
 	): Promise<T[]> {
 		let elementsToAdd = elements
 		if (elements.length > 0) {
@@ -312,9 +289,7 @@ export class EntityRestCache implements EntityRestInterface {
 				listInfo.upperRangeId = GENERATED_MAX_ID
 			}
 		}
-		const transaction = await this._db.createTransaction(false, [EntityListInfoOS])
-		transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId], listInfo)
-		await transaction.wait()
+		await this._db.saveListInfo(typeRef, listId, listInfo)
 		return this._provideFromCache(listInfo, typeRef, listId, start, count, reverse)
 	}
 
@@ -337,7 +312,7 @@ export class EntityRestCache implements EntityRestInterface {
 		} else if (allRangeList.length === 0) { // Element range is empty, so read all elements
 			elementsToRead = count
 		} else if (startIncluded) { // Start element is located in allRange read only elements that are not in allRange.
-			// TODO why -1 in non-reverse case
+			// TODO why it was -1 in non-reverse case
 			// elementsToRead = count - (allRangeList.length - 1)
 			elementsToRead = count - allRangeList.length
 			startElementId = lastThrow(allRangeList) // use the highest/lowest (for reverse) id in allRange as start element
@@ -363,20 +338,11 @@ export class EntityRestCache implements EntityRestInterface {
 		return {newStart: startElementId, newCount: elementsToRead}
 	}
 
-	async _provideFromCache<T>(listInfo: EntityCacheListInfoEntry, typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
-	                           reverse: boolean
+	async _provideFromCache<T: ListElementEntity>(listInfo: EntityCacheListInfoEntry, typeRef: TypeRef<T>, listId: Id, start: Id,
+	                                              count: number, reverse: boolean
 	): Promise<Array<T>> {
-		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
-		const timeStart = getPerformanceTimestamp()
-		const entries = await transaction.getRange(EntityRestCacheOS, [typeRef.app, typeRef.type, listId], start, count, reverse)
-		perfLog(`reading ${typeRef.type} range (${entries.length})`, timeStart)
-		const model = await resolveTypeReference(typeRef)
-		const filtered = entries.filter(e => isInRangeOf(listInfo, getElementId(e)))
-		return Promise.mapSeries(filtered, async (e) => {
-			// const sessionKey = await resolveSessionKey(model, e)
-			const sessionKey = e._dbEncSessionKey ? decryptKey(this._tempDbKey, e._dbEncSessionKey) : null
-			return decryptAndMapToInstance(model, e, sessionKey)
-		})
+		const entries = await this._db.loadRange(typeRef, listId, start, count, reverse)
+		return entries.filter(e => isInRangeOf(listInfo, getElementId(e)))
 	}
 
 	/**
@@ -401,7 +367,7 @@ export class EntityRestCache implements EntityRestInterface {
 						if (isSameTypeRef(MailTypeRef, typeRef) && containsEventOfType(data, OperationType.CREATE, instanceId)) {
 							// move for mail is handled in create event.
 						} else {
-							this._tryRemoveFromCache(typeRef, instanceListId, instanceId)
+							this._db.remove(typeRef, instanceListId, instanceId)
 						}
 						return update
 
@@ -417,16 +383,16 @@ export class EntityRestCache implements EntityRestInterface {
 		if (instanceListId) {
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
 			if (deleteEvent && isSameTypeRef(MailTypeRef, typeRef)) { // It is a move event
-				const element = await this._getFromCache(typeRef, deleteEvent.instanceListId, instanceId)
+				const element = await this._db.loadSingle(typeRef, deleteEvent.instanceListId, instanceId)
 				if (element) {
-					this._tryRemoveFromCache(typeRef, deleteEvent.instanceListId, instanceId)
+					await this._db.remove(typeRef, deleteEvent.instanceListId, instanceId)
 					element._id = [instanceListId, instanceId]
 					await this._putIntoCache(element)
 					return update
 				}
 			} else if (await this._isInCacheRange(typeRef, instanceListId, instanceId)) {
 				return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
-				           .then(entity => this._putIntoCache(entity))
+				           .then(entity => this._putIntoCache(downcast(entity)))
 				           .return(update)
 				           .catch(this._handleProcessingError)
 			}
@@ -434,12 +400,15 @@ export class EntityRestCache implements EntityRestInterface {
 		return update
 	}
 
-	async _processUpdateEvent(typeRef: TypeRef<*>, update: EntityUpdate): $Promisable<EntityUpdate | null> {
+	async _processUpdateEvent<T: ElementEntity | ListElementEntity>(
+		typeRef: TypeRef<T>,
+		update: EntityUpdate,
+	): $Promisable<EntityUpdate | null> {
 		const {instanceListId, instanceId} = update
-		const cached = await this._getFromCache(typeRef, instanceListId, instanceId)
+		const cached = await this._db.loadSingle(typeRef, instanceListId, instanceId)
 		if (cached) {
 			return this._entityRestClient.entityRequest(typeRef, HttpMethod.GET, instanceListId, instanceId)
-			           .then(entity => this._putIntoCache(entity))
+			           .then(entity => this._putIntoCache(downcast(entity)))
 			           .return(update)
 			           .catch(this._handleProcessingError)
 		}
@@ -456,80 +425,21 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	async _getFromCache<T>(typeRef: TypeRef<T>, listId: ?Id, id: Id): Promise<?T> {
-		const start = getPerformanceTimestamp()
-		const transaction = await this._db.createTransaction(true, [EntityRestCacheOS])
-		const data = await transaction.get(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", id])
-		perfLog(`reading ${typeRef.type}`, start)
-		if (data) {
-			const typeModel = await resolveTypeReference(typeRef)
-			const sessionKey = await resolveSessionKey(await resolveTypeReference(typeRef), data)
-			return decryptAndMapToInstance(typeModel, data, sessionKey)
-		} else {
-			return null
-		}
-	}
-
-	async _isInCacheRange(typeRef: TypeRef<*>, listId: Id, id: Id): Promise<boolean> {
-		const listInfo = await this._loadListInfo(typeRef, listId)
+	async _isInCacheRange(typeRef: TypeRef<ListElementEntity>, listId: Id, id: Id): Promise<boolean> {
+		const listInfo = await this._db.loadListInfo(typeRef, listId)
 		if (listInfo == null) {
 			return false
 		}
 		return isInRangeOf(listInfo, id)
 	}
 
-	async _putIntoCache(originalEntity: any): Promise<void> {
-		let entity = clone(originalEntity)
-		let elementId, listId
-		if (originalEntity._id instanceof Array) {
-			[listId, elementId] = originalEntity._id
-		} else {
-			listId = null
-			elementId = originalEntity._id
-		}
-		const typeModel = await resolveTypeReference(entity._type)
-		const sessionKey = await resolveSessionKey(typeModel, entity)
-		const data: EntityCacheEntry = await encryptAndMapToLiteral(typeModel, entity, sessionKey)
-		// Instance might be unencrypted and not hae session key.
-		if (sessionKey != null) {
-			// we override encrypted version of the key so that it's not encrypted with owner key anymore but with our local key
-			data._dbEncSessionKey = encryptKey(this._tempDbKey, sessionKey)
-		}
-
-		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS, EntityListInfoOS])
-
-		const typeRef = entity._type
-		const timeStart = getPerformanceTimestamp()
-		// noinspection ES6MissingAwait
-		transaction.put(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", elementId], data)
-
-		// TODO: we probably don't need to do this. Either element is not in the range and we don't want to modify listInfo or it's a
-		//  range request already and we will modify range anyway.
-		// let withListInfo = ""
-		// if (listId) {
-		// 	const oldListInfo = await transaction.get(EntityListInfoOS, [typeRef.app, typeRef.type, listId])
-		// 	if (!oldListInfo) {
-		// 		const newListInfo: EntityCacheListInfoEntry = {upperRangeId: elementId, lowerRangeId: elementId}
-		// 		withListInfo = "with listInfo"
-		// 		// noinspection ES6MissingAwait
-		// 		transaction.put(EntityListInfoOS, [typeRef.app, typeRef.type, listId || ""], newListInfo)
-		// 	}
-		// }
-
-		await transaction.wait()
-
-		perfLog(`writing ${typeRef.type}`, timeStart)
+	_putIntoCache(originalEntity: ElementEntity | ListElementEntity): Promise<void> {
+		return this._db.save(originalEntity)
 	}
 
-	async _tryRemoveFromCache(typeRef: TypeRef<any>, listId: ?Id, id: Id): Promise<void> {
-		const transaction = await this._db.createTransaction(false, [EntityRestCacheOS])
-		transaction.delete(EntityRestCacheOS, [typeRef.app, typeRef.type, listId || "", id])
-		await transaction.wait()
+	removeFromCache<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, listId: ?Id, id: Id): Promise<void> {
+		return this._db.remove(typeRef, listId, id)
 	}
-}
-
-function perfLog(message: string, start: number) {
-	// console.log(`${message} took ${getPerformanceTimestamp() - start}ms`)
 }
 
 

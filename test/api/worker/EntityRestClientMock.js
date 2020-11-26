@@ -1,7 +1,7 @@
 //@flow
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {timestampToGeneratedId} from "../../../src/api/common/utils/Encoding"
-import type {Element, HttpMethodEnum, ListElement} from "../../../src/api/common/EntityFunctions"
+import type {Element, ElementEntity, HttpMethodEnum, ListElement, ListElementEntity} from "../../../src/api/common/EntityFunctions"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -71,8 +71,8 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
-	                 extraHeaders?: Params
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
 	): Promise<any> {
 		return resolveTypeReference(typeRef).then(() => {
 			const startId = queryParameter && queryParameter["start"]
