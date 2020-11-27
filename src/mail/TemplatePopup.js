@@ -125,15 +125,13 @@ export class TemplatePopup implements ModalComponent {
 		return [
 			m(".mt-negative-s", { // Header Wrapper
 				onkeydown: (e) => { /* simulate scroll with arrow keys */
-					if (isKeyPressed(e.keyCode, Keys.DOWN)) { // DOWN
-						const changedSelection = templateModel.selectNextTemplate(SELECT_NEXT_TEMPLATE)
-						if(changedSelection)
+					if (isKeyPressed(e.keyCode, Keys.DOWN, Keys.UP)) { // DOWN
+						const changedSelection = templateModel.selectNextTemplate(isKeyPressed(e.keyCode, Keys.UP)
+							? SELECT_PREV_TEMPLATE
+							: SELECT_NEXT_TEMPLATE)
+						if (changedSelection) {
 							this._scroll()
-					} else if (isKeyPressed(e.keyCode, Keys.UP)) { // UP
-						e.preventDefault() // prevent cursor to go the left of the input field
-						const changedSelection = templateModel.selectNextTemplate(SELECT_PREV_TEMPLATE)
-						if(changedSelection)
-							this._scroll()
+						}
 					} else if (isKeyPressed(e.keyCode, Keys.TAB)) { // TAB
 						e.preventDefault()
 						if (this._isScreenWideEnough()) {
@@ -249,7 +247,7 @@ export class TemplatePopup implements ModalComponent {
 	_scroll() {
 		const selectedTemplate = assertNotNull(templateModel.getSelectedTemplate())
 		this._scrollDom.scroll({
-			top: (TEMPLATE_LIST_ENTRY_HEIGHT * templateModel.getSelectedTemplateIndex(selectedTemplate)),
+			top: (TEMPLATE_LIST_ENTRY_HEIGHT * templateModel.getSelectedTemplateIndex()),
 			left: 0,
 			behavior: 'smooth'
 		})

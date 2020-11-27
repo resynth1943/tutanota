@@ -106,8 +106,8 @@ export class TemplateModel {
 		return this._selectedTemplate
 	}
 
-	getSelectedTemplateIndex(template: Template): number {
-		return this._searchResults.indexOf(template)
+	getSelectedTemplateIndex(): number {
+		return this._searchResults.indexOf(this._selectedTemplate)
 	}
 
 	setSelectedLanguage(lang: LanguageCode) {
@@ -120,7 +120,7 @@ export class TemplateModel {
 	}
 
 	selectNextTemplate(action: NavAction): boolean {
-		const selectedIndex = this.getSelectedTemplateIndex(assertNotNull(this._selectedTemplate))
+		const selectedIndex = this.getSelectedTemplateIndex()
 		const nextIndex = selectedIndex + (action === SELECT_NEXT_TEMPLATE ? 1 : -1)
 		if (nextIndex >= 0 && nextIndex < this._searchResults.length) {
 			const nextSelectedTemplate = this._searchResults[nextIndex]
