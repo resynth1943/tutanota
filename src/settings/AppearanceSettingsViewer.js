@@ -18,11 +18,12 @@ import {incrementDate} from "../api/common/utils/DateUtils"
 import {changeSystemLanguage} from "../native/SystemApp"
 import {getHourCycle} from "../misc/Formatter"
 import type {EntityUpdateData} from "../api/main/EventController"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
-		const languageDropDownAttrs: DropDownSelectorAttrs<?string> = {
+		const languageDropDownAttrs: DropDownSelectorAttrs<?LanguageCode> = {
 			label: "language_label",
 			items: languages.map(language => {
 				return {name: lang.get(language.textId), value: language.code}

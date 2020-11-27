@@ -17,14 +17,15 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import {Icons} from "../gui/base/icons/Icons"
 import {createDropdown} from "../gui/base/DropdownN"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
+import {getLanguage, lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import type {Language, LanguageCode} from "../misc/LanguageViewModel"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 /*
 	Creates an Editor Popup in which you can create a new template or edit an existing one
 */
 
-export class TemplateEditor {
+export class TemplateEditor { // TODO: Move to templateEditorModel
 	_templateContentEditor: HtmlEditor
 	_templateTag: Stream<string>
 	_templateTitle: Stream<string>
@@ -127,11 +128,10 @@ export class TemplateEditor {
 			icon: () => Icons.Trash,
 			Type: ButtonType.Action,
 			click: () => {
-
 				return Dialog.confirm(() => lang.get("deleteLanguageConfirmation_msg", {"{language}": this._getTranslatedLanguage(this._selectedLanguage())})).then((confirmed) => {
 					if (confirmed) {
 						delete this._languageContent[this._selectedLanguage()]
-						this._addedLanguages.splice(this._addedLanguages.indexOf(this._selectedLanguage()), 1)
+						this._addedLanguages.splice(this._findIndex(), 1) // temporary -> move to template editor model
 						this._selectedLanguage(this._addedLanguages[0].code)
 						this._templateContentEditor.setValue(this._languageContent[this._selectedLanguage()])
 					}
@@ -214,10 +214,6 @@ export class TemplateEditor {
 		this._languageContent[this._selectedLanguage()] = getValue
 	}
 
-	_getDefaultLanguage(): ?Language {
-		return this._allLanguages.find(t => t.code === "en")
-	}
-
 	_writeToLocalstorage(A: Array<Template>, template: Template) {
 		A[(template.index)].title = this._templateTitle()
 		A[(template.index)].tag = this._templateTag()
@@ -255,12 +251,17 @@ export class TemplateEditor {
 			}
 			this._templateContentEditor.setValue(template.content[this._addedLanguages[0].code])
 		} else { // if it's a new template set the default language
-			const defaultLanguage = this._getDefaultLanguage()
-			if (defaultLanguage) {
-				this._addedLanguages.push(defaultLanguage)
-				this._templateContentEditor.setValue("")
+			const clientLanguageCode = deviceConfig.getLanguage()
+			const clientLanguage = clientLanguageCode ? languageByCode[clientLanguageCode] : null
+			const browserLanguage = languageByCode[getLanguage().code]
+			if(clientLanguage) {
+				this._addedLanguages.push(clientLanguage)
+			} else { // if client language is automatic set browser language to selected language
+				this._addedLanguages.push(browserLanguage)
 			}
+
 		}
+
 		this._selectedLanguage(this._addedLanguages[0].code)
 	}
 
@@ -293,6 +294,20 @@ export class TemplateEditor {
 			}
 		}
 		return sortedArray
+	}
+
+	_getDefaultLanguage(): ?Language {
+		return this._allLanguages.find(t => t.code === "en")
+	}
+
+	_findIndex(): number { //temporary fix
+		let i
+		for(i = 0; i < this._addedLanguages.length; i++) {
+			if (this._addedLanguages[i].code === this._selectedLanguage()) {
+				return i
+			}
+		}
+		return -1
 	}
 }
 

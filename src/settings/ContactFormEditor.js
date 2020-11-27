@@ -42,6 +42,7 @@ import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {InputField} from "../api/entities/tutanota/InputField"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -184,7 +185,7 @@ export class ContactFormEditor {
 				}).map(l => {
 					return {name: lang.get(l.textId), value: l.code}
 				}).sort((a, b) => a.name.localeCompare(b.name))
-				let newLanguageCode: Stream<string> = stream(additionalLanguages[0].value)
+				let newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
 				let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 
 				setTimeout(() => {

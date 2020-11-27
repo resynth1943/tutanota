@@ -117,7 +117,7 @@ const infoLinks = {
 export class LanguageViewModel {
 	translations: Object;
 	fallback: Object;
-	code: string;
+	code: LanguageCode;
 	languageTag: string;
 	staticTranslations: Object;
 	formats: {
@@ -168,14 +168,14 @@ export class LanguageViewModel {
 		this.staticTranslations[key] = text
 	}
 
-	initWithTranslations(code: string, languageTag: string, fallBackTranslations: Object, translations: Object) {
+	initWithTranslations(code: LanguageCode, languageTag: string, fallBackTranslations: Object, translations: Object) {
 		this.translations = translations
 		this.fallback = fallBackTranslations
 		this.code = code
 	}
 
 
-	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
+	setLanguage(lang: {code: LanguageCode, languageTag: string}): Promise<void> {
 		this._setLanguageTag(lang.languageTag)
 		if (this.code === lang.code) {
 			return Promise.resolve()
@@ -348,7 +348,7 @@ export class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, languageTag: string} {
+export function getLanguageNoDefault(restrictions: ?LanguageCode[]): ?{code: LanguageCode, languageTag: string} {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 	if (typeof navigator !== 'undefined') {
@@ -374,7 +374,7 @@ export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, l
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+export function getLanguage(restrictions: ?LanguageCode[]): {code: LanguageCode, languageTag: string} { // TODO: change from string to LanguageCode
 	const language = getLanguageNoDefault(restrictions)
 	if (language) return language
 
@@ -385,7 +385,7 @@ export function getLanguage(restrictions: ?string[]): {code: string, languageTag
 	}
 }
 
-export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]): ?string {
+export function _getSubstitutedLanguageCode(tag: string, restrictions: ?LanguageCode[]): ?LanguageCode {
 	let code = tag.toLowerCase().replace("-", "_")
 	let language = languages.find(l => l.code === code && (restrictions == null
 		|| restrictions.indexOf(l.code) !== -1))
@@ -401,7 +401,7 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 	if (language) {
 		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations
 			&& whitelabelCustomizations.germanLanguageCode) {
-			return whitelabelCustomizations.germanLanguageCode
+			return downcast(whitelabelCustomizations.germanLanguageCode)
 		} else {
 			return language.code
 		}

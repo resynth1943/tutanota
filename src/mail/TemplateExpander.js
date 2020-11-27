@@ -18,6 +18,7 @@ import {isKeyPressed} from "../misc/KeyManager"
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
  * The Popup handles whether the Expander should be rendered or not, depending on available width-space.
  */
+
 export type TemplateExpanderAttrs = {
 	template: Template,
 	onDropdownCreate: (vnode: Vnode<*>) => void,

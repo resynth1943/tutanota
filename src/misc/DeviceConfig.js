@@ -4,6 +4,7 @@ import {themeId} from "../gui/theme"
 import {client} from "./ClientDetector"
 import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import type {LanguageCode} from "./LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -18,7 +19,7 @@ class DeviceConfig {
 	_credentials: Credentials[];
 	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
-	_language: ?string;
+	_language: ?LanguageCode;
 	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
 	_hiddenCalendars: {[userId: Id]: Id[]}
 	_signupToken: string;
@@ -91,11 +92,11 @@ class DeviceConfig {
 		this._store()
 	}
 
-	getLanguage(): ?string {
+	getLanguage(): ?LanguageCode {
 		return this._language
 	}
 
-	setLanguage(language: ?string) {
+	setLanguage(language: ?LanguageCode) {
 		this._language = language
 		this._store()
 	}

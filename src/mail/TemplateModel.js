@@ -1,13 +1,14 @@
 // @flow
 
-import type {LanguageCode} from "../misc/LanguageViewModel"
-import {getLanguage, lang, languages} from "../misc/LanguageViewModel"
+import type {Language, LanguageCode} from "../misc/LanguageViewModel"
+import {getLanguage, lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import {createTemplate} from "../settings/TemplateListView"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {assertNotNull, downcast} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
 import type {NavAction} from "./TemplatePopup"
 import {SELECT_NEXT_TEMPLATE} from "./TemplatePopup"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 export type Template = {
 	_id: IdTuple;
@@ -65,8 +66,31 @@ export class TemplateModel {
 
 	_updateSelectedLanguage() {
 		if (this._selectedTemplate && this._searchResults.length) {
-			// TODO prefer current language from LanguageViewModel
-			this._selectedLanguage = Object.keys(this._selectedTemplate.content)[0]
+			const languageCodes = Object.keys(neverNull(this._selectedTemplate).content)
+			let language
+			let languageAction
+			let browserLanguage = deviceConfig.getLanguage()
+			if (browserLanguage) {
+				language = browserLanguage
+				languageAction = "notAutomatic"
+			} else {
+				language = getLanguage().code
+				languageAction = "automatic"
+			}
+			this._chooseLanguage(language, languageCodes)
+			switch (languageAction) {
+				case "notAutomatic":
+					if (this._isLanguageInContent(language, languageCodes)) {
+						this._selectedLanguage = language
+					} else {
+						language = getLanguage().code
+						this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
+					}
+					break
+				case "automatic":
+					this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
+					break
+			}
 		}
 	}
 
@@ -95,7 +119,7 @@ export class TemplateModel {
 		this._updateSelectedLanguage()
 	}
 
-	selectNextTemplate(action: NavAction):boolean {
+	selectNextTemplate(action: NavAction): boolean {
 		const selectedIndex = this.getSelectedTemplateIndex(assertNotNull(this._selectedTemplate))
 		const nextIndex = selectedIndex + (action === SELECT_NEXT_TEMPLATE ? 1 : -1)
 		if (nextIndex >= 0 && nextIndex < this._searchResults.length) {
@@ -104,6 +128,14 @@ export class TemplateModel {
 			return true
 		}
 		return false
+	}
+
+	_chooseLanguage(language: LanguageCode, languageCodes: Array<LanguageCode>) {
+		this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
+	}
+
+	_isLanguageInContent(language: LanguageCode, languageCodes: Array<LanguageCode>): boolean {
+		return languageCodes.includes(language);
 	}
 
 	saveTemplate() {
@@ -125,4 +157,5 @@ export function loadTemplates(): Array<Template> {
 		return []
 	}
 }
+
 
