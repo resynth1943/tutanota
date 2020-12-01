@@ -15,7 +15,6 @@ import {TemplateEditor} from "./TemplateEditor"
 import {Dialog} from "../gui/base/Dialog"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {OperationType} from "../api/common/TutanotaConstants"
-import {theme} from "../gui/theme"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 
 export class TemplateDetailsViewer {

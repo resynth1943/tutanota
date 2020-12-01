@@ -15,9 +15,9 @@ import type {LanguageCode} from "../misc/LanguageViewModel"
 import type {Template} from "../mail/TemplateModel"
 import {loadTemplates} from "../mail/TemplateModel"
 
-/*
-
-*/
+/**
+ *  List that is rendered within the template Settings
+ */
 
 export class TemplateListView implements UpdatableSettingsViewer {
 	_keyList: Array<Template>
@@ -154,15 +154,6 @@ export class TemplateRow {
 
 }
 
-export function createTemplate(title: string, tag: string, content: {[LanguageCode]: string}, index: number): Template {
-	return {
-		_id: ["localstorage", title], // should be replaced to real list id when stored as list in database
-		title: title,
-		tag: tag,
-		content: content,
-		index: index
-	}
-}
 
 
 

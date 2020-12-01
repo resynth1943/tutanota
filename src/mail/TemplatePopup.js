@@ -22,7 +22,6 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
 import {templateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
-import {assertNotNull} from "../api/common/utils/Utils"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -68,6 +67,7 @@ export class TemplatePopup implements ModalComponent {
 			focusOnCreate: true,
 			oninput: (input) => { /* Filter function */
 				templateModel.search(input)
+				this._scroll()
 			},
 			onInputCreate: (vnode) => {
 				this._filterTextFieldDom = vnode.dom
@@ -245,7 +245,6 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_scroll() {
-		const selectedTemplate = assertNotNull(templateModel.getSelectedTemplate())
 		this._scrollDom.scroll({
 			top: (TEMPLATE_LIST_ENTRY_HEIGHT * templateModel.getSelectedTemplateIndex()),
 			left: 0,

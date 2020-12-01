@@ -10,16 +10,15 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import type {Template} from "../mail/TemplateModel"
-import {createTemplate} from "./TemplateListView"
+import {createTemplate} from "../mail/TemplateModel"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {Icons} from "../gui/base/icons/Icons"
 import {createDropdown} from "../gui/base/DropdownN"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {getLanguage, lang, languageByCode, languages} from "../misc/LanguageViewModel"
+import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import type {Language, LanguageCode} from "../misc/LanguageViewModel"
-import {deviceConfig} from "../misc/DeviceConfig"
 
 /*
 	Creates an Editor Popup in which you can create a new template or edit an existing one
@@ -33,11 +32,10 @@ export class TemplateEditor { // TODO: Move to templateEditorModel
 	_selectedLanguage: Stream<LanguageCode>
 	_dialog: Dialog
 	newTemplate: Template
-	_selectedValue: Stream<string> = stream("Test")
-	_allLanguages: Language[]
+	_allLanguages: Array<Language>
 	view: Function
 	_languageContent: {[LanguageCode]: string}
-	_addedLanguages: Language[]
+	_addedLanguages: Array<Language>
 
 	_submitter: (string) => void
 
@@ -251,17 +249,9 @@ export class TemplateEditor { // TODO: Move to templateEditorModel
 			}
 			this._templateContentEditor.setValue(template.content[this._addedLanguages[0].code])
 		} else { // if it's a new template set the default language
-			const clientLanguageCode = deviceConfig.getLanguage()
-			const clientLanguage = clientLanguageCode ? languageByCode[clientLanguageCode] : null
-			const browserLanguage = languageByCode[getLanguage().code]
-			if(clientLanguage) {
-				this._addedLanguages.push(clientLanguage)
-			} else { // if client language is automatic set browser language to selected language
-				this._addedLanguages.push(browserLanguage)
-			}
-
+			const clientLanguage = languageByCode[lang.code]
+			this._addedLanguages.push(clientLanguage)
 		}
-
 		this._selectedLanguage(this._addedLanguages[0].code)
 	}
 
@@ -296,13 +286,9 @@ export class TemplateEditor { // TODO: Move to templateEditorModel
 		return sortedArray
 	}
 
-	_getDefaultLanguage(): ?Language {
-		return this._allLanguages.find(t => t.code === "en")
-	}
-
 	_findIndex(): number { //temporary fix
 		let i
-		for(i = 0; i < this._addedLanguages.length; i++) {
+		for (i = 0; i < this._addedLanguages.length; i++) {
 			if (this._addedLanguages[i].code === this._selectedLanguage()) {
 				return i
 			}

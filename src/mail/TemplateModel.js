@@ -1,14 +1,12 @@
 // @flow
 
-import type {Language, LanguageCode} from "../misc/LanguageViewModel"
-import {getLanguage, lang, languageByCode, languages} from "../misc/LanguageViewModel"
-import {createTemplate} from "../settings/TemplateListView"
+import type {LanguageCode} from "../misc/LanguageViewModel"
+import {lang} from "../misc/LanguageViewModel"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
 import type {NavAction} from "./TemplatePopup"
 import {SELECT_NEXT_TEMPLATE} from "./TemplatePopup"
-import {deviceConfig} from "../misc/DeviceConfig"
 
 export type Template = {
 	_id: IdTuple;
@@ -19,7 +17,8 @@ export type Template = {
 }
 
 /*
-* Model for Templates
+*   Model that holds main logic for the Template Feature.
+*   Handles things like returning the selected Template, selecting Templates, Indexes, scrolling.
 */
 
 export class TemplateModel {
@@ -66,31 +65,8 @@ export class TemplateModel {
 
 	_updateSelectedLanguage() {
 		if (this._selectedTemplate && this._searchResults.length) {
-			const languageCodes = Object.keys(neverNull(this._selectedTemplate).content)
-			let language
-			let languageAction
-			let browserLanguage = deviceConfig.getLanguage()
-			if (browserLanguage) {
-				language = browserLanguage
-				languageAction = "notAutomatic"
-			} else {
-				language = getLanguage().code
-				languageAction = "automatic"
-			}
-			this._chooseLanguage(language, languageCodes)
-			switch (languageAction) {
-				case "notAutomatic":
-					if (this._isLanguageInContent(language, languageCodes)) {
-						this._selectedLanguage = language
-					} else {
-						language = getLanguage().code
-						this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
-					}
-					break
-				case "automatic":
-					this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
-					break
-			}
+			let clientLanguage = lang.code
+			this._selectedLanguage = this._isLanguageInContent(clientLanguage) ? clientLanguage : Object.keys(neverNull(this._selectedTemplate).content)[0]
 		}
 	}
 
@@ -110,16 +86,16 @@ export class TemplateModel {
 		return this._searchResults.indexOf(this._selectedTemplate)
 	}
 
-	setSelectedLanguage(lang: LanguageCode) {
+	setSelectedLanguage(lang: LanguageCode) { // call function to globally set a language
 		this._selectedLanguage = lang
 	}
 
-	setSelectedTemplate(template: ?Template) {
+	setSelectedTemplate(template: ?Template) { // call function to globally set a Template
 		this._selectedTemplate = template
 		this._updateSelectedLanguage()
 	}
 
-	selectNextTemplate(action: NavAction): boolean {
+	selectNextTemplate(action: NavAction): boolean { // returns true if selection is changed
 		const selectedIndex = this.getSelectedTemplateIndex()
 		const nextIndex = selectedIndex + (action === SELECT_NEXT_TEMPLATE ? 1 : -1)
 		if (nextIndex >= 0 && nextIndex < this._searchResults.length) {
@@ -130,12 +106,12 @@ export class TemplateModel {
 		return false
 	}
 
-	_chooseLanguage(language: LanguageCode, languageCodes: Array<LanguageCode>) {
-		this._selectedLanguage = this._isLanguageInContent(language, languageCodes) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
+	_chooseLanguage(language: LanguageCode) {
+		this._selectedLanguage = this._isLanguageInContent(language) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
 	}
 
-	_isLanguageInContent(language: LanguageCode, languageCodes: Array<LanguageCode>): boolean {
-		return languageCodes.includes(language);
+	_isLanguageInContent(language: LanguageCode): boolean { // returns true if passed language is within the contents of the currently selected Template
+		return Object.keys(neverNull(this._selectedTemplate).content).includes(language);
 	}
 
 	saveTemplate() {
@@ -157,5 +133,16 @@ export function loadTemplates(): Array<Template> {
 		return []
 	}
 }
+
+export function createTemplate(title: string, tag: string, content: {[LanguageCode]: string}, index: number): Template { // function to create a Template with passed data
+	return {
+		_id: ["localstorage", title], // TODO: should be replaced to real list id when stored as list in database
+		title: title,
+		tag: tag,
+		content: content,
+		index: index
+	}
+}
+
 
 
