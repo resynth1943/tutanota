@@ -66,7 +66,7 @@
 		"mockery": "^2.1.0",
 		"node-forge": "0.10.0",
 		"node-static": "0.7.11",
-		"nollup": "^0.14.1",
+		"nollup": "^0.14.2",
 		"ospec": "git@github.com:tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11",
 		"request": "2.88.0",
 		"rollup-plugin-analyzer": "^3.2.1",

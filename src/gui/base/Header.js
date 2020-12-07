@@ -15,7 +15,6 @@ import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
-import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
@@ -79,9 +78,9 @@ class Header {
 
 
 		// load worker and search bar one after another because search bar uses worker.
-		import('../../api/main/WorkerClient.js')
-			.then(workerClientModule => {
-				const worker = (workerClientModule.worker: WorkerClient)
+		import("../../api/main/MainLocator")
+			.then((locatorModule) => locatorModule.locator.initializedWorker)
+			.then(worker => {
 				worker.wsConnection().map(state => {
 					this._wsState = state
 					m.redraw()

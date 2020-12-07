@@ -26,7 +26,7 @@ async function createHtml(env, watch) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}Bootstrap.js`])
+	let imports = [`${filenamePrefix}Bootstrap.js`] //SystemConfig.baseDevDependencies.concat([`${filenamePrefix}Bootstrap.js`])
 	const template = fs.readFileSync("./buildSrc/bootstrap.template.js", "utf8")
 	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, [
 		`window.whitelabelCustomizations = null`,
@@ -150,7 +150,7 @@ async function build({watch, desktop}) {
 		const bundle = await nollup(debugConfig)
 		console.log("Generating...")
 		const result = await bundle.generate(debugConfig.output)
-		result.stats && console.log("Generated in", result.stats.time)
+		result.stats && console.log("Generated in", result.stats.time, result.stats)
 
 		writeNollupBundle(result)
 		console.log("Built in", Date.now() - start)
@@ -204,6 +204,7 @@ if (options.clean) {
 }
 
 build(options)
+
 async function startDesktop() {
 	console.log("Building desktop client...")
 	const packageJSON = (await import('./buildSrc/electron-package-json-template.js')).default(

@@ -12,6 +12,7 @@ import {ContactModelImpl} from "../../contacts/ContactModel"
 import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/CalendarModel"
+import {defer} from "../common/utils/Utils"
 
 assertMainOrNode()
 
@@ -24,9 +25,13 @@ export type MainLocatorType = {|
 	init: (WorkerClient) => void;
 	contactModel: ContactModel;
 	entityClient: EntityClient;
+	initializedWorker: Promise<WorkerClient>
 |}
 
+const workerDeferred = defer<WorkerClient>()
+
 export const locator: MainLocatorType = ({
+	initializedWorker: workerDeferred.promise,
 	init(worker: WorkerClient) {
 		this.eventController = new EventController(logins)
 		this.entropyCollector = new EntropyCollector(worker)
@@ -35,6 +40,7 @@ export const locator: MainLocatorType = ({
 		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins)
 		this.contactModel = new ContactModelImpl(worker)
 		this.entityClient = new EntityClient(worker)
+		workerDeferred.resolve(worker)
 	},
 }: any)
 

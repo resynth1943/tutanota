@@ -25,7 +25,8 @@ function rollupDebugPlugins(baseDir) {
 				"@babel/plugin-transform-flow-strip-types",
 				"@babel/plugin-proposal-class-properties",
 				"@babel/plugin-syntax-dynamic-import"
-			]
+			],
+			inputSourceMap: false,
 		}),
 		resolveLibs(baseDir),
 		commonjs({
@@ -37,7 +38,7 @@ function rollupDebugPlugins(baseDir) {
 
 export default {
 	input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
-	plugins: rollupDebugPlugins(path.resolve("..")),
+	plugins: rollupDebugPlugins(path.resolve(".")),
 	treeshake: false, // disable tree-shaking for faster development builds
 	output: {format: "es", sourcemap: "inline", dir: "build"},
 }
