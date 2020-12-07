@@ -38,7 +38,6 @@ import {logins} from "../api/main/LoginController"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {MailboxDetail} from "./MailModel"
 import {MailModel} from "./MailModel"
-import {getContactDisplayName, lazyContactListId} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import type {EntityEventsListener, EntityUpdateData} from "../api/main/EventController"
@@ -60,6 +59,7 @@ import {EntityClient} from "../api/common/EntityClient"
 import {locator} from "../api/main/MainLocator"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
+import {getContactDisplayName} from "../contacts/ContactUtils"
 
 assertMainOrNode()
 
@@ -869,7 +869,7 @@ export class SendMailModel {
 				if (isExternalAndConfidential) {
 					contact.presharedPassword = this.getPassword(r.mailAddress).trim()
 				}
-				return lazyContactListId(this.logins(), this._entity).getAsync().then(listId => {
+				return this._contactModel.contactListId().then(listId => {
 					return this._entity.setup(listId, contact)
 				})
 			} else if (

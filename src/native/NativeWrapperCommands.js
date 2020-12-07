@@ -1,7 +1,6 @@
 // @flow
 import {Request} from "../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "./FileApp"
-import {asyncImport} from "../api/common/utils/Utils"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "./NativeWrapper"
 
@@ -21,7 +20,7 @@ const createMailEditor = (msg: Request): Promise<void> => {
 				             const address = addresses && addresses[0] || ""
 				             const recipients = address ? {to: [{name: "", address: address}]} : {}
 				             const editorPromise = mailToUrl
-					             ? mailEditorModule.newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails, files)
+					             ? mailEditorModule.newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails)
 					             : mailEditorModule.newMailEditorFromTemplate(
 						             mailboxDetails,
 						             recipients,
@@ -123,7 +122,7 @@ let disconnectTimeoutId: ?TimeoutID
 
 function visibilityChange(msg: Request): Promise<void> {
 	console.log("native visibility change", msg.args[0])
-	return _asyncImport('src/api/main/WorkerClient.js').then(({worker}) => {
+	return import('../api/main/WorkerClient.js').then(({worker}) => {
 		if (msg.args[0]) {
 			if (disconnectTimeoutId != null) {
 				clearTimeout(disconnectTimeoutId)
@@ -139,7 +138,7 @@ function visibilityChange(msg: Request): Promise<void> {
 }
 
 function invalidateAlarms(msg: Request): Promise<void> {
-	return _asyncImport('src/native/PushServiceApp.js').then(({pushServiceApp}) => {
+	return import('./PushServiceApp.js').then(({pushServiceApp}) => {
 		return pushServiceApp.invalidateAlarms()
 	})
 }

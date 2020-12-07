@@ -144,7 +144,7 @@ class KeyManager {
 	}
 
 	openF1Help() {
-		asyncImport("../gui/base/Dialog.js")
+		import("../gui/base/Dialog.js")
 			.then(module => {
 				if (this._helpDialog && this._helpDialog.visible) {
 					return

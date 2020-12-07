@@ -144,9 +144,10 @@ interface Ospec {
 	// stub
 	spy: (any) => any;
 	specTimeout: (number) => void;
+	timeout: (number) => void;
 }
 
-declare module 'ospec/ospec.js' {
+declare module 'ospec' {
 	declare export default Ospec;
 }
 

@@ -257,8 +257,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 			})
 			return buttonAttrs
 		}
-
-	}))
+	}, locator.contactModel))
 	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 	const realCalendarName = getCalendarName(sharedGroupInfo, false)
 	const customCalendarName = getCalendarName(sharedGroupInfo, true)

@@ -124,7 +124,7 @@ export class MultiMailViewer {
 			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => markMails(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => markMails(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
-				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(mails)), () => Icons.Export).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(locator.entityClient, mails)), () => Icons.Export).setType(ButtonType.Dropdown))
 			}
 			return moreButtons
 		}))

@@ -4,7 +4,6 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {createDataFile} from "../api/common/DataFile"
-import {LazyContactListId} from "../contacts/ContactUtils"
 import {loadAll} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import {createFile} from "../api/entities/tutanota/File"
@@ -15,15 +14,16 @@ import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddre
 import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
 import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
+import type {ContactModel} from "./ContactModel"
 
 assertMainOrNode()
 
 /**
  *Creates a vCard file with all contacts if at least one contact exists
  */
-export function exportAsVCard(): Promise<void> {
+export function exportAsVCard(contactModel: ContactModel): Promise<void> {
 	return showProgressDialog("pleaseWait_msg",
-		LazyContactListId.getAsync().then(contactListId => {
+		contactModel.contactListId().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
 				if (allContacts.length === 0) {
 					return 0

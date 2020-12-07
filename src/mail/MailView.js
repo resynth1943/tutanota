@@ -36,10 +36,8 @@ import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
 	archiveMails, getDefaultSignature,
-	getFolder,
 	getFolderIcon,
 	getFolderName,
-	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
@@ -67,6 +65,7 @@ import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {getFolder, getInboxFolder} from "./MailModel";
 
 assertMainOrNode()
 
@@ -719,7 +718,7 @@ export class MailView implements CurrentView {
 		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -792,7 +791,7 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel)
+						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

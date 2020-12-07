@@ -54,7 +54,7 @@ export class SearchResultDetailsViewer {
 	showEntity(entity: Object, entitySelected: boolean): void {
 		if (isSameTypeRef(MailTypeRef, entity._type)) {
 			let mail = ((entity: any): Mail)
-			this._viewer = new MailViewer(mail, true, locator.entityClient, locator.mailModel)
+			this._viewer = new MailViewer(mail, true, locator.entityClient, locator.mailModel, locator.contactModel)
 			this._viewerEntityId = mail._id
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false

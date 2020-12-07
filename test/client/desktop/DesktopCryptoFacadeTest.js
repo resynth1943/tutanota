@@ -1,6 +1,6 @@
 //@flow
 import n from "../nodemocker"
-import o from "ospec/ospec.js"
+import o from "ospec"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	n.startGroup({group: __filename})

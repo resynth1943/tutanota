@@ -31,7 +31,6 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId} from "../contacts/ContactUtils"
 import {ContactMergeView} from "./ContactMergeView"
 import {getMergeableContacts, mergeContacts} from "./ContactMergeUtils"
 import {exportAsVCard} from "./VCardExporter"
@@ -229,7 +228,7 @@ export class ContactView implements CurrentView {
 		} else {
 			return [
 				new Button('importVCard_action', () => this._importAsVCard(), () => Icons.ContactImport).setType(ButtonType.Dropdown),
-				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Export).setType(ButtonType.Dropdown)
+				new Button("exportVCard_action", () => exportAsVCard(locator.contactModel), () => Icons.Export).setType(ButtonType.Dropdown)
 			]
 		}
 	}
@@ -252,8 +251,9 @@ export class ContactView implements CurrentView {
 						const contactMembership =
 							assertNotNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact))
 						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
-						return LazyContactListId
-							.getAsync()
+						return locator
+							.contactModel
+							.contactListId()
 							.then(contactListId => Promise.each(contactList, (contact) => setup(contactListId, contact)))
 							.then(() => contactList.length)
 					}))
@@ -270,7 +270,7 @@ export class ContactView implements CurrentView {
 	}
 
 	_mergeAction(): Promise<void> {
-		return showProgressDialog("pleaseWait_msg", LazyContactListId.getAsync().then(contactListId => {
+		return showProgressDialog("pleaseWait_msg", locator.contactModel.contactListId().then(contactListId => {
 			return loadAll(ContactTypeRef, contactListId)
 		})).then(allContacts => {
 			if (allContacts.length === 0) {
@@ -369,12 +369,12 @@ export class ContactView implements CurrentView {
 	 */
 	updateUrl(args: Object) {
 		if (!this._contactList && !args.listId) {
-			LazyContactListId.getAsync().then(contactListId => {
+			locator.contactModel.contactListId().then(contactListId => {
 				this._setUrl(`/contact/${contactListId}`)
 			})
 		} else if (!this._contactList && args.listId) {
 			// we have to check if the given list id is correct
-			LazyContactListId.getAsync().then(contactListId => {
+			locator.contactModel.contactListId().then(contactListId => {
 				if (args.listId !== contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {

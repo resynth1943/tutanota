@@ -53,7 +53,7 @@ export class MultiSearchViewer {
 			} else {
 				console.log("ERROR LIST TYPE NOT FOUND")
 			}
-			
+
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
@@ -202,7 +202,7 @@ export class MultiSearchViewer {
 				.setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
-					this.getSelectedMails(mails => exportMails(mails)),
+					this.getSelectedMails(mails => exportMails(locator.entityClient, mails)),
 					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}

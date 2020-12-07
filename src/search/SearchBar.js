@@ -410,7 +410,7 @@ export class SearchBar implements Component {
 			this.expanded = false
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
-					locator.worker.enableMailIndexing().then(() => {
+					locator.initializedWorker.then(worker => worker.enableMailIndexing()).then(() => {
 						this.search()
 						this.focus()
 					}).catch(IndexingNotSupportedError, () => {
@@ -458,13 +458,15 @@ export class SearchBar implements Component {
 		}
 		if (this._isQuickSearch()) {
 			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				locator.worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (locator.search.isNewSearch(query, moreResults.restriction)) {
-						return
-					} else {
-						this._loadAndDisplayResult(query, moreResults, limit)
-					}
-				})
+				locator.initializedWorker.then(worker =>
+					worker.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
+						if (locator.search.isNewSearch(query, moreResults.restriction)) {
+							return
+						} else {
+							this._loadAndDisplayResult(query, moreResults, limit)
+						}
+					})
+				)
 			} else {
 				this._showResultsInOverlay(safeResult)
 			}

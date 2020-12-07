@@ -25,7 +25,7 @@ import {
 	noOp
 } from "../api/common/utils/Utils"
 import {assertMainOrNode, isApp, isDesktop} from "../api/Env"
-import {load, update} from "../api/main/Entity"
+import {update} from "../api/main/Entity"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {contains} from "../api/common/utils/ArrayUtils"
 import type {LoginController} from "../api/main/LoginController"
@@ -35,6 +35,7 @@ import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import type {MailboxDetail, MailModel} from "./MailModel"
+import {getFolder, getInboxFolder} from "./MailModel"
 import {getContactDisplayName} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
@@ -360,18 +361,8 @@ export function getFolderIcon(folder: MailFolder): lazyIcon {
 }
 
 
-export function getInboxFolder(folders: MailFolder[]): MailFolder {
-	return getFolder(folders, MailFolderType.INBOX)
-}
-
 export function getArchiveFolder(folders: MailFolder[]): MailFolder {
 	return getFolder(folders, MailFolderType.ARCHIVE)
-}
-
-
-export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
-	const folder = folders.find(f => f.folderType === type)
-	return neverNull(folder)
 }
 
 
@@ -581,9 +572,9 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 	}
 }
 
-export function exportMails(mails: Mail[]): Promise<void> {
-	const mapper = mail => load(MailBodyTypeRef, mail.body)
-		.then(body => mailToEmlFile(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
+export function exportMails(entityClient: EntityClient, mails: Mail[]): Promise<void> {
+	const mapper = mail => entityClient.load(MailBodyTypeRef, mail.body)
+		.then(body => mailToEmlFile(entityClient, mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
 	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
 	const zipName = `${sortableTimestamp()}-mail-export.zip`
 	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))

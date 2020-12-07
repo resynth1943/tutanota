@@ -7,7 +7,6 @@ import {reloadNative} from "../native/SystemApp"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
-import {locator} from "../api/main/MainLocator"
 
 assertMainOrNodeBoot()
 
@@ -31,12 +30,13 @@ class WindowFacade {
 		this.windowCloseConfirmation = false
 		this._windowCloseListeners = new Set()
 		this.init()
-		locator.initializedWorker
-		       .then(worker => {
-			       // load async to reduce size of boot bundle
-			       this._worker = worker
-			       return nativeApp.initialized()
-		       }).then(() => this.addPageInBackgroundListener())
+		import("../api/main/MainLocator")
+			.then(locatorModule => locatorModule.locator.initializedWorker)
+			.then(worker => {
+				// load async to reduce size of boot bundle
+				this._worker = worker
+				return nativeApp.initialized()
+			}).then(() => this.addPageInBackgroundListener())
 	}
 
 	/**

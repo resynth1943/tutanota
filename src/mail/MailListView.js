@@ -15,7 +15,6 @@ import {assertMainOrNode} from "../api/Env"
 import {
 	getArchiveFolder,
 	getFolderName,
-	getInboxFolder,
 	getSenderOrRecipientHeading,
 	isTutanotaTeamMail,
 	showDeleteConfirmationDialog
@@ -36,6 +35,7 @@ import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
+import {getInboxFolder} from "./MailModel"
 
 assertMainOrNode()
 
@@ -200,7 +200,8 @@ export class MailListView implements Component {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return Promise.filter(mails, (mail) => {
-						return findAndApplyMatchingRule(mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
+						return findAndApplyMatchingRule(worker, locator.entityClient, mailboxDetail, mail, true)
+							.then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {
 							//console.log("load more because of matching inbox rules")

@@ -16,12 +16,6 @@ import {assertWorkerOrNode, Mode} from "../../Env"
 import {RSAKey, parseBigInt, BigInteger} from "./lib/crypto-jsbn-2012-08-09_1"
 import {rsaApp} from "../../../native/RsaApp" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 
-type BigIntegerType = {
-	toByteArray(): Uint8Array;
-	toString(radix: number): string;
-	bitLength(): number;
-}
-
 assertWorkerOrNode()
 
 const keyLengthInBits = 2048
@@ -524,6 +518,7 @@ export function i2osp(i: number): Uint8Array {
  * @returns The public key in a persistable array format
  * @private
  */
+//$FlowFixMe[value-as-type]
 function _publicKeyToArray(publicKey: PublicKey): BigInteger[] {
 	return [_base64ToBigInt(publicKey.modulus)]
 }
@@ -533,6 +528,7 @@ function _publicKeyToArray(publicKey: PublicKey): BigInteger[] {
  * @returns The private key in a persistable array format
  * @private
  */
+//$FlowFixMe[value-as-type]
 function _privateKeyToArray(privateKey: PrivateKey): BigInteger[] {
 	return [
 		_base64ToBigInt(privateKey.modulus),
@@ -545,6 +541,7 @@ function _privateKeyToArray(privateKey: PrivateKey): BigInteger[] {
 	]
 }
 
+//$FlowFixMe[value-as-type]
 function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	var self = this
 	return {
@@ -555,6 +552,7 @@ function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
 	return {
 		version: 0,
@@ -569,6 +567,7 @@ function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _base64ToBigInt(base64: Base64): BigInteger {
 	return parseBigInt(base64ToHex(base64), 16)
 }
@@ -586,7 +585,7 @@ function _hexLen(string: string): Hex {
 	return hexLen
 }
 
-
+//$FlowFixMe[value-as-type]
 export function _keyArrayToHex(key: BigInteger[]): Hex {
 	var hex = ""
 	for (var i = 0; i < key.length; i++) {
@@ -599,6 +598,7 @@ export function _keyArrayToHex(key: BigInteger[]): Hex {
 	return hex
 }
 
+//$FlowFixMe[value-as-type]
 function _hexToKeyArray(hex: Hex): BigInteger[] {
 	try {
 		var key = []
@@ -616,6 +616,7 @@ function _hexToKeyArray(hex: Hex): BigInteger[] {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _validateKeyLength(key: BigInteger[]) {
 	if (key.length !== 1 && key.length !== 7) {
 		throw new Error("invalid key params")

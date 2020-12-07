@@ -128,11 +128,9 @@ export class WorkerClient implements EntityRestInterface {
 		if (typeof Worker !== 'undefined') {
 			let worker = null
 			if (env.dist) {
-				worker = new Worker(System.getConfig().baseURL + "WorkerBootstrap.js")
+				worker = new Worker("./WorkerBootstrap.js")
 			} else {
-				let url = System.normalizeSync(typeof module !== "undefined" ? module.id : __moduleName)
-				let workerUrl = url.substring(0, url.lastIndexOf('/')) + '/../worker/WorkerBootstrap.js'
-				worker = new Worker(workerUrl)
+				worker = new Worker('./WorkerBootstrap.js')
 			}
 			this._queue = new Queue(worker)
 
@@ -152,16 +150,17 @@ export class WorkerClient implements EntityRestInterface {
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			const workerModule = requireNodeOnly('./../worker/WorkerImpl.js')
-			const workerImpl = new workerModule.WorkerImpl(this, true, client.browserData())
-			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
-			this._queue = new Queue(({
-				postMessage: function (msg) {
-					workerImpl._queue._handleMessage(msg)
-
-				}
-			}: any))
-			this.initialized = Promise.resolve()
+			// this.initialized = import('./../worker/WorkerImpl.js').then(workerModule => {
+			// 	const workerImpl = new workerModule.WorkerImpl(this, client.browserData())
+			// 	workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
+			// 	this._queue = new Queue(({
+			// 		postMessage: function (msg) {
+			// 			workerImpl._queue._handleMessage(msg)
+			//
+			// 		}
+			// 	}: any))
+			// })
+			throw new Error("FIXME: direct worker, do we still need it?")
 		}
 	}
 

@@ -66,7 +66,7 @@ import("./serviceworker/ServiceWorkerClient").then((swModule) => swModule.init()
 if (client.isIE()) {
 	import("./gui/base/NotificationOverlay.js").then((module) => module.show({
 		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
-	}, "close_alt", []))
+	}, {label: "close_alt"}, []))
 } else if (isDesktop()) {
 	nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('isUpdateAvailable', [])))
 	         .then(updateInfo => {

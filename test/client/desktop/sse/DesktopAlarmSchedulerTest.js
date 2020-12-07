@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from '../../nodemocker'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants"
 import {MAX_SAFE_DELAY} from "../../../../src/desktop/sse/DesktopAlarmScheduler"

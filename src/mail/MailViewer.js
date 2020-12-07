@@ -51,7 +51,6 @@ import {
 	getDefaultSender,
 	getDisplayText,
 	getEnabledMailAddresses,
-	getFolder,
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
@@ -84,7 +83,6 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
-import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {elementIdPart, getListId, HttpMethod, listIdPart} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
@@ -125,7 +123,8 @@ import {defaultSendMailModel} from "./SendMailModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
-import {MailModel} from "./MailModel"
+import {getFolder, MailModel} from "./MailModel"
+import type {ContactModel} from "../contacts/ContactModel"
 
 assertMainOrNode()
 
@@ -176,11 +175,13 @@ export class MailViewer {
 	_calendarEventAttachment: ?{|event: CalendarEvent, method: CalendarMethodEnum, recipient: string|};
 	_entityClient: EntityClient;
 	_mailModel: MailModel;
+	_contactModel: ContactModel;
 
-	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel) {
+	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel) {
 		if (isDesktop()) {
 			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
+		this._contactModel = contactModel
 		this.mail = mail
 		this._entityClient = entityClient
 		this._mailModel = mailModel
@@ -742,6 +743,7 @@ export class MailViewer {
 
 	_exportMail() {
 		const exportPromise = mailToEmlFile(
+			this._entityClient,
 			this.mail,
 			this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""
 		)
@@ -1101,7 +1103,7 @@ export class MailViewer {
 		if (logins.getUserController().isInternalUser()) {
 			let contactsPromise = Promise.resolve()
 			if (!logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
+				contactsPromise = this._contactModel.searchForContactByMailAddress(address.address).then(contact => {
 					if (contact) {
 						buttons.push({
 							label: "showContact_action",
@@ -1115,7 +1117,7 @@ export class MailViewer {
 						buttons.push({
 							label: "createContact_action",
 							click: () => {
-								LazyContactListId.getAsync().then(contactListId => {
+								this._contactModel.contactListId().then(contactListId => {
 									const contact = createNewContact(logins.getUserController().user, address.address, address.name)
 									new ContactEditor(contact, contactListId).show()
 								})

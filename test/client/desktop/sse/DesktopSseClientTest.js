@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from "../../nodemocker"
 import {numberRange} from '../../../../src/api/common/utils/ArrayUtils.js'
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"

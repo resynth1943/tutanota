@@ -151,9 +151,9 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		this.toolbar = new RichTextToolbar(this.editor, {imageButtonClickHandler: insertImageHandler})
 
 		this.recipientFields = {
-			to: new MailEditorRecipientField(model, "to"),
-			cc: new MailEditorRecipientField(model, "cc"),
-			bcc: new MailEditorRecipientField(model, "bcc"),
+			to: new MailEditorRecipientField(model, "to", locator.contactModel),
+			cc: new MailEditorRecipientField(model, "cc", locator.contactModel),
+			bcc: new MailEditorRecipientField(model, "bcc", locator.contactModel),
 		}
 
 		if (model.logins().isInternalUserLoggedIn()) {

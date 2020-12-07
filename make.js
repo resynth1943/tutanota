@@ -1,16 +1,15 @@
 import options from "commander"
-import path from "path"
+import path, {dirname} from "path"
 import * as env from "./buildSrc/env.js"
 import fs from "fs-extra"
 import * as LaunchHtml from "./buildSrc/LaunchHtml.js"
-import * as SystemConfig from "./buildSrc/SystemConfig.js"
 import os from "os"
 import {spawn} from "child_process"
 import * as RollupConfig from "./buildSrc/RollupConfig.js"
 import {fileURLToPath} from 'url';
-import {dirname} from 'path';
 import Promise from "bluebird"
 import {default as RollupDebugConfig, writeNollupBundle} from "./buildSrc/RollupDebugConfig.js"
+import * as SystemConfig from "./buildSrc/SystemConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -26,7 +25,7 @@ async function createHtml(env, watch) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	let imports = [`${filenamePrefix}Bootstrap.js`] //SystemConfig.baseDevDependencies.concat([`${filenamePrefix}Bootstrap.js`])
+	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}Bootstrap.js`])
 	const template = fs.readFileSync("./buildSrc/bootstrap.template.js", "utf8")
 	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, [
 		`window.whitelabelCustomizations = null`,
@@ -74,10 +73,10 @@ async function startFlowCheck() {
 	let flow
 	// We can't use flow in F-Droid builds because it uses prebuilt binary.
 	try {
-		flow = await import("flow-bin")
+		flow = (await import("flow-bin")).default
 		spawn(flow, [], {stdio: [process.stdin, process.stdout, process.stderr]})
 	} catch (e) {
-		console.log("flow was not found")
+		console.log("flow was not found", e)
 	}
 }
 
@@ -134,7 +133,7 @@ async function build({watch, desktop}) {
 		// 			break
 		// 	}
 		// })
-		let NollupDevServer = await import('nollup/lib/dev-server');
+		let NollupDevServer = (await import('nollup/lib/dev-server.js')).default;
 		NollupDevServer({
 			hot: true,
 			port: 9001,
@@ -225,7 +224,7 @@ async function startDesktop() {
 	const nollup = (await import('nollup')).default
 	const bundle = await nollup({
 		input: ["src/desktop/DesktopMain.js", "src/desktop/preload.js"],
-		plugins: RollupDebugConfig.plugins,
+		plugins: RollupDebugConfig.plugins.concat(),
 		treeshake: false, // disable tree-shaking for faster development builds
 		preserveModules: true,
 		cache,

@@ -43,6 +43,8 @@ import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
+import type {ContactModel} from "../contacts/ContactModel"
+import {locator} from "../api/main/MainLocator"
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -193,7 +195,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		})
 	}
 
-	const attendeesField = makeBubbleTextField(viewModel)
+	const attendeesField = makeBubbleTextField(viewModel, locator.contactModel)
 
 	const attendeesExpanded = stream(viewModel.attendees().length > 0)
 
@@ -484,7 +486,7 @@ function createEndTypeValues() {
 	]
 }
 
-function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField<RecipientInfo> {
+function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<RecipientInfo> {
 	function createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | string> {
 		let buttonAttrs = [mailAddress]
 		buttonAttrs.push({
@@ -516,8 +518,7 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField
 			})
 			return bubble
 		},
-
-	})
+	}, contactModel)
 
 	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, {marginLeft: 0})
 	invitePeopleValueTextField.textField._injectionsRight = () => renderConfidentialButton(viewModel)

@@ -59,7 +59,6 @@ import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {ContactEditor} from "../contacts/ContactEditor";
-import {LazyContactListId} from "../contacts/ContactUtils";
 import {styles} from "../gui/styles"
 import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
@@ -263,7 +262,7 @@ export class SearchView implements CurrentView {
 				: isSameTypeRef(restriction.type, ContactTypeRef)
 				? m(ButtonN, {
 					click: () => {
-						LazyContactListId.getAsync().then(contactListId => {
+						locator.contactModel.contactListId().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
 						})
 					},
@@ -407,7 +406,7 @@ export class SearchView implements CurrentView {
 					if (isSameTypeRef(restriction, MailTypeRef)) {
 						locator.mailModel.getUserMailboxDetails().then(newMailEditor).then(editor => editor.show()).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
-						LazyContactListId.getAsync().then(contactListId => {
+						locator.contactModel.contactListId().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
 						})
 					}
@@ -557,7 +556,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
 			return {
 				click: () => {
-					LazyContactListId.getAsync().then(contactListId => {
+					locator.contactModel.contactListId().then(contactListId => {
 						new ContactEditor(null, contactListId, null).show()
 					})
 				},

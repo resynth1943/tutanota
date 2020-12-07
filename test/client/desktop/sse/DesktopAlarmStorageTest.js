@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from '../../nodemocker'
 import {CryptoError} from "../../../../src/api/common/error/CryptoError"
 import {uint8ArrayToBitArray} from "../../../../src/api/worker/crypto/CryptoUtils"

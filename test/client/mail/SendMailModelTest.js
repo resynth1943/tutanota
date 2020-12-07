@@ -1,6 +1,6 @@
 // @flow
 
-import o from "ospec/ospec.js"
+import o from "ospec"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import type {IUserController} from "../../../src/api/main/UserController"
@@ -111,6 +111,19 @@ class ContactModelMock implements ContactModel {
 	searchForContact(mailAddress: string): Promise<?Contact> {
 		const contact = this.contacts.find(contact => contact.mailAddresses.includes(mailAddress))
 		return Promise.resolve(contact)
+	}
+
+	contactListId(): Promise<Id> {
+		throw new Error("stub!")
+	}
+
+
+	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+		throw new Error("stub!")
+	}
+
+	searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
+		throw new Error("stub!")
 	}
 }
 

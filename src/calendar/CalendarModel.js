@@ -17,7 +17,7 @@ import {
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -25,10 +25,8 @@ import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCal
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
-import {WorkerClient} from "../api/main/WorkerClient"
-import {locator} from "../api/main/MainLocator"
+import type {WorkerClient} from "../api/main/WorkerClient"
 import {_eraseEntity, _loadEntity, elementIdPart, getElementId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
-import {erase, load, loadAll, loadMultipleList, serviceRequestVoid} from "../api/main/Entity"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
@@ -38,7 +36,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
-import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
@@ -48,9 +46,7 @@ import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {CalendarInfo} from "./CalendarView"
-import {FileTypeRef} from "../api/entities/tutanota/File"
 import type {ParsedCalendarData} from "./CalendarImporter"
-import {parseCalendarFile} from "./CalendarImporter"
 import type {CalendarEventUpdate} from "../api/entities/tutanota/CalendarEventUpdate"
 import {CalendarEventUpdateTypeRef} from "../api/entities/tutanota/CalendarEventUpdate"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -59,7 +55,8 @@ import {SysService} from "../api/entities/sys/Services"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {ParserError} from "../misc/parsing"
+import {EntityClient} from "../api/common/EntityClient"
+import type {MailModel} from "../mail/MailModel"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -323,14 +320,19 @@ export class CalendarModelImpl implements CalendarModel {
 	_scheduledNotifications: Map<string, TimeoutID>;
 	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
 	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
-	_logins: LoginController
+	_logins: LoginController;
+	_entityClient: EntityClient;
+	_mailModel: MailModel;
 
-	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, logins: LoginController) {
+	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, logins: LoginController,
+	            entityClient: EntityClient, mailModel: MailModel,
+	) {
 		this._logins = logins
 		this._notifications = notifications
 		this._worker = worker
 		this._scheduledNotifications = new Map()
 		this._pendingAlarmRequests = new Map()
+		this._entityClient = entityClient
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				return this._entityEventsReceived(updates)
@@ -369,44 +371,45 @@ export class CalendarModelImpl implements CalendarModel {
 
 	loadCalendarInfos(): Promise<Map<Id, CalendarInfo>> {
 		const userId = this._logins.getUserController().user._id
-		return load(UserTypeRef, userId)
-			.then(user => {
-				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-				const notFoundMemberships = []
-				return Promise
-					.map(calendarMemberships, (membership) => Promise
-						.all([
-							load(CalendarGroupRootTypeRef, membership.group),
-							load(GroupInfoTypeRef, membership.groupInfo),
-							load(GroupTypeRef, membership.group)
-						])
-						.catch(NotFoundError, () => {
-							notFoundMemberships.push(membership)
-							return null
-						})
-					)
-					.then((groupInstances) => {
-						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupInstances.filter(Boolean)
-						              .forEach(([groupRoot, groupInfo, group]) => {
-							              calendarInfos.set(groupRoot._id, {
-								              groupRoot,
-								              groupInfo,
-								              shortEvents: [],
-								              longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
-								              group: group,
-								              shared: !isSameId(group.user, userId)
-							              })
-						              })
+		return this._entityClient.load(UserTypeRef, userId)
+		           .then(user => {
+			           const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+			           const notFoundMemberships = []
+			           return Promise
+				           .map(calendarMemberships, (membership) => Promise
+					           .all([
+						           this._entityClient.load(CalendarGroupRootTypeRef, membership.group),
+						           this._entityClient.load(GroupInfoTypeRef, membership.groupInfo),
+						           this._entityClient.load(GroupTypeRef, membership.group)
+					           ])
+					           .catch(NotFoundError, () => {
+						           notFoundMemberships.push(membership)
+						           return null
+					           })
+				           )
+				           .then((groupInstances) => {
+					           const calendarInfos: Map<Id, CalendarInfo> = new Map()
+					           groupInstances.filter(Boolean)
+					                         .forEach(([groupRoot, groupInfo, group]) => {
+						                         calendarInfos.set(groupRoot._id, {
+							                         groupRoot,
+							                         groupInfo,
+							                         shortEvents: [],
+							                         longEvents: new LazyLoaded(() =>
+								                         this._entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
+							                         group: group,
+							                         shared: !isSameId(group.user, userId)
+						                         })
+					                         })
 
-						// cleanup inconsistent memberships
-						Promise.each(notFoundMemberships, (notFoundMembership) => {
-							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
-							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
-						})
-						return calendarInfos
-					})
-			})
+					           // cleanup inconsistent memberships
+					           Promise.each(notFoundMemberships, (notFoundMembership) => {
+						           const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
+						           return this._worker.serviceRequest(SysService.MembershipService, HttpMethod.DELETE, data)
+					           })
+					           return calendarInfos
+				           })
+		           })
 	}
 
 	loadOrCreateCalendarInfo(): Promise<Map<Id, CalendarInfo>> {
@@ -432,33 +435,35 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	deleteEvent(event: CalendarEvent): Promise<void> {
-		return erase(event)
+		return this._entityClient.erase(event)
 	}
 
 	_loadAndProcessCalendarUpdates(): Promise<void> {
-		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		return this._mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			const {calendarEventUpdates} = mailboxDetails.mailboxGroupRoot
 			if (calendarEventUpdates == null) return
-			loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
-				.then((invites) => {
-					return Promise.each(invites, (invite) => {
-						return this._handleCalendarEventUpdate(invite)
-					})
-				})
+			this._entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
+			    .then((invites) => {
+				    return Promise.each(invites, (invite) => {
+					    return this._handleCalendarEventUpdate(invite)
+				    })
+			    })
 		})
 	}
 
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
-		return load(FileTypeRef, update.file)
-			.then((file) => this._worker.downloadFileContent(file))
-			.then((dataFile: DataFile) => parseCalendarFile(dataFile))
-			.then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
-			.catch((e) => e instanceof ParserError || e instanceof NotFoundError,
-				(e) => console.warn("Error while parsing calendar update", e))
-			.then(() => erase(update))
-			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
-			.catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
-			.catch(LockedError, noOp)
+		// FIXME: do not import calendarImporter here as it pulls UI
+		return Promise.resolve()
+		// return this._entityClient.load(FileTypeRef, update.file)
+		//            .then((file) => this._worker.downloadFileContent(file))
+		//            .then((dataFile: DataFile) => parseCalendarFile(dataFile))
+		//            .then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
+		//            .catch((e) => e instanceof ParserError || e instanceof NotFoundError,
+		// 	           (e) => console.warn("Error while parsing calendar update", e))
+		//            .then(() => this._entityClient.erase(update))
+		//            .catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
+		//            .catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
+		//            .catch(LockedError, noOp)
 	}
 
 	/**
@@ -612,7 +617,7 @@ export class CalendarModelImpl implements CalendarModel {
 		if (ids.length === 0) {
 			return Promise.resolve([])
 		}
-		return loadMultipleList(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart), this._worker)
+		return this._entityClient.loadMultipleEntities(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
 	}
 
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
@@ -653,20 +658,20 @@ export class CalendarModelImpl implements CalendarModel {
 					// We try to load UserAlarmInfo. Then we wait until the
 					// CalendarEvent is there (which might already be true)
 					// and load it.
-					return load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
+					return this._entityClient.load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
 						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
 						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
 						// Don't wait for the deferred event promise because it can lead to a deadlock.
 						// Since issue #2264 we process event batches sequentially and the
 						// deferred event can never be resolved until the calendar event update is received.
 						deferredEvent.promise.then(() => {
-							return load(CalendarEventTypeRef, [listId, elementId])
-								.then(calendarEvent => {
-									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
-								})
-								.catch(NotFoundError, () => {
-									console.log("event not found", [listId, elementId])
-								})
+							return this._entityClient.load(CalendarEventTypeRef, [listId, elementId])
+							           .then(calendarEvent => {
+								           this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
+							           })
+							           .catch(NotFoundError, () => {
+								           console.log("event not found", [listId, elementId])
+							           })
 						})
 						return Promise.resolve()
 					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))
@@ -684,11 +689,11 @@ export class CalendarModelImpl implements CalendarModel {
 				return getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData)
 				&& entityEventData.operation === OperationType.CREATE) {
-				return load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
-					.then((invite) => this._handleCalendarEventUpdate(invite))
-					.catch(NotFoundError, (e) => {
-						console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
-					})
+				return this._entityClient.load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
+				           .then((invite) => this._handleCalendarEventUpdate(invite))
+				           .catch(NotFoundError, (e) => {
+					           console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
+				           })
 			}
 		}).return()
 	}
