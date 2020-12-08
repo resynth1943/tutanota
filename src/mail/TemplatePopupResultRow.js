@@ -1,25 +1,24 @@
 //@flow
 import m from "mithril"
-import type {Template} from "./TemplateModel"
 import {TEMPLATE_LIST_ENTRY_HEIGHT} from "./TemplatePopup"
 import {px} from "../gui/size"
+import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 
 export type TemplateResultRowAttrs = {
-	template: Template
+	template: EmailTemplate
 }
 
 /*
-* renders one entry of the list in the template popup
+*   renders one entry of the list in the template popup
 */
 
 export class TemplatePopupResultRow implements MComponent<TemplateResultRowAttrs> {
-
 	view(vnode: Vnode<TemplateResultRowAttrs>): Children {
-		const {title, content, tag} = vnode.attrs.template
+		const {title, tag} = vnode.attrs.template
 		return m(".flex.flex-column.overflow-hidden", {
 			style: {
 				marginLeft: "8px",
-				height: px(TEMPLATE_LIST_ENTRY_HEIGHT), //"47.7167px",
+				height: px(TEMPLATE_LIST_ENTRY_HEIGHT),
 				width: "100%",
 			}
 		}, [

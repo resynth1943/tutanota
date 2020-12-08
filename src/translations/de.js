@@ -264,6 +264,7 @@ module.exports = {
 		"createdUsersCount_msg": "{1} Benutzer angelegt.",
 		"created_label": "Erstellt",
 		"createEvent_label": "Ereignis",
+		"createTemplate_action": "Vorlage Erstellen",
 		"createUserFailed_msg": "Der Benutzer konnte nicht erstellt werden. Bitte kontaktiere den Support.",
 		"creditCardCardHolderName_label": "Name des Kreditkarteninhabers",
 		"creditCardCardHolderName_msg": "Bitte gib den Namen des Kreditkarteninhabers ein.",
@@ -380,6 +381,7 @@ module.exports = {
 		"editMail_action": "Bearbeite die ausgewählte E-Mail",
 		"editMessage_label": "Nachricht bearbeiten",
 		"edit_action": "Bearbeiten",
+		"editTemplate_action": "Vorlage bearbeiten",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
 		"emailAliasesTooManyActivatedForBooking_msg": "Es sind zu viele E-Mail-Aliasse für diese Buchung aktiviert. Bitte deaktiviere alle nicht mehr benötigten E-Mail-Aliasse.",
 		"emailAlias_label": "E-Mail-Alias",
@@ -1264,9 +1266,19 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"languagePluralCount_label": "{count} Sprachen",
-		"languageSingularCount_label": "{count} Sprache",
-		"languageContentEmpty_label": "Der Inhalt von {language} ist leer!",
-		"templateFilter_label": "Filter... (# um nach Tags zu suchen)"
+
+		// TODO: put them in order vvv
+		"template_label": "Vorlagen",
+		"templateFilter_label": "Filter... (# um nach Tags zu suchen)",
+		"title_label": "Titel",
+		"tag_label": "Tag",
+		"submit_label": "Einfügen",
+		"content_label": "Inhalt",
+		"languageContentEmpty_msg": "Der Inhalt von {language} ist leer!",
+		"deleteLanguageContent_msg": "Möchtest Du den Eintrag {language} löschen?",
+		"emptyTitle_msg": "Der Titel ist leer",
+		"templateSettings_label": "Vorlagen Bearbeiten",
+		"nothingFound_label": "Keine Vorlagen gefunden",
+		"loadingTemplates_label": "Vorlagen werden geladen..."
 	}
 }

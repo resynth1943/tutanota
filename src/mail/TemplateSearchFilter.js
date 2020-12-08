@@ -1,7 +1,7 @@
 //@flow
-import type {Template} from "./TemplateModel"
+import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 
-export function searchForTag(input: string, list: Template[]): Array<Template> {
+export function searchForTag(input: string, list: EmailTemplate[]): Array<EmailTemplate> {
 	let matchedTags = []
 	let queryString = input.substring(1).trim().toLowerCase() // remove # and whitespaces at end from input
 	list.forEach(template => {
@@ -16,7 +16,7 @@ export function searchForTag(input: string, list: Template[]): Array<Template> {
 	return matchedTags
 }
 
-export function searchInContent(input: string, list: Template[]): Array<Template> {
+export function searchInContent(input: string, list: EmailTemplate[]): Array<EmailTemplate> {
 	let matchedTitles = []
 	let matchedContents = []
 	let queryString = input.trim().toLowerCase()
@@ -27,8 +27,8 @@ export function searchInContent(input: string, list: Template[]): Array<Template
 				matchedTitles.push(template)
 			}
 		}
-		for (const [lang, content] of Object.entries(template.content)) { // search in every language content of current template
-			if (String(content).toLowerCase().includes(queryString)) {
+		for (const content of template.contents) { // search in every language content of current template
+			if (content.text.toLowerCase().includes(queryString)) {
 				if (!matchedTitles.includes(template) && !matchedContents.includes(template)) { // only add if its not already found in title or in other language
 					matchedContents.push(template)
 				}

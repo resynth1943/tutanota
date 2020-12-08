@@ -10,7 +10,6 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import {TemplatePopupResultRow} from "./TemplatePopupResultRow"
-import type {Template} from "./TemplateModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
 import {TemplateExpander} from "./TemplateExpander"
@@ -22,6 +21,8 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
 import {templateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
+import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
+import {getLanguageCode} from "../settings/TemplateEditorModel"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -36,7 +37,7 @@ export type NavAction = "previous" | "next";
 *	Also allows user to change desired language when pasting.
 */
 
-export class TemplatePopup implements ModalComponent {
+export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regarding the search problem
 	_rect: PosRect
 	_filterTextAttrs: TextFieldAttrs
 	_shortcuts: Shortcut[]
@@ -49,7 +50,6 @@ export class TemplatePopup implements ModalComponent {
 	_resizeListener: Function
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
-		//templateModel.setSelectedTemplate(templateModel.containsResult() ? templateModel.getSearchResults()[0] : null)
 		this._rect = rect
 		this._onSubmit = onSubmit
 		this._initialWindowWidth = window.innerWidth
@@ -71,7 +71,7 @@ export class TemplatePopup implements ModalComponent {
 			},
 			onInputCreate: (vnode) => {
 				this._filterTextFieldDom = vnode.dom
-			}
+			},
 		}
 		this._shortcuts = [
 			{
@@ -104,10 +104,8 @@ export class TemplatePopup implements ModalComponent {
 					left: px(this._rect.left)
 				},
 				onclick: (e) => {
-					// prevent closing pop up
 					e.stopPropagation()
 				},
-
 				oncreate: () => {
 					windowFacade.addResizeListener(this._resizeListener)
 				},
@@ -146,12 +144,12 @@ export class TemplatePopup implements ModalComponent {
 					},
 				}, templateModel.containsResult() ?
 				templateModel.getSearchResults().map((template, index) => this._renderTemplateListRow(template, index))
-				: m(".row-selected.text-center.pt", "Nothing found") // TODO: Add TranslationKey
+				: m(".row-selected.text-center.pt", lang.get(templateModel.hasLoaded() ? "nothingFound_label" : "loadingTemplates_label"))
 			), // left end
 		]
 	}
 
-	_renderTemplateListRow(template: Template, index: number): Children {
+	_renderTemplateListRow(template: EmailTemplate, index: number): Children {
 		return m(".flex.flex-column.click", {
 				style: {
 					maxWidth: this._isScreenWideEnough() ? px(TEMPLATE_LIST_ENTRY_WIDTH) : px(this._rect.width - 20), // subtract 20px because of padding left and right
@@ -212,19 +210,23 @@ export class TemplatePopup implements ModalComponent {
 		const selectedTemplate = templateModel.getSelectedTemplate()
 		const language = templateModel.getSelectedLanguage()
 		if (this._isScreenWideEnough() && selectedTemplate) { // if screen is wide enough, submit content
-			this._onSubmit(selectedTemplate.content[language])
+			this._onSubmit(templateModel.getContentFromLanguage(language))
 			this._close()
 			m.redraw()
 		} else if (!this._isScreenWideEnough() && selectedTemplate) { // if screen isn't wide enough get all languages from the selected template
-			let languages = (Object.keys(selectedTemplate.content)).map(code => {
-				return {name: lang.get(languageByCode[code].textId), value: code}
+			let languages = selectedTemplate.contents.map(content => {
+				const languageCode = getLanguageCode(content)
+				return {
+					name: lang.get(languageByCode[languageCode].textId),
+					value: languageCode
+				}
 			})
 			if (languages.length > 1) { // if you have multiple languages for the selected template show a dropdown where you have to select a language and then submit
 				let selectedLanguage: Stream<LanguageCode> = stream(languages[0].value)
 				let languageChooser = new DropDownSelector("chooseLanguage_action", null, languages, selectedLanguage, 250)
 				let submitContentAction = (dialog) => {
 					if (selectedTemplate) {
-						this._onSubmit(selectedTemplate.content[selectedLanguage()])
+						this._onSubmit(templateModel.getContentFromLanguage(selectedLanguage()))
 						dialog.close()
 						this._close()
 						m.redraw()
@@ -237,7 +239,7 @@ export class TemplatePopup implements ModalComponent {
 					okAction: submitContentAction
 				})
 			} else if (languages.length === 1 && selectedTemplate) { // if you only have one language for the selected template, submit without showing the dropdown
-				this._onSubmit(selectedTemplate.content[language])
+				this._onSubmit(templateModel.getContentFromLanguage(language))
 				this._close()
 				m.redraw()
 			}

@@ -155,7 +155,7 @@ export class MailModel {
 			neverNull(mailboxDetails.find((md) => mailGroupId === md.mailGroup._id)))
 	}
 
-	getUserMailboxDetails(): Promise<MailboxDetail> {
+	getUserMailboxDetails(): Promise<MailboxDetail> { // Use this!
 		let userMailGroupMembership = logins.getUserController().getUserMailGroupMembership()
 		return this.getMailboxDetails().then(mailboxDetails =>
 			neverNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group)))

@@ -261,6 +261,7 @@ module.exports = {
 		"createdUsersCount_msg": "{1} user(s) created.",
 		"created_label": "Created",
 		"createEvent_label": "Event",
+		"createTemplate_action": "Create Template",
 		"createUserFailed_msg": "Could not create the user. Please contact support.",
 		"creditCardCardHolderName_label": "Name of the cardholder",
 		"creditCardCardHolderName_msg": "Please enter the name of the cardholder.",
@@ -378,6 +379,7 @@ module.exports = {
 		"editMail_action": "Edit the selected email",
 		"editMessage_label": "Edit message",
 		"edit_action": "Edit",
+		"editTemplate_action": "Edit Template",
 		"emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
 		"emailAliasesTooManyActivatedForBooking_msg": "There are too many email aliases active to process this order. Please deactivate your email aliases first.",
 		"emailAlias_label": "Email alias",
@@ -646,6 +648,7 @@ module.exports = {
 		"languageUrdu_label": "Urdu",
 		"languageVietnamese_label": "Vietnamese",
 		"language_label": "Language",
+		"languages_label": "Languages",
 		"lastAccess_label": "Last access",
 		"lastName_placeholder": "Last name",
 		"laterInvoicingInfo_msg": "Info: Additionally ordered features will not be invoiced directly, but at the beginning of your next subscription month.",
@@ -959,6 +962,7 @@ module.exports = {
 		"removeDNSValue_label": "Remove value",
 		"removeFormatting_action": "Remove formatting from selection",
 		"removeGroup_action": "Remove group",
+		"removeLanguage_action": "Remove language",
 		"removeOwnAdminFlagInfo_msg": "Your own admin flag can only be removed by another admin but not by yourself.",
 		"removeStatisticsField_action": "Remove statistics field",
 		"removeUserFromGroupNotAdministratedError_msg": "You cannot remove a user you do not administrate from a group.",
@@ -1265,23 +1269,18 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 
-		// Temporary
-
-		"template_label": "Template",
-		"templateEdit_label": "edit Template",
-		"templateMain_label": "Template settings",
-		"addTemplate_label": "add Template",
+		// TODO: put them in order
+		"template_label": "Templates",
 		"templateFilter_label": "Filter... (# to search for Tag)",
-		"templateExpander_label": "show Templates",
-		"templateTitle_label": "Title",
-		"templateID_label": "ID",
-		"templateTable_title": "Title",
-		"templateTable_id": "ID",
-		"templateSubmit_label": "Submit",
-		"templateTable_content": "Content",
-		"languagePluralCount_label": "{count} languages",
-		"languageSingularCount_label": "{count} language",
-		"languageContentEmpty_label": "The content of {language} is empty!",
-		"deleteLanguageContent_msg" : "Are you sure you want to delete {language}"
+		"title_label": "Title",
+		"tag_label": "Tag",
+		"submit_label": "Submit",
+		"content_label": "Content",
+		"languageContentEmpty_msg": "The content of {language} is empty!",
+		"deleteLanguageContent_msg" : "Are you sure you want to delete {language}",
+		"emptyTitle_msg" : "The Title is Empty",
+		"templateSettings_label": "Template Settings",
+		"nothingFound_label": "No Templates Found",
+		"loadingTemplates_label": "Loading templates..."
 	}
 }

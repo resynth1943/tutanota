@@ -1,119 +1,138 @@
 // @flow
+
 import o from "ospec/ospec.js"
-import type {Template} from "../../../src/mail/TemplateModel"
 import {searchForTag, searchInContent} from "../../../src/mail/TemplateSearchFilter"
+import type {EmailTemplate} from "../../../src/api/entities/tutanota/EmailTemplate"
+import {createEmailTemplate} from "../../../src/api/entities/tutanota/EmailTemplate"
+import {createEmailTemplateContent} from "../../../src/api/entities/tutanota/EmailTemplateContent"
 
 o.spec("TemplateSearchFilter", function () {
 	o("finds in title", function () {
-		const template: Template = {
-			_id: ["listId", "id"],
-			title: "test title",
-			tag: null,
-			content: {},
-			index: 0,
-		}
-		o(searchInContent("test", [template])).deepEquals([template])
+		const emailTemplate: EmailTemplate = createEmailTemplate({
+			tag: "more_steps_needed",
+			title: "Please provide more steps",
+			contents: [
+				createEmailTemplateContent({languageCode: "en", text: "We will require more information"}),
+				createEmailTemplateContent({languageCode: "de", text: "Wir benötigen mehr Informationen, um"})
+			]
+		})
+		o(searchInContent("Please provide", [emailTemplate])).deepEquals([emailTemplate])
 	})
 	o("finds in one content", function () {
-		const template: Array<Template> = [
-			{
-				_id: ["listId", "id"],
-				title: "test title",
-				tag: null,
-				content: {"en": "content"},
-				index: 0,
-			},
-			{
-				_id: ["listId", "id"],
-				title: "test title",
-				tag: null,
-				content: {"de": "Inhalt"},
-				index: 0,
-			}
+		const emailTemplate: Array<EmailTemplate> = [
+			createEmailTemplate({
+				tag: "more_steps_needed",
+				title: "Please provide more steps",
+				contents: [
+					createEmailTemplateContent(
+						{languageCode: "en", text: "We will require more information"}
+					)
+				]
+			}),
+			createEmailTemplate({
+				tag: "account_access",
+				title: "Account cannot be accessed",
+				contents: [
+					createEmailTemplateContent({languageCode: "en", text: "Cannot access account"}),
+					createEmailTemplateContent({languageCode: "de", text: "Zugriff auf Konto nicht möglich"})
+				]
+			}),
 		]
-		o(searchInContent("Inhalt", template)).deepEquals([template[1]])
+		o(searchInContent("access", emailTemplate)).deepEquals([emailTemplate[1]])
 	})
 	o("finds in both content and one title", function () { // 2nd template should be found first
-		const template: Array<Template> = [
-			{
-				_id: ["listId", "id"],
-				title: "title",
-				tag: null,
-				content: {"en": "content test"},
-				index: 0,
-			},
-			{
-				_id: ["listId", "id"],
-				title: "test title2",
-				tag: null,
-				content: {"de": "Inhalt test"},
-				index: 0,
-			}
+		const emailTemplate: Array<EmailTemplate> = [
+			createEmailTemplate({
+				tag: "account_access_lost",
+				title: "Lost access",
+				contents: [
+					createEmailTemplateContent({languageCode: "en", text: "Lost access to account"}),
+					createEmailTemplateContent({languageCode: "de", text: "Zugangsdaten zum Konto verloren"})
+				]
+			}),
+			createEmailTemplate({
+				tag: "account_refund",
+				title: "Account Refund",
+				contents: [
+					createEmailTemplateContent({languageCode: "en", text: "Refund account"}),
+					createEmailTemplateContent({languageCode: "de", text: "Zahlung stornieren"})
+				]
+			})
 		]
-		o(searchInContent("test", template)).deepEquals([template[1], template[0]])
+		o(searchInContent("account", emailTemplate)).deepEquals([emailTemplate[1], emailTemplate[0]])
 	})
 	o("finds in tag", function () {
-		const template: Template = {
-			_id: ["listId", "id"],
-			title: "title",
-			tag: "test tag",
-			content: {"en": "content"},
-			index: 0
-		}
-		o(searchForTag("#test", [template])).deepEquals([template])
+		const emailTemplate: EmailTemplate = createEmailTemplate({
+			tag: "#account_info",
+			title: "Account information required",
+			contents: [
+				createEmailTemplateContent({languageCode: "en", text: "Please provide more information regarding"}),
+				createEmailTemplateContent({languageCode: "de", text: "Wir benötigen weitere Informationen, um"})
+			]
+		})
+		o(searchForTag("account_info", [emailTemplate])).deepEquals([emailTemplate])
 	})
-	o.only("finds in multiple tag", function () {
-		const template: Array<Template> = [
-			{
-				_id: ["listId", "id"],
-				title: "title",
-				tag: "matched tag",
-				content: {"en": "content"},
-				index: 0
-			}, {
-				_id: ["listId", "id"],
-				title: "title",
-				tag: "test tag match",
-				content: {"en": "content"},
-				index: 0
-			}
+	o("finds in multiple tags", function () {
+		const emailTemplate: Array<EmailTemplate> = [
+			createEmailTemplate({
+				tag: "#account_access",
+				title: "Cannot access account",
+				contents: [
+					createEmailTemplateContent({languageCode: "en", text: "If you cannot access your account"}),
+					createEmailTemplateContent({languageCode: "de", text: "Wenn Sie auf Ihr Konto nicht zugreifen können"})
+				]
+			}),
+			createEmailTemplate({
+				tag: "#account_refund",
+				title: "Refund account",
+				contents: [
+					createEmailTemplateContent({languageCode: "en", text: "Refund account"}),
+					createEmailTemplateContent({languageCode: "de", text: "Zahlung stonieren"})
+				]
+			})
 		]
-		o(searchForTag("#match", template)).deepEquals(template)
+		o(searchForTag("account", emailTemplate)).deepEquals(emailTemplate)
 	})
-	o("finds in content with multiple languages", function () {
-		const template: Array<Template> = [
-			{
-				_id: ["listId", "id"],
-				title: "title",
-				tag: null,
-				content: {"en": "match", "de": "match"},
-				index: 0
-			}, {
-				_id: ["listId", "id"],
-				title: "title2",
-				tag: null,
-				content: {"en": "match", "de": "match"},
-				index: 0
-			}
-		]
-		o(searchInContent("match", template)).deepEquals(template)
+		o("finds in content with multiple languages", function () {
+			const emailTemplate: Array<EmailTemplate> = [
+				createEmailTemplate({
+					tag: "account_refund",
+					title: "Access",
+					contents: [
+						createEmailTemplateContent({languageCode: "en", text: "Account access"}),
+						createEmailTemplateContent({languageCode: "de", text: "Account Zugriff"})
+					]
+				}),
+				createEmailTemplate({
+					tag: "account_refund",
+					title: "Refund",
+					contents: [
+						createEmailTemplateContent({languageCode: "en", text: "Account refund"}),
+						createEmailTemplateContent({languageCode: "de", text: "Account stornieren"})
+					]
+				})
+			]
+			o(searchInContent("Account", emailTemplate)).deepEquals(emailTemplate)
+		})
+		o("finds in content with multiple languages and in second title", function () {
+			const emailTemplate: Array<EmailTemplate> = [
+				createEmailTemplate({
+					tag: "account_refund",
+					title: "Access",
+					contents: [
+						createEmailTemplateContent({languageCode: "en", text: "Account refund"}),
+						createEmailTemplateContent({languageCode: "de", text: "Account stornieren"})
+					],
+				}),
+				createEmailTemplate({
+					tag: "null",
+					title: "Account refund",
+					contents: [
+						createEmailTemplateContent({languageCode: "en", text: "To refund a payment"}),
+						createEmailTemplateContent({languageCode: "de", text: "Zahlung stornieren"})
+					]
+				}),
+			]
+			o(searchInContent("account", emailTemplate)).deepEquals([emailTemplate[1], emailTemplate[0]]) // 2nd template should be found first
+		})
 	})
-	o.only("finds in content with multiple languages and in second title", function () {
-		const template: Array<Template> = [
-			{
-				_id: ["listId", "id"],
-				title: "title",
-				tag: null,
-				content: {"en": "match", "de": "match"},
-				index: 0
-			}, {
-				_id: ["listId", "id"],
-				title: "title2 match",
-				tag: null,
-				content: {"en": "match", "de": "match"},
-				index: 0
-			}
-		]
-		o(searchInContent("match", template)).deepEquals([template[1], template[0]]) // 2nd template should be found first
-	})
-})

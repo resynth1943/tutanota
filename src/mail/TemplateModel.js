@@ -1,12 +1,15 @@
 // @flow
 
+import m from "mithril"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {searchForTag, searchInContent} from "./TemplateSearchFilter"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import type {NavAction} from "./TemplatePopup"
 import {SELECT_NEXT_TEMPLATE} from "./TemplatePopup"
+import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
+import {locator} from "../api/main/MainLocator"
+import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 
 export type Template = {
 	_id: IdTuple;
@@ -18,30 +21,33 @@ export type Template = {
 
 /*
 *   Model that holds main logic for the Template Feature.
-*   Handles things like returning the selected Template, selecting Templates, Indexes, scrolling.
+*   Handles things like returning the selected Template, selecting Templates, indexes, scrolling.
 */
 
 export class TemplateModel {
-	_allTemplates: Array<Template>
-	_searchResults: Array<Template>
-	_selectedTemplate: ?Template
+	_allTemplates: Array<EmailTemplate>
+	_searchResults: Array<EmailTemplate>
+	_selectedTemplate: ?EmailTemplate
 	_selectedLanguage: LanguageCode
-	_lazyLoadedTemplates: LazyLoaded<void>
+	_templateListId: Id
+	_hasLoaded: boolean
 
 	constructor() {
 		this._selectedLanguage = downcast(lang.code)
 		this._allTemplates = []
 		this._searchResults = []
 		this._selectedTemplate = null
-		this._lazyLoadedTemplates = new LazyLoaded(() => {
-			this._allTemplates = loadTemplates()
-			this._searchResults = this._allTemplates
-			return Promise.resolve()
-		})
+		this._hasLoaded = false
 	}
 
 	init(): Promise<void> {
-		return this._lazyLoadedTemplates.getAsync()
+		return loadTemplates().then(templates => {
+			this._allTemplates = templates
+			this._searchResults = this._allTemplates
+			m.redraw()
+			this._hasLoaded = true
+			this.setSelectedTemplate(this.containsResult() ? this._searchResults[0] : null) // needs to be called, because otherwise the selection would be null, even when templates are loaded. (fixes bug)
+		})
 	}
 
 	search(text: string): void {
@@ -59,18 +65,18 @@ export class TemplateModel {
 		return this._searchResults.length > 0
 	}
 
-	isSelectedTemplate(template: Template): boolean {
+	isSelectedTemplate(template: EmailTemplate): boolean {
 		return (this._selectedTemplate === template)
 	}
 
 	_updateSelectedLanguage() {
 		if (this._selectedTemplate && this._searchResults.length) {
 			let clientLanguage = lang.code
-			this._selectedLanguage = this._isLanguageInContent(clientLanguage) ? clientLanguage : Object.keys(neverNull(this._selectedTemplate).content)[0]
+			this._selectedLanguage = this._isLanguageInContent(clientLanguage) ? clientLanguage : downcast(neverNull(this._selectedTemplate).contents[0].languageCode)
 		}
 	}
 
-	getSearchResults(): Array<Template> {
+	getSearchResults(): Array<EmailTemplate> {
 		return this._searchResults
 	}
 
@@ -78,8 +84,12 @@ export class TemplateModel {
 		return this._selectedLanguage
 	}
 
-	getSelectedTemplate(): ?Template {
+	getSelectedTemplate(): ?EmailTemplate {
 		return this._selectedTemplate
+	}
+
+	hasLoaded(): boolean {
+		return this._hasLoaded
 	}
 
 	getSelectedTemplateIndex(): number {
@@ -90,7 +100,7 @@ export class TemplateModel {
 		this._selectedLanguage = lang
 	}
 
-	setSelectedTemplate(template: ?Template) { // call function to globally set a Template
+	setSelectedTemplate(template: ?EmailTemplate) { // call function to globally set a Template
 		this._selectedTemplate = template
 		this._updateSelectedLanguage()
 	}
@@ -107,42 +117,43 @@ export class TemplateModel {
 	}
 
 	_chooseLanguage(language: LanguageCode) {
-		this._selectedLanguage = this._isLanguageInContent(language) ? language : Object.keys(neverNull(this._selectedTemplate).content)[0]
+		this._selectedLanguage = this._isLanguageInContent(language) ? language : downcast(neverNull(this._selectedTemplate).contents[0].languageCode)
 	}
 
-	_isLanguageInContent(language: LanguageCode): boolean { // returns true if passed language is within the contents of the currently selected Template
-		return Object.keys(neverNull(this._selectedTemplate).content).includes(language);
+	_isLanguageInContent(languageCode: LanguageCode): boolean { // returns true if passed language is within the contents of the currently selected Template
+		if (this._selectedTemplate) {
+			for (const templateContent of this._selectedTemplate.contents) {
+				if (templateContent.languageCode === languageCode) {
+					return true
+				}
+			}
+		}
+		return false
 	}
 
-	saveTemplate() {
-
+	getContentFromLanguage(languageCode: LanguageCode): string { // returns the value of the content as string
+		if (this._selectedTemplate) {
+			for (const content of this._selectedTemplate.contents) {
+				if (content.languageCode === languageCode) {
+					return content.text
+				}
+			}
+		}
+		return ""
 	}
+
 }
 
 export const templateModel: TemplateModel = new TemplateModel()
 
-export function loadTemplates(): Array<Template> {
-	if (localStorage.getItem("Templates") !== null) {
-		const parsedTemplates = JSON.parse(assertNotNull(localStorage.getItem("Templates"))) // Global variable that represents current Localstorage Array
-		if (parsedTemplates instanceof Array) {
-			return parsedTemplates.map((storedTemplate, index) => createTemplate(storedTemplate.title, storedTemplate.tag, storedTemplate.content, index))
+function loadTemplates(): Promise<Array<EmailTemplate>> {
+	return locator.mailModel.getUserMailboxDetails().then(details => {
+		if (details.mailbox.templates) {
+			const listId = details.mailbox.templates.list
+			const entityClient = locator.entityClient
+			return entityClient.loadAll(EmailTemplateTypeRef, listId)
 		} else {
-			return []
+			return Promise.resolve([])
 		}
-	} else {
-		return []
-	}
+	})
 }
-
-export function createTemplate(title: string, tag: string, content: {[LanguageCode]: string}, index: number): Template { // function to create a Template with passed data
-	return {
-		_id: ["localstorage", title], // TODO: should be replaced to real list id when stored as list in database
-		title: title,
-		tag: tag,
-		content: content,
-		index: index
-	}
-}
-
-
-

@@ -3,7 +3,6 @@
 import {create, TypeRef} from "../../common/EntityFunctions"
 
 import type {InputField} from "./InputField"
-import type {LanguageCode} from "../../../misc/LanguageViewModel"
 
 export const ContactFormLanguageTypeRef: TypeRef<ContactFormLanguage> = new TypeRef("tutanota", "ContactFormLanguage")
 export const _TypeModel: TypeModel = {
@@ -82,7 +81,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "43"
+	"version": "44"
 }
 
 export function createContactFormLanguage(values?: $Shape<$Exact<ContactFormLanguage>>): ContactFormLanguage {
@@ -93,7 +92,7 @@ export type ContactFormLanguage = {
 	_type: TypeRef<ContactFormLanguage>;
 
 	_id: Id;
-	code: LanguageCode;
+	code: string;
 	footerHtml: string;
 	headerHtml: string;
 	helpHtml: string;

@@ -7,73 +7,81 @@ import {lang} from "../misc/LanguageViewModel"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {List} from "../gui/base/List"
 import {size} from "../gui/size"
-import {elementIdPart, isSameId} from "../api/common/EntityFunctions"
 import {SettingsView} from "./SettingsView"
 import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {TemplateEditor} from "./TemplateEditor"
-import type {LanguageCode} from "../misc/LanguageViewModel"
-import type {Template} from "../mail/TemplateModel"
-import {loadTemplates} from "../mail/TemplateModel"
+import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
+import {locator} from "../api/main/MainLocator"
+import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
+import {assertMainOrNode} from "../api/Env"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+
+assertMainOrNode()
 
 /**
  *  List that is rendered within the template Settings
  */
 
 export class TemplateListView implements UpdatableSettingsViewer {
-	_keyList: Array<Template>
 	_dialog: Dialog
-	_list: List<Template, TemplateRow>
-	newTemplate: Template
+	_list: List<EmailTemplate, TemplateRow>
 	_settingsView: SettingsView
 
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
-		this._keyList = loadTemplates()
+		const entityClient = locator.entityClient
+		console.log("tested")
 
-		const listConfig: ListConfig<Template, TemplateRow> = {
-			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
-				this._list.setLoadedCompletely()
-				return Promise.resolve(this._keyList)
-			},
-			loadSingle: (elementId) => {
-				return Promise.resolve(this._keyList.find(template => isSameId(elementIdPart(template._id), elementId)))
-			},
-			sortCompare: (a: Template, b: Template) => {
-				var titleA = a.title.toUpperCase();
-				var titleB = b.title.toUpperCase();
-				return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
-			},
-			elementSelected: (templates: Array<Template>, elementClicked) => {
-				if (elementClicked) {
-					this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], this._keyList, (updates) => {
-						return this.entityEventsReceived(updates)
-					})
-					this._settingsView.focusSettingsDetailsColumn()
-				} else if (templates.length === 0 && this._settingsView.detailsViewer) {
-					this._settingsView.detailsViewer = null
-					m.redraw()
+		locator.mailModel.getUserMailboxDetails().then(details => {
+			if(details.mailbox.templates) {
+				const templateListId = details.mailbox.templates.list
+				const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
+					rowHeight: size.list_row_height,
+					fetch: (startId, count) => {
+						console.log("template list fetch", startId, count)
+						return entityClient.loadRange(EmailTemplateTypeRef, templateListId, startId, count, true).then(entries => {
+							console.log("templates", entries)
+							return entries
+						})
+					},
+					loadSingle: (elementId) => {
+						return entityClient.load(EmailTemplateTypeRef, [templateListId, elementId])
+					},
+					sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
+						var titleA = a.title.toUpperCase();
+						var titleB = b.title.toUpperCase();
+						return (titleA < titleB) ? -1 : (titleA > titleB) ? 1 : 0
+					},
+					elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
+						if (elementClicked) {
+							this._settingsView.detailsViewer = new TemplateDetailsViewer(templates[0], entityClient)
+							this._settingsView.focusSettingsDetailsColumn()
+						} else if (templates.length === 0 && this._settingsView.detailsViewer) {
+							this._settingsView.detailsViewer = null
+							m.redraw()
+						}
+
+					},
+					createVirtualRow: () => {
+						return new TemplateRow()
+					},
+					showStatus: false,
+					className: "template-list",
+					swipe: {
+						renderLeftSpacer: () => [],
+						renderRightSpacer: () => [],
+						swipeLeft: (listElement) => Promise.resolve(),
+						swipeRight: (listElement) => Promise.resolve(),
+						enabled: false
+					},
+					elementsDraggable: false,
+					multiSelectionAllowed: false,
+					emptyMessage: lang.get("noEntries_msg"),
 				}
-
-			},
-			createVirtualRow: () => {
-				return new TemplateRow()
-			},
-			showStatus: false,
-			className: "template-list",
-			swipe: {
-				renderLeftSpacer: () => [],
-				renderRightSpacer: () => [],
-				swipeLeft: (listElement) => Promise.resolve(),
-				swipeRight: (listElement) => Promise.resolve(),
-				enabled: false
-			},
-			elementsDraggable: false,
-			multiSelectionAllowed: false,
-			emptyMessage: lang.get("noEntries_msg"),
-		}
-		this._list = new List(listConfig)
-		this._list.loadInitial()
+				this._list = new List(listConfig)
+				this._list.loadInitial()
+			}
+		})
 	}
 
 
@@ -94,32 +102,30 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 
 	_showDialogWindow(existingTitle?: string, existingID?: string, existingContent?: string, index?: number, allowCancel: boolean = true) {
-		new TemplateEditor(this._keyList, null, (updates) => {
-			return this.entityEventsReceived(updates)
+		locator.mailModel.getUserMailboxDetails().then(details => {
+			if (details.mailbox.templates && details.mailbox._ownerGroup) {
+				new TemplateEditor(null, details.mailbox.templates.list, details.mailbox._ownerGroup, locator.entityClient)
+			}
 		})
 	}
 
-	_removeTemplate(index: number) {
-		this._keyList.splice(index, 1)
-		localStorage.setItem("Templates", JSON.stringify(this._keyList))
-	}
-
-
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		console.log("event update received", updates)
 		return Promise.each(updates, update => {
-			return this._list.entityEventReceived(update.instanceId, update.operation)
+			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
+				return this._list.entityEventReceived(update.instanceId, update.operation)
+			}
 		}).then(() => {
 			this._settingsView.detailsViewer = null
 			m.redraw()
 		})
 	}
-
 }
 
 export class TemplateRow {
 	top: number;
 	domElement: ?HTMLElement; // set from List
-	entity: ?Template;
+	entity: ?EmailTemplate;
 	_domTemplateTitle: HTMLElement;
 	_domTemplateId: HTMLElement;
 
@@ -127,7 +133,7 @@ export class TemplateRow {
 		this.top = 0 // is needed because of the list component
 	}
 
-	update(template: Template, selected: boolean): void {
+	update(template: EmailTemplate, selected: boolean): void {
 		if (!this.domElement) {
 			return
 		}
