@@ -39,7 +39,7 @@ import {load} from "../api/main/Entity"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
-import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -63,6 +63,7 @@ import {styles} from "../gui/styles"
 import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {newMailEditor} from "../mail/MailEditorN"
+import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 
 assertMainOrNode()
 

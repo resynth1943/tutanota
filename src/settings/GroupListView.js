@@ -10,7 +10,7 @@ import {size} from "../gui/size"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {logins} from "../api/main/LoginController"
@@ -28,6 +28,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {compareGroupInfos} from "../api/common/utils/GroupUtils";
 
 assertMainOrNode()
 

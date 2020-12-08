@@ -18,8 +18,6 @@ import {
 import {
 	assertNotNull,
 	downcast,
-	getEnabledMailAddressesForGroupInfo,
-	getGroupInfoDisplayName,
 	getMailBodyText,
 	neverNull,
 	noOp
@@ -62,6 +60,7 @@ import {EntityClient} from "../api/common/EntityClient"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {client} from "../misc/ClientDetector"
 import {getTimeZone} from "../calendar/CalendarUtils"
+import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 
 assertMainOrNode()
 

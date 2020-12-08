@@ -40,7 +40,7 @@ export default {
 	input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
 	plugins: rollupDebugPlugins(path.resolve(".")),
 	treeshake: false, // disable tree-shaking for faster development builds
-	output: {format: "es", sourcemap: "inline", dir: "build"},
+	output: {format: "es", sourceMap: true, dir: "build"},
 }
 
 export function writeNollupBundle(generatedBundle) {

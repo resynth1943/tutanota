@@ -13,16 +13,11 @@ import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 
 // $FlowIgnore[untyped-import]
-import EC from "../../common/EntityConstants"
+import {Type, ValueType, Cardinality, AssociationType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../Env"
 import {uncompress} from "../lz4"
 
 assertWorkerOrNode()
-
-const Type = EC.Type
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
 
 /**
  * Decrypts an object literal as received from the DB and maps it to an entity class (e.g. Mail)

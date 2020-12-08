@@ -12,7 +12,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -43,6 +43,7 @@ import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {flat} from "../api/common/utils/ArrayUtils"
+import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 
 assertMainOrNode()
 

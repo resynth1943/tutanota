@@ -6,7 +6,7 @@ import {load, loadRange, update} from "../api/main/Entity"
 import {showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getCustomMailDomains, getUserGroupMemberships, neverNull, noOp, objectEntries} from "../api/common/utils/Utils"
+import {getCustomMailDomains, neverNull, noOp, objectEntries} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
@@ -50,6 +50,7 @@ import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
+import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 
 assertMainOrNode()
 
