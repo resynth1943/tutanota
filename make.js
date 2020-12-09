@@ -141,7 +141,16 @@ async function build({watch, desktop}) {
 			config: debugConfig,
 			contentBase: "build",
 			verbose: true,
-			historyApiFallback: true,
+			// "fallback" won't redirect but will serve html instead. We want redirect.
+			after: (app) => {
+				app.use((req, res, next) => {
+					if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
+						res.redirect('/?r=' + req.url.replace(/\?/g, "&"))
+					} else {
+						next()
+					}
+				})
+			}
 		})
 	} else {
 		const start = Date.now()
