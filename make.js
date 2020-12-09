@@ -60,7 +60,7 @@ async function prepareAssets(watch) {
 
 	await fs.copyFile(path.join(__dirname, "/src/api/worker/WorkerBootstrap.js"), path.join(__dirname, '/build/WorkerBootstrap.js'))
 
-	const version = JSON.parse(await fs.readFile("package.json", "utf8"))
+	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 
 	return Promise.all([
 		createHtml(env.create((options.stage === 'local') ? null : restUrl, version, "Browser"), watch),

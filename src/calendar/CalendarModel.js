@@ -333,6 +333,7 @@ export class CalendarModelImpl implements CalendarModel {
 		this._scheduledNotifications = new Map()
 		this._pendingAlarmRequests = new Map()
 		this._entityClient = entityClient
+		this._mailModel = mailModel
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				return this._entityEventsReceived(updates)
