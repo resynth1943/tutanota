@@ -77,7 +77,7 @@ const csp = (m, env) => {
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: blob: data: *; "
 			+ `style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)} https://tutanota.com;]`)
 	} else {
-		return null
+		return m("meta[http-equiv=Content-Security-Policy][content=default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';]")
 	}
 }
 

@@ -102,6 +102,7 @@ async function build({watch, desktop}) {
 		preserveModules: true,
 	}
 	const outputOptions = {format: "system", sourcemap: "inline", dir: "build"}
+	const debugConfig = (await import('./buildSrc/RollupDebugConfig.js')).default
 
 	if (watch) {
 		// const WebSocket = require("ws")
@@ -137,14 +138,15 @@ async function build({watch, desktop}) {
 		NollupDevServer({
 			hot: true,
 			port: 9001,
-			config: path.resolve(process.cwd(), "./buildSrc/RollupDebugConfig.js"),
+			config: debugConfig,
 			contentBase: "build",
 			verbose: true,
+			historyApiFallback: true,
 		})
 	} else {
 		const start = Date.now()
 		const nollup = (await import('nollup')).default
-		const debugConfig = (await import('./buildSrc/RollupDebugConfig.js')).default
+
 		console.log("Bundling...")
 		const bundle = await nollup(debugConfig)
 		console.log("Generating...")
