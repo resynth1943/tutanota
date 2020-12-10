@@ -15,7 +15,7 @@ import {header} from "./gui/base/Header"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/Env"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
-import {neverNull} from "./api/common/utils/Utils"
+import {downcast, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
@@ -84,9 +84,8 @@ if (client.isIE()) {
 	         })
 }
 
-// export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
-// 	? deletedModule.module.state : {prefix: null}
-export const state: {prefix: ?string} = {prefix: null}
+export const state: {prefix: ?string} = (module.hot && module.hot.data)
+	? downcast(module.hot.data.state) : {prefix: null}
 
 let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
@@ -198,7 +197,7 @@ let initialized = lang.init(en).then(() => {
 		.then(module => new module.CalendarView()), true)
 
 	let start = "/"
-	if (!state.prefix) {
+	if (state.prefix == null) {
 		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
 			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
 
@@ -328,3 +327,13 @@ WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 `)
 }, 5000)
+
+const hot = module.hot
+if (hot) {
+	// Save the state (mostly prefix) before the reload
+	hot.dispose((data) => {
+		data.state = state
+	})
+	// Import ourselves again to actually replace ourselves and all the dependencies
+	hot.accept(() => require(module.id))
+}

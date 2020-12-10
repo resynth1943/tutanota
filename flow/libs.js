@@ -319,3 +319,21 @@ export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
 	attrs: Attrs,
 	dom: HTMLElement,
 }
+
+// override flowlib to include "hot"
+declare var module: {
+	exports: any,
+	require(id: string): any,
+	id: string,
+	filename: string,
+	loaded: boolean,
+	parent: any,
+	children: Array<any>,
+	builtinModules: Array<string>,
+	hot: ?{
+		data?: {[string]: mixed},
+		dispose: ((data: {[string]: mixed}) => void) => void,
+		accept: (() => void) => void
+	},
+	...
+};

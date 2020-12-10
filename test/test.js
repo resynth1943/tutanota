@@ -22,16 +22,6 @@ let testRunner = null
 
 const localEnv = env.create("localhost:9000", "unit-test", "Test")
 
-/** Returns cache or null. */
-function readCache(cacheLocation) {
-	try {
-		// *must not* return boolean. Returning "false" will disable caching which is bad.
-		return fs.existsSync(cacheLocation) ? JSON.parse(fs.readFileSync(cacheLocation, {encoding: "utf8"})) : null
-	} catch (e) {
-		return null
-	}
-}
-
 // We use this homebrew plugin so that libs are copies to _virtual folder and *not* build/node_modules
 // (which would be the case with preserve_modules).
 // Files in build/node_modules are treated as separate libraries and ES mode resets back to commonjs.
@@ -88,8 +78,6 @@ async function build() {
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(".."),
 		],
-		treeshake: false,
-		preserveModules: true,
 	})
 	console.log("Generating...")
 	const result = await bundle.generate({sourcemap: false, dir: "../build/", format: "esm"})
@@ -112,11 +100,6 @@ async function build() {
 		process.exit(1)
 	}
 })()
-
-
-async function checkFlow() {
-	return child_process.spawn(flow, [], {stdio: [process.stdin, process.stdout, process.stderr]})
-}
 
 function runTest() {
 	if (testRunner != null) {

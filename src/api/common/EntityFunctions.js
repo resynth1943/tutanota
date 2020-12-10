@@ -78,6 +78,11 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.type)
 }
 
+/**
+ * Model maps are needed for static analysis and dead-code elimination.
+ * We access most types through the TypeRef but also sometimes we include them completely dynamically (e.g. encryption of aggregates).
+ * This means that we need to tell our bundler which ones do exist so that they are included.
+ */
 const modelMaps = {"sys": sysModelMap, "tutanota": tutanotaModelMap, "monitor": monitorModelMap}
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
