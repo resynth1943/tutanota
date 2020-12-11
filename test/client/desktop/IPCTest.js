@@ -1,7 +1,6 @@
 // @flow
 import n from "../nodemocker"
 import o from "ospec"
-import chalk from 'chalk'
 import {defer} from "../../../src/api/common/utils/Utils"
 import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfig"
 
@@ -112,7 +111,7 @@ o.spec("IPC tests", () => {
 		unintegrate: () => Promise.resolve(),
 	}
 	const workerProtocol = {
-		errorToObj: (err) => console.log(chalk.red.bold("ERROR:"), err.message),
+		errorToObj: (err) => console.error("ERROR:", err.message),
 		objToError: () => "this is an error"
 	}
 

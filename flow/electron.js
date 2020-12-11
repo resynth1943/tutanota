@@ -798,12 +798,6 @@ export type AutoUpdaterEvent
 export type TrayEvent
 	= 'click'
 
-
-declare module 'fs-extra' {
-	declare export default any;
-	//declare export var fs: any;
-}
-
 declare module 'bluebird' {
 	declare export default any;
 }

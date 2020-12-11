@@ -1,6 +1,5 @@
 // @flow
 import o from "ospec"
-import chalk from 'chalk'
 import mockery from 'mockery'
 import path from 'path'
 import {downcast, neverNull} from "../../src/api/common/utils/Utils"
@@ -31,7 +30,7 @@ function startGroup(opts: {
 function enable(allowables: Array<string>) {
 	testcount = testcount + 1
 	exit = setProperty(process, 'exit', o.spy(code => {
-		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
+		console.log(`mock process.exit() with code ${code.toString()}`)
 	}))
 	random = setProperty(Math, 'random', () => 0)
 	setProperty(process, 'resourcesPath', 'app/path/resources')

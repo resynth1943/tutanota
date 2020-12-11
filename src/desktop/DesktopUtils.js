@@ -3,7 +3,7 @@ import * as url from 'url'
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import fs from "fs-extra"
+import {openSync, closeSync, unlinkSync, writeFileSync, promises as fs} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
@@ -93,7 +93,7 @@ export default class DesktopUtils {
 	 * @param path: the file to touch
 	 */
 	static touch(path: string): void {
-		fs.closeSync(fs.openSync(path, 'a'))
+		closeSync(openSync(path, 'a'))
 	}
 
 	static registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
@@ -238,7 +238,7 @@ function getLockFilePath() {
 function _writeToDisk(contents: string): string {
 	const filename = DesktopCryptoFacade.randomHexString(12)
 	const filePath = path.join(path.dirname(process.execPath), filename)
-	fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
+	writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 	return filePath
 }
 
@@ -278,7 +278,7 @@ function _executeRegistryScript(script: string): Promise<void> {
 		stdio: ['ignore', 'inherit', 'inherit'],
 		detached: false
 	}).on('exit', (code, signal) => {
-		fs.unlinkSync(file)
+		unlinkSync(file)
 		if (code === 0) {
 			deferred.resolve()
 		} else {

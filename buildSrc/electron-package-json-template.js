@@ -68,9 +68,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 		},
 		"dependencies": {
 			"electron-updater": pj.devDependencies["electron-updater"],
-			"chalk": pj.devDependencies.chalk,
 			"electron-localshortcut": pj.devDependencies["electron-localshortcut"],
-			"fs-extra": pj.devDependencies["fs-extra"],
 			"bluebird": pj.dependencies.bluebird,
 			"node-forge": pj.devDependencies["node-forge"],
 			"winreg": pj.devDependencies.winreg,

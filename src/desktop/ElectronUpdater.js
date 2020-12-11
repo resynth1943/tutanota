@@ -9,8 +9,8 @@ import type {DesktopConfig} from './config/DesktopConfig'
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
-import fs from 'fs-extra'
 import path from 'path'
+import fs from "fs"
 
 /**
  * Wraps electron-updater for Tutanota Desktop

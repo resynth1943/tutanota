@@ -4,8 +4,8 @@ import {app, dialog, DownloadItem, shell} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import DesktopUtils from "./DesktopUtils"
-import fs from "fs-extra"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {mkdirSync, readdirSync, createWriteStream, existsSync, promises as fs} from "fs"
+import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -29,10 +29,9 @@ export class DesktopDownloadManager {
 
 	downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise((resolve, reject) => {
-			fs.mkdirp(app.getPath('temp') + '/tuta/')
+			mkdirSync(app.getPath('temp') + '/tuta/', {recursive: true})
 			const encryptedFileUri = path.join(app.getPath('temp'), '/tuta/', fileName)
-			const fileStream = fs
-				.createWriteStream(encryptedFileUri, {emitClose: true})
+			const fileStream = createWriteStream(encryptedFileUri, {emitClose: true})
 				.on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {
 				cleanup = noOp
@@ -90,7 +89,7 @@ export class DesktopDownloadManager {
 
 	saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
 		const write = ({canceled, filePath}): Promise<void> => {
-			if (!canceled) return fs.writeFile(filePath, data)
+			if (!canceled) return fs.writeFile(assertNotNull(filePath), data)
 			return Promise.reject('canceled')
 		}
 
@@ -111,13 +110,13 @@ export class DesktopDownloadManager {
 		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
 		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
-		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
+		if (defaultDownloadPath && existsSync(defaultDownloadPath)) {
 			try {
 				const fileName = path.basename(item.getFilename())
 				const savePath = path.join(
 					defaultDownloadPath,
 					DesktopUtils.nonClobberingFilename(
-						fs.readdirSync(defaultDownloadPath),
+						readdirSync(defaultDownloadPath),
 						fileName
 					)
 				)

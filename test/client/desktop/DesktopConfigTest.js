@@ -6,17 +6,18 @@ import path from "path"
 o.spec('desktop config handler test', function () {
 	n.startGroup({group: __filename})
 
-	const fsExtra = {
+	const fs = {
 		existsSync: (path: string) => true,
-		mkdirp: (path: string) => {},
-		writeJSONSync: (path: string, object: any) => {},
-		readJSONSync: (path: string) => {
-			return {
-				"heartbeatTimeoutInSeconds": 240,
-				"defaultDownloadPath": "/mock-Downloads/",
-				"enableAutoUpdate": true,
-				"runAsTrayApp": true,
-			}
+		mkdir: (path: string) => {},
+		writeFileSync: (path: string, object: any) => {},
+		readFileSync: (path: string) => {
+			return JSON.stringify({
+					"heartbeatTimeoutInSeconds": 240,
+					"defaultDownloadPath": "/mock-Downloads/",
+					"enableAutoUpdate": true,
+					"runAsTrayApp": true,
+				}
+			)
 		},
 		writeJson: (path: string, obj: any, formatter: {spaces: number}, cb: ()=>void): void => cb(),
 	}
@@ -59,7 +60,7 @@ o.spec('desktop config handler test', function () {
 
 	o("package.json & userConf", () => {
 		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const fsMock = n.mock('fs', fs).set()
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -70,21 +71,21 @@ o.spec('desktop config handler test', function () {
 		o(migratorMock.args.length).equals(3)
 
 		// check if there is a user conf already (yes)
-		o(fsExtraMock.existsSync.callCount).equals(1)
-		o(fsExtraMock.existsSync.args[0]).equals("/mock-userData/conf.json")
+		o(fsMock.existsSync.callCount).equals(1)
+		o(fsMock.existsSync.args[0]).equals("/mock-userData/conf.json")
 
 		// read it
-		o(fsExtraMock.readJSONSync.callCount).equals(1)
-		o(fsExtraMock.readJSONSync.args[0]).equals("/mock-userData/conf.json")
+		o(fsMock.readFileSync.callCount).equals(1)
+		o(fsMock.readFileSync.args[0]).equals("/mock-userData/conf.json")
 
 		// make sure the userData folder exists
-		o(fsExtraMock.mkdirp.callCount).equals(1)
-		o(fsExtraMock.mkdirp.args[0]).equals("/mock-userData/")
+		o(fsMock.mkdir.callCount).equals(1)
+		o(fsMock.mkdir.args[0]).equals("/mock-userData/")
 
 		// write combined desktop config back
-		o(fsExtraMock.writeJSONSync.callCount).equals(1)
-		o(fsExtraMock.writeJSONSync.args[0]).equals("/mock-userData/conf.json")
-		o(fsExtraMock.writeJSONSync.args[1]).deepEquals({
+		o(fsMock.writeFileSync.callCount).equals(1)
+		o(fsMock.writeFileSync.args[0]).equals("/mock-userData/conf.json")
+		o(fsMock.writeFileSync.args[1]).deepEquals({
 			"heartbeatTimeoutInSeconds": 240,
 			"defaultDownloadPath": "/mock-Downloads/",
 			"enableAutoUpdate": true,
@@ -98,29 +99,29 @@ o.spec('desktop config handler test', function () {
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).with(
 			(f, conf, def) => def
 		).set()
-		const fsExtraMock = n.mock('fs-extra', fsExtra)
-		                     .with({existsSync: () => false})
-		                     .set()
+		const fsMock = n.mock('fs', fs)
+		                .with({existsSync: () => false})
+		                .set()
 
 
 		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig.js')
 		const conf = new DesktopConfig()
 
 		// check if there is a user conf already (no)
-		o(fsExtraMock.existsSync.callCount).equals(1)
-		o(fsExtraMock.existsSync.args[0]).equals("/mock-userData/conf.json")
+		o(fsMock.existsSync.callCount).equals(1)
+		o(fsMock.existsSync.args[0]).equals("/mock-userData/conf.json")
 
 		// do not read it
-		o(fsExtraMock.readJSONSync.callCount).equals(0)
+		o(fsMock.readFileSync.callCount).equals(0)
 
 		// make sure the userData folder exists
-		o(fsExtraMock.mkdirp.callCount).equals(1)
-		o(fsExtraMock.mkdirp.args[0]).equals("/mock-userData/")
+		o(fsMock.mkdir.callCount).equals(1)
+		o(fsMock.mkdir.args[0]).equals("/mock-userData/")
 
 		// write default desktop config
-		o(fsExtraMock.writeJSONSync.callCount).equals(1)
-		o(fsExtraMock.writeJSONSync.args[0]).equals("/mock-userData/conf.json")
-		o(fsExtraMock.writeJSONSync.args[1]).deepEquals({
+		o(fsMock.writeFileSync.callCount).equals(1)
+		o(fsMock.writeFileSync.args[0]).equals("/mock-userData/conf.json")
+		JSON.parse(o(fsMock.writeFileSync.args[1])).deepEquals({
 			"heartbeatTimeoutInSeconds": 30,
 			"defaultDownloadPath": null,
 			"enableAutoUpdate": true,
@@ -130,7 +131,7 @@ o.spec('desktop config handler test', function () {
 
 	o("package.json unavailable", done => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), undefined).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -151,7 +152,7 @@ o.spec('desktop config handler test', function () {
 
 	o("get values from conf", () => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).with(
 			(f, conf, def) => conf
@@ -188,7 +189,7 @@ o.spec('desktop config handler test', function () {
 
 	o("change single value and update conf file", (done) => {
 		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const fsExtraMock = n.mock('fs-extra', fs).set()
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -215,7 +216,7 @@ o.spec('desktop config handler test', function () {
 
 	o("update entire conf", (done) => {
 		const packageJsonMock = n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		const fsExtraMock = n.mock('fs-extra', fsExtra).set()
+		const fsExtraMock = n.mock('fs-extra', fs).set()
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -243,7 +244,7 @@ o.spec('desktop config handler test', function () {
 
 	o("set listener and change value", (done) => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -290,7 +291,7 @@ o.spec('desktop config handler test', function () {
 
 	o("removeListener splices out the right listener", done => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -320,7 +321,7 @@ o.spec('desktop config handler test', function () {
 
 	o("set/remove listeners and change value", done => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
@@ -350,7 +351,7 @@ o.spec('desktop config handler test', function () {
 
 	o("removeAllListeners removes all listeners", done => {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
-		n.mock('fs-extra', fsExtra).set()
+		n.mock('fs-extra', fs).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 

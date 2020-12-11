@@ -6,7 +6,6 @@ import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import nollup from 'nollup'
 import flow from "flow-bin"
 import {rollupDebugPlugins} from "../buildSrc/RollupConfig.js"
-import fs from "fs-extra"
 
 let project
 if (process.argv.indexOf("api") !== -1) {

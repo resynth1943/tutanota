@@ -1,10 +1,9 @@
 // @flow
 import path from 'path'
-import {promisify} from 'util'
 import {app, dialog} from 'electron'
-import fs from 'fs-extra'
 import {getChangedProps} from "../../api/common/utils/Utils"
 import applyMigrations from "./migrations/DesktopConfigMigrator"
+import {existsSync, readFileSync, writeFileSync, promises as fs} from "fs"
 
 export const DesktopConfigKey = {
 	any: 'any',
@@ -68,8 +67,8 @@ export class DesktopConfig {
 		}
 		try {
 			const defaultConf = this._buildConfig["defaultDesktopConfig"]
-			const userConf = fs.existsSync(this._desktopConfigPath)
-				? fs.readJSONSync(this._desktopConfigPath)
+			const userConf = existsSync(this._desktopConfigPath)
+				? JSON.parse(readFileSync(this._desktopConfigPath, "utf8"))
 				: {}
 			this._desktopConfig = Object.assign({}, defaultConf, userConf)
 			this._desktopConfig = applyMigrations(
@@ -77,8 +76,9 @@ export class DesktopConfig {
 				this._desktopConfig,
 				defaultConf
 			)
-			fs.mkdirp(path.join(app.getPath('userData')))
-			fs.writeJSONSync(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
+			fs.mkdir(path.join(app.getPath('userData')), {recursive: true})
+			const json = JSON.stringify(this._desktopConfig, null, 2)
+			writeFileSync(this._desktopConfigPath, json)
 		} catch (e) {
 			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
 			console.error("Could not create or load desktop config:", e.message)
@@ -114,7 +114,10 @@ export class DesktopConfig {
 		}
 		return Promise.resolve()
 		              .then(() => this._notifyChangeListeners(key, value, oldVal))
-		              .then(() => promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2}))
+		              .then(() => {
+			              const json = JSON.stringify(this._desktopConfig, null, 2)
+			              return fs.writeFile(this._desktopConfigPath, json)
+		              })
 	}
 
 	/**

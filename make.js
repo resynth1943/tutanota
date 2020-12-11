@@ -7,7 +7,7 @@ import os from "os"
 import {spawn} from "child_process"
 import {fileURLToPath} from 'url';
 import Promise from "bluebird"
-import {default as RollupDebugConfig, writeNollupBundle} from "./buildSrc/RollupDebugConfig.js"
+import {default as RollupDebugConfig, resolveDesktopDeps, writeNollupBundle} from "./buildSrc/RollupDebugConfig.js"
 import * as SystemConfig from "./buildSrc/SystemConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -101,7 +101,7 @@ async function build({watch, desktop}) {
 		const result = await bundle.generate(debugConfig.output)
 		result.stats && console.log("Generated in", result.stats.time, result.stats)
 
-		writeNollupBundle(result)
+		await writeNollupBundle(result)
 		console.log("Built in", Date.now() - start)
 	}
 	if (desktop) {
@@ -132,7 +132,10 @@ if (options.clean) {
 	fs.emptyDir("build")
 }
 
-build(options)
+build(options).catch((e) => {
+	console.error(e)
+	process.exit(1)
+})
 
 async function startDesktop() {
 	console.log("Building desktop client...")
@@ -154,18 +157,10 @@ async function startDesktop() {
 	const bundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: ["src/desktop/DesktopMain.js", "src/desktop/preload.js"],
-		plugins: RollupDebugConfig.plugins,
+		plugins: [resolveDesktopDeps(), ...RollupDebugConfig.plugins],
 	})
-	const result = await bundle.generate({format: "es", sourceMap: true, dir: "build/desktop"})
+	const result = await bundle.generate({format: "es", sourceMap: true, dir: "./build/desktop"})
 	await writeNollupBundle(result, "build/desktop")
-	// await fs.writeFile(cacheLocation, JSON.stringify(bundle.cache))
-
-
-	// await bundle.write({
-	// 	format: "cjs",
-	// 	sourcemap: "inline",
-	// 	dir: "build/desktop"
-	// })
 	console.log("Bundled desktop client")
 
 	spawn("/bin/sh", ["-c", "npm start"], {

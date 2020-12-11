@@ -1,3 +1,5 @@
+import {resolveDesktopDeps} from "./RollupDebugConfig"
+
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
@@ -31,6 +33,7 @@ async function build(dirname, version, targets, updateUrl, nameSuffix) {
 	const bundle = await rollup.rollup({
 		input: ['src/desktop/DesktopMain.js', 'src/desktop/preload.js', 'src/desktop/PreloadImports.js'],
 		plugins: [
+			resolveDesktopDeps(),
 			babel({
 				plugins: [
 					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
