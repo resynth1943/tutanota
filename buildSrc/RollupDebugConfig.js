@@ -29,6 +29,7 @@ function rollupDebugPlugins(baseDir) {
 				"@babel/plugin-syntax-dynamic-import"
 			],
 			inputSourceMap: false,
+			babelHelpers: "bundled",
 		}),
 		resolveLibs(baseDir),
 		commonjs({
@@ -49,6 +50,7 @@ export default {
 	output: {format: "es", sourceMap: true, dir: "build"},
 }
 
-export function writeNollupBundle(generatedBundle) {
-	return Promise.map(generatedBundle.output, (o) => fs.writeFile(path.join("build", o.fileName), o.code))
+export async function writeNollupBundle(generatedBundle, dir = "build") {
+	await fs.mkdirp(dir)
+	return Promise.map(generatedBundle.output, (o) => fs.writeFile(path.join(dir, o.fileName), o.code))
 }

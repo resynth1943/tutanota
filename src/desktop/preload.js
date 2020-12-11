@@ -1,8 +1,15 @@
-// @flow
+//@flow
+
+/**
+ * Preload for the render thread of the electron.
+ * Executed for every new window. Sets up inter-process communication and Electron-specific functions like scaling.
+ *
+ * Note: we can't import any other desktop code here because it is in the web (render) process.
+ */
 import {ipcRenderer, webFrame} from 'electron'
 
 let requestId = 0
-let hoverUrl: string = "" // for the link popup
+let hoverUrl = "" // for the link popup
 let linkToolTip = null
 
 ipcRenderer

@@ -1,5 +1,6 @@
-import path from "path"
-import file from "file"
+import path, {dirname} from "path"
+import {readFileSync} from "fs"
+import {fileURLToPath} from "url"
 
 /**
  * This is used for launching electron:
@@ -7,8 +8,10 @@ import file from "file"
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-export default function generateTemplate(nameSuffix, version, targetUrl, iconPath, sign) {
-	const pj = JSON.parse(file.readFileSync("../package.json", "utf-8"))
+export default function generateTemplate({nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked}) {
+	const __dirname = dirname(fileURLToPath(import.meta.url))
+
+	const pj = JSON.parse(readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"))
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	return {

@@ -136,29 +136,28 @@ build(options)
 
 async function startDesktop() {
 	console.log("Building desktop client...")
-	const packageJSON = (await import('./buildSrc/electron-package-json-template.js')).default(
-		"",
-		"0.0.1",
-		"http://localhost:9000",
-		path.join(__dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		false
-	)
+	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
+
+	const packageJSON = (await import('./buildSrc/electron-package-json-template.js')).default({
+		nameSuffix: "-debug",
+		version,
+		updateUrl: "http://localhost:9000",
+		iconPath: path.join(__dirname, "/resources/desktop-icons/logo-solo-red.png"),
+		sign: false
+	})
 	const content = JSON.stringify(packageJSON)
 
-	await fs.createFile("./build/package.json")
-	await fs.writeFile("./build/package.json", content, 'utf-8')
+	await fs.createFile("./build/desktop/package.json")
+	await fs.writeFile("./build/desktop/package.json", content, 'utf-8')
 
-	const cacheLocation = "./build/desktop-bundle-cache"
-	const cache = readCache(cacheLocation)
-	cache && console.log("using cache for desktop bundle")
 	const nollup = (await import('nollup')).default
 	const bundle = await nollup({
+		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: ["src/desktop/DesktopMain.js", "src/desktop/preload.js"],
-		plugins: RollupDebugConfig.plugins.concat(),
-		treeshake: false, // disable tree-shaking for faster development builds
-		preserveModules: true,
-		cache,
+		plugins: RollupDebugConfig.plugins,
 	})
+	const result = await bundle.generate({format: "es", sourceMap: true, dir: "build/desktop"})
+	await writeNollupBundle(result, "build/desktop")
 	// await fs.writeFile(cacheLocation, JSON.stringify(bundle.cache))
 
 
