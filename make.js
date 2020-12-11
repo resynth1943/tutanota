@@ -29,7 +29,7 @@ async function createHtml(env, watch) {
 	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, [
 		`window.whitelabelCustomizations = null`,
 		`window.env = ${JSON.stringify(env, null, 2)}`,
-		watch ? "new WebSocket('ws://localhost:8080').addEventListener('message', (e) => window.hotReload())" : "",
+		"",
 	].join("\n") + "\n" + template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await _writeFile(`./build/${filenamePrefix}.html`, html)

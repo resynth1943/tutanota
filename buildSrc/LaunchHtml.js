@@ -1,7 +1,3 @@
-import path from "path"
-import fs from "fs-extra"
-
-
 global.window = undefined
 
 function getUrls(env) {
@@ -77,7 +73,14 @@ const csp = (m, env) => {
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: blob: data: *; "
 			+ `style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)} https://tutanota.com;]`)
 	} else {
-		return m("meta[http-equiv=Content-Security-Policy][content=default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';]")
+		return m("meta[http-equiv=Content-Security-Policy][content="
+			+ "default-src * 'unsafe-inline' 'unsafe-eval';"
+			+ " script-src * 'unsafe-inline' 'unsafe-eval';"
+			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)};`
+			+ " img-src * data: blob: 'unsafe-inline';"
+			+ " frame-src *;"
+			+ " style-src * 'unsafe-inline';"
+			+ "]")
 	}
 }
 
@@ -99,14 +102,4 @@ export async function renderTestHtml(scripts) {
 	)
 	global.window = undefined // we have to reset the window stream as it leads to problems with system js builder, otherwise
 	return html
-}
-
-function _writeFile(targetFile, content) {
-	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
-}
-
-class ExternalScript {
-	constructor(url) {
-		this.url = url
-	}
 }
