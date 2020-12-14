@@ -33,7 +33,7 @@ import {KeyLength} from "../crypto/CryptoConstants"
 import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
+import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {addressDomain, defer, neverNull} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
@@ -64,6 +64,7 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils";
+import {containsId, getLetId, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {PhishingMarker} from "./PhishingMarker"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 export const _TypeModel: TypeModel = {

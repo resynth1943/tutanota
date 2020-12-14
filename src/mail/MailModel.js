@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {NotFoundError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
@@ -36,6 +36,7 @@ import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {groupBy, splitInChunks} from "../api/common/utils/ArrayUtils"
 import {EntityClient} from "../api/common/EntityClient"
+import {elementIdPart, getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 
 export type MailboxDetail = {
 	mailbox: MailBox,

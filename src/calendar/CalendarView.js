@@ -16,7 +16,7 @@ import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {_loadReverseRangeBetween, HttpMethod} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defaultCalendarColor, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
@@ -82,6 +82,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CalendarEventPopup} from "./CalendarEventPopup"
+import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6

@@ -10,7 +10,6 @@ import {SearchListView} from "./SearchListView"
 import {erase, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
@@ -27,6 +26,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
+import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

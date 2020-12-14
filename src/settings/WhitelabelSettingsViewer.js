@@ -20,7 +20,7 @@ import {
 	MAX_LOGO_SIZE,
 	OperationType
 } from "../api/common/TutanotaConstants"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -70,6 +70,7 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

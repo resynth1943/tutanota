@@ -17,7 +17,7 @@ import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {CurrentView} from "../gui/base/Header"
-import {getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -66,6 +66,7 @@ import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeS
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {getFolder, getInboxFolder} from "./MailModel";
+import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

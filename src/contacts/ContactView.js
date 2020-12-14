@@ -10,7 +10,6 @@ import {ContactEditor} from "./ContactEditor"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
-import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
@@ -44,6 +43,7 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {flat} from "../api/common/utils/ArrayUtils"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

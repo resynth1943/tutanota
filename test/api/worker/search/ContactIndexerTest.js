@@ -13,11 +13,11 @@ import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstan
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {makeCore} from "../../TestUtils"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 
 
 const dbMock: any = {iv: fixedIv}

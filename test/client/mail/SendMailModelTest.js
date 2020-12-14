@@ -35,7 +35,6 @@ import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {UserError} from "../../../src/api/common/error/UserError"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
-import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {locator} from "../../../src/api/main/MainLocator"
@@ -45,6 +44,7 @@ import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
+import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/utils/EntityUtils";
 
 
 type TestIdGenerator = {

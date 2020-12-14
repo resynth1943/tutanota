@@ -17,8 +17,8 @@ import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull, noOp} from "../api/common/utils/Utils"
-import {isSameId} from "../api/common/EntityFunctions"
 import {LockedError} from "../api/common/error/RestError"
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

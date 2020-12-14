@@ -1,7 +1,7 @@
 //@flow
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
-import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
 import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
@@ -46,6 +46,7 @@ import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
+import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, TypeRef} from "../../common/utils/EntityUtils";
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

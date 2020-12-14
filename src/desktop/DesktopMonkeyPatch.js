@@ -33,7 +33,6 @@ process.on('exit', () => {
 })
 
 global.env = {rootPathPrefix: "../../", adminTypes: []}
-global.System = {'import': (...args) => Promise.resolve(require(...args))}
 
 const oldLog = console.log
 const oldError = console.error

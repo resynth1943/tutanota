@@ -7,7 +7,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {load, loadAll, loadRange, update} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull} from "../api/common/utils/Utils"
 import type {Group} from "../api/entities/sys/Group"
@@ -34,6 +33,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

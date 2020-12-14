@@ -1,7 +1,6 @@
 //@flow
 import m from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
@@ -18,6 +17,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {noOp} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
+import {isSameId, isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

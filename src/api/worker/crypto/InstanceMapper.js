@@ -1,6 +1,6 @@
 // @flow
 
-import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {
 	base64ToBase64Url,
@@ -16,6 +16,7 @@ import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {Type, ValueType, Cardinality, AssociationType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../Env"
 import {uncompress} from "../lz4"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

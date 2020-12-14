@@ -1,10 +1,11 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {EmailSenderListElement} from "./EmailSenderListElement"
 import type {StringWrapper} from "./StringWrapper"
 import type {DomainsRef} from "./DomainsRef"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", "CustomerServerProperties")
 export const _TypeModel: TypeModel = {

@@ -31,7 +31,6 @@ import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
@@ -43,6 +42,7 @@ import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
+import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 
 assertMainOrNode()

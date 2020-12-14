@@ -2,7 +2,6 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -28,6 +27,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

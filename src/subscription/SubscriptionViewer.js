@@ -16,7 +16,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -59,6 +59,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

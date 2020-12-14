@@ -6,11 +6,11 @@ import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfig} from "../config/DesktopConfig"
 import {DesktopConfigKey} from "../config/DesktopConfig"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
-import {elementIdPart} from "../../api/common/EntityFunctions"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
+import {elementIdPart} from "../../api/common/utils/EntityUtils"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'

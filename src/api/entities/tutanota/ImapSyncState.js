@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {ImapFolder} from "./ImapFolder"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const ImapSyncStateTypeRef: TypeRef<ImapSyncState> = new TypeRef("tutanota", "ImapSyncState")
 export const _TypeModel: TypeModel = {

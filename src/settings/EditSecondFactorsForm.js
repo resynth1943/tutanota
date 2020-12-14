@@ -36,7 +36,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import type {EntityUpdateData} from "../api/main/EventController"
-import {getEtId, isSameId} from "../api/common/EntityFunctions"
+import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

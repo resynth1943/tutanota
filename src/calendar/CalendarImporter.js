@@ -16,7 +16,6 @@ import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
 import {assertNotNull, downcast, neverNull, ProgressMonitor} from "../api/common/utils/Utils"
-import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import stream from "mithril/stream/stream.js"
@@ -29,6 +28,7 @@ import {DateTime} from "luxon"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
+import {elementIdPart, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 

@@ -1,9 +1,10 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
 import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {

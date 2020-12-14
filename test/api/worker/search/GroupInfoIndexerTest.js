@@ -15,10 +15,10 @@ import {createUser} from "../../../../src/api/entities/sys/User"
 import {createCustomer, CustomerTypeRef} from "../../../../src/api/entities/sys/Customer"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {browserDataStub} from "../../TestUtils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 
 
 const dbMock: any = {iv: fixedIv}

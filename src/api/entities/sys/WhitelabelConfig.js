@@ -1,10 +1,11 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {BootstrapFeature} from "./BootstrapFeature"
 import type {CertificateInfo} from "./CertificateInfo"
 import type {StringWrapper} from "./StringWrapper"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", "WhitelabelConfig")
 export const _TypeModel: TypeModel = {

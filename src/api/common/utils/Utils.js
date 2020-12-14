@@ -1,12 +1,12 @@
 // @flow
 import type {OperationTypeEnum} from "../TutanotaConstants"
-import {TypeRef} from "../EntityFunctions"
 import type {EntityUpdateData} from "../../main/EventController"
 import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {MailBody} from "../../entities/tutanota/MailBody"
 import type {MailHeaders} from "../../entities/tutanota/MailHeaders"
 import type {DomainInfo} from "../../entities/sys/DomainInfo"
+import {TypeRef} from "./EntityUtils";
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,

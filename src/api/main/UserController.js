@@ -6,7 +6,7 @@ import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
 import {UserTypeRef} from "../entities/sys/User"
-import {isSameId, MediaType} from "../common/EntityFunctions"
+import {MediaType} from "../common/EntityFunctions"
 import type {GroupInfo} from "../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
@@ -22,6 +22,7 @@ import {createCloseSessionServicePost} from "../entities/sys/CloseSessionService
 import {worker} from "./WorkerClient"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
+import {isSameId} from "../common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {U2fRegisteredDevice} from "./U2fRegisteredDevice"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", "SecondFactor")
 export const _TypeModel: TypeModel = {

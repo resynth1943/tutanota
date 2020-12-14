@@ -10,7 +10,6 @@ import {getCustomMailDomains, neverNull, noOp, objectEntries} from "../api/commo
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -51,6 +50,7 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
+import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

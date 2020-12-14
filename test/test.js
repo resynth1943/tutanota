@@ -6,6 +6,7 @@ import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import nollup from 'nollup'
 import flow from "flow-bin"
 import {rollupDebugPlugins} from "../buildSrc/RollupConfig.js"
+import {promises as fs} from "fs"
 
 let project
 if (process.argv.indexOf("api") !== -1) {
@@ -129,5 +130,5 @@ async function createUnitTestHtml(watch) {
 }
 
 function _writeFile(targetFile, content) {
-	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }

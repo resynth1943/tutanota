@@ -1,9 +1,12 @@
 // @flow
 import path from 'path'
 import {app, dialog} from 'electron'
-import {getChangedProps} from "../../api/common/utils/Utils"
+import {downcast, getChangedProps} from "../../api/common/utils/Utils"
 import applyMigrations from "./migrations/DesktopConfigMigrator"
-import {existsSync, readFileSync, writeFileSync, promises as fs} from "fs"
+import {existsSync, promises as fs, readFileSync, writeFileSync} from "fs"
+import {readJSONSync} from "../DesktopUtils"
+import type {Config} from "./ConfigCommon"
+import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 
 export const DesktopConfigKey = {
 	any: 'any',
@@ -41,8 +44,8 @@ export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>
  * manages build and user config
  */
 export class DesktopConfig {
-	_buildConfig: any;
-	_desktopConfig: any; // user preferences as set for this installation
+	_buildConfig: Config;
+	_desktopConfig: Config; // user preferences as set for this installation
 	_desktopConfigPath: string;
 	_onValueSetListeners: {[DesktopConfigKeyEnum]: Array<(val: any)=>void>}
 
@@ -50,7 +53,7 @@ export class DesktopConfig {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
 		this._onValueSetListeners = {}
 		try {
-			this._buildConfig = require(path.join(app.getAppPath(), 'package.json'))['tutao-config']
+			this._buildConfig = downcast<Config>(readJSONSync(path.join(app.getAppPath(), 'package.json'))['tutao-config'])
 		} catch (e) {
 			app.once('ready', () => {
 				dialog.showMessageBox(null, {
@@ -66,13 +69,13 @@ export class DesktopConfig {
 			return
 		}
 		try {
-			const defaultConf = this._buildConfig["defaultDesktopConfig"]
+			const defaultConf: Config = downcast(this._buildConfig["defaultDesktopConfig"])
 			const userConf = existsSync(this._desktopConfigPath)
-				? JSON.parse(readFileSync(this._desktopConfigPath, "utf8"))
+				? readJSONSync(this._desktopConfigPath)
 				: {}
 			this._desktopConfig = Object.assign({}, defaultConf, userConf)
 			this._desktopConfig = applyMigrations(
-				this._buildConfig["configMigrationFunction"],
+				downcast<MigrationKind>(this._buildConfig["configMigrationFunction"]),
 				this._desktopConfig,
 				defaultConf
 			)
@@ -80,7 +83,7 @@ export class DesktopConfig {
 			const json = JSON.stringify(this._desktopConfig, null, 2)
 			writeFileSync(this._desktopConfigPath, json)
 		} catch (e) {
-			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
+			this._desktopConfig = downcast<Config>(this._buildConfig["defaultDesktopConfig"])
 			console.error("Could not create or load desktop config:", e.message)
 		}
 	}

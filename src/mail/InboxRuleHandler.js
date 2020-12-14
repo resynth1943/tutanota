@@ -4,7 +4,7 @@ import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/FormatValidator"
-import {getElementId, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {debounce, getMailHeaders, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
@@ -20,6 +20,7 @@ import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {splitInChunks} from "../api/common/utils/ArrayUtils"
 import {EntityClient} from "../api/common/EntityClient"
 import type {WorkerClient} from "../api/main/WorkerClient"
+import {getElementId, getListId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

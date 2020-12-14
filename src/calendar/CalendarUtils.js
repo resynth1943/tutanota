@@ -28,7 +28,6 @@ import {formatDateTime, formatDateWithMonth, formatTime} from "../misc/Formatter
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
-import {isSameId} from "../api/common/EntityFunctions"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
@@ -39,6 +38,7 @@ import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {isColorLight} from "../gui/Color"
 import type {CalendarInfo} from "./CalendarView"
 import {incrementByRepeatPeriod} from "./CalendarModel"
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

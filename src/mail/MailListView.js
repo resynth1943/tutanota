@@ -3,7 +3,7 @@ import m from "mithril"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
-import {HttpMethod, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
@@ -36,6 +36,7 @@ import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
 import {getInboxFolder} from "./MailModel"
+import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {WebsocketCounterValue} from "./WebsocketCounterValue"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const WebsocketCounterDataTypeRef: TypeRef<WebsocketCounterData> = new TypeRef("sys", "WebsocketCounterData")
 export const _TypeModel: TypeModel = {

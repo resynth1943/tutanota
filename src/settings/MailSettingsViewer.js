@@ -2,7 +2,6 @@
 import m from "mithril"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId} from "../api/common/EntityFunctions"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
@@ -41,6 +40,7 @@ import {LockedError} from "../api/common/error/RestError"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -1,17 +1,10 @@
 // @flow
 import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
-import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getLetId,
 	HttpMethod,
-	isSameTypeRef,
-	READ_ONLY_HEADER,
-	resolveTypeReference,
-	TypeRef
+	resolveTypeReference
 } from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {flat, remove} from "../../common/utils/ArrayUtils"
@@ -30,6 +23,16 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	getLetId,
+	isSameTypeRef,
+	READ_ONLY_HEADER,
+	TypeRef
+} from "../../common/utils/EntityUtils";
+import type {ListElement} from "../../common/utils/EntityUtils"
 
 
 assertWorkerOrNode()

@@ -3,7 +3,6 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {createRestriction} from "../search/SearchUtils"
-import {compareOldestFirst} from "../api/common/EntityFunctions"
 import {asyncFindAndMap} from "../api/common/utils/Utils"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {DbError} from "../api/common/error/DbError"
@@ -13,6 +12,7 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {LoginController} from "../api/main/LoginController"
 import type {ContactList} from "../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
+import {compareOldestFirst} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

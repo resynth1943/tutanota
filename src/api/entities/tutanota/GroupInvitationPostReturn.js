@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {MailAddress} from "./MailAddress"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const GroupInvitationPostReturnTypeRef: TypeRef<GroupInvitationPostReturn> = new TypeRef("tutanota", "GroupInvitationPostReturn")
 export const _TypeModel: TypeModel = {

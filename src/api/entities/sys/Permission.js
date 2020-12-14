@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {Bucket} from "./Bucket"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
 export const _TypeModel: TypeModel = {

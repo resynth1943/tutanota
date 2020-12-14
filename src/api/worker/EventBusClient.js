@@ -5,7 +5,6 @@ import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -30,6 +29,7 @@ import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityClient} from "../common/EntityClient"
 import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

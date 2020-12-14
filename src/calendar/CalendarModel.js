@@ -26,7 +26,7 @@ import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import type {WorkerClient} from "../api/main/WorkerClient"
-import {_eraseEntity, _loadEntity, elementIdPart, getElementId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {_eraseEntity, _loadEntity, HttpMethod} from "../api/common/EntityFunctions"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
@@ -57,6 +57,7 @@ import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../api/common/EntityClient"
 import type {MailModel} from "../mail/MailModel"
+import {elementIdPart, getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {

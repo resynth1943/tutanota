@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {UserAreaGroups} from "./UserAreaGroups"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", "GroupRoot")
 export const _TypeModel: TypeModel = {

@@ -2,7 +2,6 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -29,6 +28,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils";
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

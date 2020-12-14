@@ -25,7 +25,6 @@ import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/F
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {getElementId, getListId} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
@@ -47,6 +46,7 @@ import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFol
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
+import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
 
 class FixedDateProvider implements DateProvider {
 	now: number;

@@ -31,7 +31,6 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
@@ -60,6 +59,7 @@ import {locator} from "../api/main/MainLocator"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getContactDisplayName} from "../contacts/ContactUtils"
+import {isSameId, stringToCustomId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {NewDraftAttachment} from "./NewDraftAttachment"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const DraftAttachmentTypeRef: TypeRef<DraftAttachment> = new TypeRef("tutanota", "DraftAttachment")
 export const _TypeModel: TypeModel = {

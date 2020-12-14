@@ -16,7 +16,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 	const appId = "de.tutao.tutanota" + nameSuffix
 	return {
 		"name": appName,
-		"main": "./desktop/desktop/DesktopMain.js",
+		"main": "./desktop/DesktopBootstrap.js",
 		"version": version,
 		"author": "Tutao GmbH",
 		"description": "The desktop client for Tutanota, the secure e-mail service.",

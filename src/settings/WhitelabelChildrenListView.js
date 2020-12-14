@@ -2,7 +2,6 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -21,6 +20,7 @@ import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

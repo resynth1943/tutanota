@@ -20,7 +20,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex
 } from "../../../src/api/common/utils/Encoding"
-import {GENERATED_MIN_ID} from "../../../src/api/common/EntityFunctions"
+import {GENERATED_MIN_ID} from "../../../src/api/common/utils/EntityUtils";
 
 o.spec("Encoding", function () {
 

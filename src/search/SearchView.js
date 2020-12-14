@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
-import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {
@@ -64,6 +63,7 @@ import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {newMailEditor} from "../mail/MailEditorN"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
+import {isSameTypeRef, TypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

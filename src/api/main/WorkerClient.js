@@ -2,7 +2,6 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {objToError, Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
-import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isDesktop, isMain, isTest} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import type {
@@ -51,6 +50,7 @@ import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
+import {TypeRef} from "../common/utils/EntityUtils";
 
 assertMainOrNode()
 

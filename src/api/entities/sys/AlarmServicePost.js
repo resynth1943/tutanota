@@ -1,8 +1,9 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {AlarmNotification} from "./AlarmNotification"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", "AlarmServicePost")
 export const _TypeModel: TypeModel = {

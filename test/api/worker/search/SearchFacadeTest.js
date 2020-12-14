@@ -18,7 +18,6 @@ import type {
 	SearchIndexMetaDataRow,
 	SearchRestriction
 } from "../../../../src/api/worker/search/SearchTypes"
-import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/EntityFunctions"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
@@ -28,6 +27,7 @@ import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexE
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import type {BrowserData} from "../../../../src/misc/ClientConstants"
 import {browserDataStub} from "../../TestUtils"
+import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/utils/EntityUtils";
 
 type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
 type KeyToIndexEntriesWithType = {

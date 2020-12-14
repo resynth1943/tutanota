@@ -13,7 +13,6 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
 import {Table} from "../gui/base/Table"
 import {ColumnWidth} from "../gui/base/TableN"
 import TableLine from "../gui/base/TableLine"
@@ -43,6 +42,7 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {InputField} from "../api/entities/tutanota/InputField"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {isSameId, stringToCustomId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -84,7 +84,7 @@ import {LockedError, NotAuthorizedError, NotFoundError} from "../api/common/erro
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {elementIdPart, getListId, HttpMethod, listIdPart} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {mailToEmlFile} from "./Exporter"
@@ -125,6 +125,7 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
 import {getFolder, MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
+import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 

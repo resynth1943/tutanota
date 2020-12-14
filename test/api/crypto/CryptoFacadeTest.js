@@ -28,7 +28,7 @@ import {BucketPermissionType, PermissionType} from "../../../src/api/common/Tuta
 import {hexToPrivateKey, hexToPublicKey, rsaEncrypt} from "../../../src/api/worker/crypto/Rsa"
 import * as Mail from "../../../src/api/entities/tutanota/Mail"
 import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
-import {HttpMethod, isSameTypeRef} from "../../../src/api/common/EntityFunctions"
+import {HttpMethod} from "../../../src/api/common/EntityFunctions"
 import * as Contact from "../../../src/api/entities/tutanota/Contact"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import * as UserIdReturn from "../../../src/api/entities/sys/UserIdReturn"
@@ -54,6 +54,7 @@ import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
+import {isSameTypeRef} from "../../../src/api/common/utils/EntityUtils";
 
 
 o.spec("crypto facade", function () {

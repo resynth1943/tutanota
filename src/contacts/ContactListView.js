@@ -4,7 +4,6 @@ import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactView} from "./ContactView"
-import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {compareContacts, getContactListName} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
@@ -12,6 +11,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {locator} from "../api/main/MainLocator"
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

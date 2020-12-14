@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create} from "../../common/EntityFunctions"
 
 import type {AuditLogRef} from "./AuditLogRef"
 import type {UserAreaGroups} from "./UserAreaGroups"
@@ -8,6 +8,7 @@ import type {Feature} from "./Feature"
 import type {RejectedSendersRef} from "./RejectedSendersRef"
 import type {WhitelabelChildrenRef} from "./WhitelabelChildrenRef"
 import type {WhitelabelParent} from "./WhitelabelParent"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 export const _TypeModel: TypeModel = {

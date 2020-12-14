@@ -3,7 +3,7 @@ import * as url from 'url'
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import {openSync, closeSync, unlinkSync, writeFileSync, promises as fs} from "fs"
+import {openSync, closeSync, unlinkSync, writeFileSync, readFileSync, promises as fs} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
@@ -316,4 +316,8 @@ function _isReservedFilename(filename: string): boolean {
 	const reservedRe = /^\.{1,2}$/
 
 	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
+}
+
+export function readJSONSync(absolutePath: string): {[string]: mixed} {
+	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
 }

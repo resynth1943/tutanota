@@ -14,12 +14,28 @@ import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode, Mode} from "../../Env"
 // $FlowIgnore[untyped-import]
 import {RSAKey, parseBigInt, BigInteger} from "./lib/crypto-jsbn-2012-08-09_1"
-import {rsaApp} from "../../../native/RsaApp" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 
 assertWorkerOrNode()
 
 const keyLengthInBits = 2048
 const publicExponent = 65537
+
+const jsRsaApp = {
+	generateRsaKey: () => Promise.resolve(generateRsaKeySync()),
+	rsaEncrypt: (publicKey, bytes, seed) => rsaEncryptSync(publicKey, bytes, seed),
+	rsaDecrypt: (privateKey, bytes) => rsaDecryptSync(privateKey, bytes),
+}
+
+const rsaApp: Promise<typeof jsRsaApp> = (env.mode === Mode.App)
+	? import("../../../native/RsaApp").then((m) => {
+		const app = m.rsaApp
+		return {
+			generateRsaKey: () => app.generateRsaKey(random.generateRandomData(512)),
+			rsaEncrypt: app.rsaEncrypt,
+			rsaDecrypt: app.rsaDecrypt,
+		}
+	})
+	: Promise.resolve(jsRsaApp)
 
 /**
  * Returns the newly generated key
@@ -27,14 +43,11 @@ const publicExponent = 65537
  * @return resolves to the the generated keypair
  */
 export function generateRsaKey(): Promise<RsaKeyPair> {
-	if (env.mode === Mode.App) {
-		return rsaApp.generateRsaKey(random.generateRandomData(512))
-	} else {
-		return Promise.resolve(generateRsaKeySync())
-	}
+	return rsaApp.then((app) => app.generateRsaKey())
 }
 
 export function generateRsaKeySync(): RsaKeyPair {
+	// jsbn is seeded inside, see SecureRandom.js
 	try {
 		let rsa = new RSAKey()
 		rsa.generate(keyLengthInBits, publicExponent.toString(16)) // must be hex for JSBN
@@ -70,15 +83,7 @@ export function generateRsaKeySync(): RsaKeyPair {
  */
 export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
 	let seed = random.generateRandomData(32)
-	if (env.mode === Mode.App) {
-		return rsaApp.rsaEncrypt(publicKey, bytes, seed)
-	} else {
-		try {
-			return Promise.resolve(rsaEncryptSync(publicKey, bytes, seed))
-		} catch (e) {
-			return Promise.reject(e)
-		}
-	}
+	return rsaApp.then((app) => app.rsaEncrypt(publicKey, bytes, seed))
 }
 
 export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
@@ -113,15 +118,7 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
  * @return returns the decrypted bytes.
  */
 export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	if (env.mode === Mode.App) {
-		return rsaApp.rsaDecrypt(privateKey, bytes)
-	} else {
-		try {
-			return Promise.resolve(rsaDecryptSync(privateKey, bytes))
-		} catch (e) {
-			return Promise.reject(e)
-		}
-	}
+	return rsaApp.then((app) => app.rsaDecrypt(privateKey, bytes))
 }
 
 export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
