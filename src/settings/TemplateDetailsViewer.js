@@ -52,7 +52,6 @@ export class TemplateDetailsViewer {
 			type: ButtonType.Action,
 			click: () => {
 				Dialog.confirm(() => "Are you sure you want to delete the Template?").then((confirmed) => { // TODO: Add TranslationKey
-					// remove
 					if (confirmed) {
 						const promise = entityClient.erase(template)
 						promise.then(() => console.log("removed"))

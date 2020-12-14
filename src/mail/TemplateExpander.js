@@ -9,11 +9,16 @@ import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
 import {px} from "../gui/size"
 import {Keys} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {TemplateModel} from "./TemplateModel"
+import {templateModel, TemplateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
 import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
+import {TemplateEditor} from "../settings/TemplateEditor"
+import {listIdPart} from "../api/common/EntityFunctions"
+import {neverNull} from "../api/common/utils/Utils"
+import {locator} from "../api/main/MainLocator"
+import {Dialog} from "../gui/base/Dialog"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -75,17 +80,31 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 					},
 					type: ButtonType.Primary,
 				}),
+				m(ButtonN, {
+					label: () => "Edit", // TODO: Add TranslationKey
+					click: () => {
+						new TemplateEditor(template, listIdPart(template._id), neverNull(template._ownerGroup), locator.entityClient)
+					},
+					type: ButtonType.Primary
+
+				}),
+				m(ButtonN, {
+					label: () => "Remove", // TODO: Add TranslationKey
+					click: () => {
+						Dialog.confirm(() => "Are you sure you want to delete the Template?").then((confirmed) => {  // TODO: Add TranslationKey
+							if (confirmed) {
+								const promise = locator.entityClient.erase(template)
+								promise.then(() => console.log("removed"))
+							}
+						})
+					},
+					type: ButtonType.Primary
+				})
 			])
 		])
 	}
 
 	_returnLanguages(contents: EmailTemplateContent[]): Array<SelectorItem<LanguageCode>> {
-		/*return typedKeys(content).map((languageCode) => {
-			return {
-				name: lang.get(languageByCode[languageCode].textId),
-				value: languageCode
-			}
-		})*/
 		return contents.map(content => {
 			const languageCode = getLanguageCode(content)
 			return {

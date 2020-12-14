@@ -23,6 +23,10 @@ import {templateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {locator} from "../api/main/MainLocator"
+import {TemplateEditor} from "../settings/TemplateEditor"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -40,14 +44,15 @@ export type NavAction = "previous" | "next";
 export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regarding the search problem
 	_rect: PosRect
 	_filterTextAttrs: TextFieldAttrs
+	_addTemplateButtonAttrs: ButtonAttrs
 	_shortcuts: Shortcut[]
 	_scrollDom: HTMLElement
 	_onSubmit: (string) => void
 	_initialWindowWidth: number
-	_availableLanguages: Array<Object>
 	_filterTextFieldDom: HTMLElement
 	_dropdownDom: HTMLElement
-	_resizeListener: Function
+	_resizeListener: windowSizeListener
+	_redrawStream: Stream<*>
 
 	constructor(rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		this._rect = rect
@@ -57,6 +62,7 @@ export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regard
 			console.log("popup resize listener")
 			this._close()
 		}
+
 
 		// initial search
 		templateModel.search(highlightedText)
@@ -72,6 +78,19 @@ export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regard
 			onInputCreate: (vnode) => {
 				this._filterTextFieldDom = vnode.dom
 			},
+			injectionsRight: () => m(ButtonN, this._addTemplateButtonAttrs)
+		}
+		this._addTemplateButtonAttrs = {
+			label: () => "Create Template", // TODO: Add TranslationKey
+			type: ButtonType.Action,
+			click: () => {
+				locator.mailModel.getUserMailboxDetails().then(details => {
+					if (details.mailbox.templates && details.mailbox._ownerGroup) {
+						new TemplateEditor(null, details.mailbox.templates.list, details.mailbox._ownerGroup, locator.entityClient)
+					}
+				})
+			},
+			icon: () => Icons.Add,
 		}
 		this._shortcuts = [
 			{
@@ -92,6 +111,7 @@ export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regard
 				help: "insertTemplate_action"
 			},
 		]
+		this._redrawStream = templateModel.getSearchResults().map(() => m.redraw())
 	}
 
 	view: () => Children = () => {
@@ -143,7 +163,7 @@ export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regard
 						this._scrollDom = vnode.dom
 					},
 				}, templateModel.containsResult() ?
-				templateModel.getSearchResults().map((template, index) => this._renderTemplateListRow(template, index))
+				templateModel.getSearchResults()().map((template, index) => this._renderTemplateListRow(template, index))
 				: m(".row-selected.text-center.pt", lang.get(templateModel.hasLoaded() ? "nothingFound_label" : "loadingTemplates_label"))
 			), // left end
 		]
@@ -271,6 +291,8 @@ export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regard
 	}
 
 	onClose(): void {
+		templateModel.dispose()
+		this._redrawStream.end(true)
 	}
 
 	shortcuts(): Shortcut[] {
