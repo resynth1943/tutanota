@@ -1,7 +1,7 @@
 // @flow
 import type {ContextMenuParams, ElectronPermission, FindInPageResult} from 'electron'
 import {app, BrowserWindow, Menu, shell, WebContents} from 'electron'
-import * as localShortcut from 'electron-localshortcut'
+import * as localShortcut from './electron-localshortcut/LocalShortcut'
 import DesktopUtils from './DesktopUtils.js'
 // $FlowIgnore[untyped-import]
 import u2f from '../misc/u2f-api.js'
@@ -10,10 +10,11 @@ import type {IPC} from "./IPC"
 import url from "url"
 import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {Shortcut} from "../misc/KeyManager"
+import type {Key, KeyPress} from "../misc/KeyManager"
 import {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {noOp} from "../api/common/utils/Utils"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -21,6 +22,19 @@ export type UserInfo = {|
 	userId: string,
 	mailAddress?: string
 |}
+
+type LocalShortcut = {
+	key: Key;
+	ctrl?: boolean; // undefined == false
+	alt?: boolean; // undefined == false
+	shift?: boolean; // undefined == false
+	meta?: boolean; // undefined == false
+	enabled?: lazy<boolean>;
+
+	exec(): ?boolean; // must return true, if preventDefault should not be invoked
+	help: TranslationKey;
+}
+
 
 export class ApplicationWindow {
 	_ipc: IPC;
@@ -33,7 +47,7 @@ export class ApplicationWindow {
 	_skipNextSearchBarBlur: boolean = false;
 	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
 	_lastSearchPromiseReject: (?string) => void;
-	_shortcuts: Array<Shortcut>;
+	_shortcuts: Array<LocalShortcut>;
 	id: number;
 
 	constructor(wm: WindowManager, conf: DesktopConfig, noAutoLogin?: boolean) {

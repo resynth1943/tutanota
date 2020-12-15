@@ -7,10 +7,9 @@ import os from "os"
 import {spawn} from "child_process"
 import {fileURLToPath} from 'url';
 import Promise from "bluebird"
-import {default as RollupDebugConfig, writeNollupBundle} from "./buildSrc/RollupDebugConfig.js"
+import {config as RollupDebugConfig, writeNollupBundle} from "./buildSrc/RollupDebugConfig.js"
 import * as SystemConfig from "./buildSrc/SystemConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import graph from "./buildSrc/graph.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -164,8 +163,6 @@ async function startDesktop() {
 			nativeDepWorkaroundPlugin(),
 			nodeResolve({preferBuiltins: true}),
 			...RollupDebugConfig.plugins,
-			// We should take care of this as this can import anything really
-			graph({output: "graph.dot", exclude: ".*gui.*|.*theme.*|.*electron.*"}),
 		],
 	})
 	// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
