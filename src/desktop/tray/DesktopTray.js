@@ -5,11 +5,13 @@ import type {DesktopConfig} from '../config/DesktopConfig.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopNotifier} from "../DesktopNotifier.js"
 import {lang} from "../../misc/LanguageViewModel"
+import macTray from "./PlatformDock"
+import nonMacTray from "./PlatformTray"
 
 let icon: NativeImage
 const platformTray: PlatformTray = process.platform === 'darwin'
-	? require('./PlatformDock')
-	: require('./PlatformTray')
+	? macTray
+	: nonMacTray
 
 export type PlatformTray = {
 	setBadge: ()=>void,

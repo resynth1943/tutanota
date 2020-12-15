@@ -59,45 +59,84 @@ export const languages: Language[] = [
 
 // FIXME: make flow less angry
 const translationImportMap = {
-	// 'ar': () => import("../translations/ar.js"),
-	// 'bg': () => import("../translations/bg.js"),
-	// 'ca': () => import("../translations/ca.js"),
-	// 'cs': () => import("../translations/cs.js"),
-	// 'da': () => import("../translations/da.js"),
-	// 'de': () => import("../translations/de.js"),
-	// 'de_sie': () => import("../translations/de_sie.js"),
-	// 'el': () => import("../translations/el.js"),
-	// 'en': () => import("../translations/en.js"),
-	// 'es': () => import("../translations/es.js"),
-	// 'et': () => import("../translations/et.js"),
-	// 'fa_ir': () => import("../translations/fa_ir.js"),
-	// 'fi': () => import("../translations/fi.js"),
-	// 'fr': () => import("../translations/fr.js"),
-	// 'gl': () => import("../translations/gl.js"),
-	// 'hi': () => import("../translations/hi.js"),
-	// 'hr': () => import("../translations/hr.js"),
-	// 'hu': () => import("../translations/hu.js"),
-	// 'id': () => import("../translations/id.js"),
-	// 'it': () => import("../translations/it.js"),
-	// 'ja': () => import("../translations/ja.js"),
-	// 'lt': () => import("../translations/lt.js"),
-	// 'lv': () => import("../translations/lv.js"),
-	// 'nl': () => import("../translations/nl.js"),
-	// 'no': () => import("../translations/no.js"),
-	// 'pl': () => import("../translations/pl.js"),
-	// 'pt_br': () => import("../translations/pt_br.js"),
-	// 'pt_pt': () => import("../translations/pt_pt.js"),
-	// 'ro': () => import("../translations/ro.js"),
-	// 'ru': () => import("../translations/ru.js"),
-	// 'sk': () => import("../translations/sk.js"),
-	// 'sl': () => import("../translations/sl.js"),
-	// 'sr': () => import("../translations/sr.js"),
-	// 'sv': () => import("../translations/sv.js"),
-	// 'tr': () => import("../translations/tr.js"),
-	// 'uk': () => import("../translations/uk.js"),
-	// 'vi': () => import("../translations/vi.js"),
-	// 'zh': () => import("../translations/zh.js"),
-	// 'zh_tw': () => import("../translations/zh_tw.js"),
+	// $FlowFixMe[untyped-import]
+	'ar': () => import("../translations/ar.js"),
+	// $FlowFixMe[untyped-import]
+	'bg': () => import("../translations/bg.js"),
+	// $FlowFixMe[untyped-import]
+	'ca': () => import("../translations/ca.js"),
+	// $FlowFixMe[untyped-import]
+	'cs': () => import("../translations/cs.js"),
+	// $FlowFixMe[untyped-import]
+	'da': () => import("../translations/da.js"),
+	// $FlowFixMe[untyped-import]
+	'de': () => import("../translations/de.js"),
+	// $FlowFixMe[untyped-import]
+	'de_sie': () => import("../translations/de_sie.js"),
+	// $FlowFixMe[untyped-import]
+	'el': () => import("../translations/el.js"),
+	// $FlowFixMe[untyped-import]
+	'en': () => import("../translations/en.js"),
+	// $FlowFixMe[untyped-import]
+	'es': () => import("../translations/es.js"),
+	// $FlowFixMe[untyped-import]
+	'et': () => import("../translations/et.js"),
+	// $FlowFixMe[untyped-import]
+	'fa_ir': () => import("../translations/fa_ir.js"),
+	// $FlowFixMe[untyped-import]
+	'fi': () => import("../translations/fi.js"),
+	// $FlowFixMe[untyped-import]
+	'fr': () => import("../translations/fr.js"),
+	// $FlowFixMe[untyped-import]
+	'gl': () => import("../translations/gl.js"),
+	// $FlowFixMe[untyped-import]
+	'hi': () => import("../translations/hi.js"),
+	// $FlowFixMe[untyped-import]
+	'hr': () => import("../translations/hr.js"),
+	// $FlowFixMe[untyped-import]
+	'hu': () => import("../translations/hu.js"),
+	// $FlowFixMe[untyped-import]
+	'id': () => import("../translations/id.js"),
+	// $FlowFixMe[untyped-import]
+	'it': () => import("../translations/it.js"),
+	// $FlowFixMe[untyped-import]
+	'ja': () => import("../translations/ja.js"),
+	// $FlowFixMe[untyped-import]
+	'lt': () => import("../translations/lt.js"),
+	// $FlowFixMe[untyped-import]
+	'lv': () => import("../translations/lv.js"),
+	// $FlowFixMe[untyped-import]
+	'nl': () => import("../translations/nl.js"),
+	// $FlowFixMe[untyped-import]
+	'no': () => import("../translations/no.js"),
+	// $FlowFixMe[untyped-import]
+	'pl': () => import("../translations/pl.js"),
+	// $FlowFixMe[untyped-import]
+	'pt_br': () => import("../translations/pt_br.js"),
+	// $FlowFixMe[untyped-import]
+	'pt_pt': () => import("../translations/pt_pt.js"),
+	// $FlowFixMe[untyped-import]
+	'ro': () => import("../translations/ro.js"),
+	// $FlowFixMe[untyped-import]
+	'ru': () => import("../translations/ru.js"),
+	// $FlowFixMe[untyped-import]
+	'sk': () => import("../translations/sk.js"),
+	// $FlowFixMe[untyped-import]
+	'sl': () => import("../translations/sl.js"),
+	// $FlowFixMe[untyped-import]
+	'sr': () => import("../translations/sr.js"),
+	// $FlowFixMe[untyped-import]
+	'sv': () => import("../translations/sv.js"),
+	// $FlowFixMe[untyped-import]
+	'tr': () => import("../translations/tr.js"),
+	// $FlowFixMe[untyped-import]
+	'uk': () => import("../translations/uk.js"),
+	// $FlowFixMe[untyped-import]
+	'vi': () => import("../translations/vi.js"),
+	// $FlowFixMe[untyped-import]
+	'zh': () => import("../translations/zh.js"),
+	// $FlowFixMe[untyped-import]
+	'zh_tw': () => import("../translations/zh_tw.js"),
 }
 export const languageByCode: {[string]: Language} = languages.reduce((acc, curr) => {
 	acc[curr.code] = curr

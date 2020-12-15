@@ -2,7 +2,7 @@
 
 import type {WindowManager} from "../DesktopWindowManager"
 
-let platformIntegrator: {
+let platformIntegrator: Promise<{
 	enableAutoLaunch: ()=>Promise<void>,
 	disableAutoLaunch: ()=>Promise<void>,
 	isAutoLaunchEnabled: ()=>Promise<boolean>,
@@ -10,53 +10,53 @@ let platformIntegrator: {
 	isIntegrated: ()=>Promise<boolean>,
 	integrate: ()=>Promise<void>;
 	unintegrate: ()=>Promise<void>;
-}
+}>
 
 switch (process.platform) {
 	case 'win32':
-		platformIntegrator = require('./DesktopIntegratorWin32.js')
+		platformIntegrator = import('./DesktopIntegratorWin32.js')
 		break
 	case 'darwin':
-		platformIntegrator = require('./DesktopIntegratorDarwin.js')
+		platformIntegrator = import('./DesktopIntegratorDarwin.js')
 		break
 	case 'linux':
-		platformIntegrator = require('./DesktopIntegratorLinux.js')
+		platformIntegrator = import('./DesktopIntegratorLinux.js')
 		break
 	default:
 		throw new Error('Invalid Platform')
 }
 
-export function enableAutoLaunch(): Promise<void> {
-	return platformIntegrator.enableAutoLaunch().catch(e => {
+export async function enableAutoLaunch(): Promise<void> {
+	return (await platformIntegrator).enableAutoLaunch().catch(e => {
 		console.log("could not enable auto launch:", e)
 	})
 }
 
-export function disableAutoLaunch(): Promise<void> {
-	return platformIntegrator.disableAutoLaunch().catch(e => {
+export async function disableAutoLaunch(): Promise<void> {
+	return (await platformIntegrator).disableAutoLaunch().catch(e => {
 		console.log("could not disable auto launch:", e)
 	})
 }
 
-export function isAutoLaunchEnabled(): Promise<boolean> {
-	return platformIntegrator.isAutoLaunchEnabled().catch(e => {
+export async function isAutoLaunchEnabled(): Promise<boolean> {
+	return (await platformIntegrator).isAutoLaunchEnabled().catch(e => {
 		console.error("could not check auto launch status:", e)
 		return false
 	})
 }
 
-export function runIntegration(wm: WindowManager): Promise<void> {
-	return platformIntegrator.runIntegration(wm)
+export async function runIntegration(wm: WindowManager): Promise<void> {
+	return (await platformIntegrator).runIntegration(wm)
 }
 
-export function isIntegrated(): Promise<boolean> {
-	return platformIntegrator.isIntegrated()
+export async function isIntegrated(): Promise<boolean> {
+	return (await platformIntegrator).isIntegrated()
 }
 
-export function integrate(): Promise<void> {
-	return platformIntegrator.integrate()
+export async function integrate(): Promise<void> {
+	return (await platformIntegrator).integrate()
 }
 
-export function unintegrate(): Promise<void> {
-	return platformIntegrator.unintegrate()
+export async function unintegrate(): Promise<void> {
+	return (await platformIntegrator).unintegrate()
 }

@@ -52,7 +52,7 @@ export const config = {
 
 export async function writeNollupBundle(generatedBundle, dir = "build") {
 	await fs.mkdirp(dir)
-	return Promise.map(generatedBundle.output, (o) => fs.writeFile(path.join(dir, o.fileName), o.code))
+	return Promise.map(generatedBundle.output, (o) => fs.writeFile(path.join(dir, o.fileName), o.code || o.source))
 }
 
 /**

@@ -1,5 +1,5 @@
 // @flow
-import * as keytar from 'keytar'
+import keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
@@ -36,6 +36,8 @@ export class DesktopAlarmStorage {
 	 * ensures there is a device key in the local secure storage
 	 */
 	init(): Promise<void> {
+		console.log("keytar", keytar, keytar.findPassword)
+		console.log("keytar2", keytar.findPassword("A"))
 		return keytar.findPassword(SERVICE_NAME)
 		             .then(pw => pw
 			             ? pw

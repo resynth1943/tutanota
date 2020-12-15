@@ -1,5 +1,5 @@
 // @flow
-import {autoUpdater} from 'electron-updater'
+// import {autoUpdater} from 'electron-updater'
 import {app} from "electron"
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
@@ -11,6 +11,9 @@ import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
 import path from 'path'
 import fs from "fs"
+
+// FIXME
+const autoUpdater: any = {}
 
 /**
  * Wraps electron-updater for Tutanota Desktop

@@ -158,16 +158,25 @@ async function startDesktop() {
 	const nollup = (await import('nollup')).default
 	const bundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
-		input: ["src/desktop/DesktopBootstrap.js", "src/desktop/preload.js"],
+		input: ["src/desktop/DesktopMain.js", "src/desktop/preload.js"],
 		plugins: [
+			pluginNativeLoader(),
 			nativeDepWorkaroundPlugin(),
 			nodeResolve({preferBuiltins: true}),
 			...RollupDebugConfig.plugins,
+			{
+				name: "resolve-fallback",
+				resolveId(id) {
+					if (id === "events") {
+						console.log("no one could resolve events?")
+					}
+				}
+			}
 		],
 	})
 	// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
 	// it's not supported inside node 12 without --experimental-node-modules.
-	const result = await bundle.generate({format: "esm", sourceMap: true, dir: "./build/desktop", chunkFileNames: "[name].mjs"})
+	const result = await bundle.generate({format: "cjs", sourceMap: true, dir: "./build/desktop", chunkFileNames: "[name].js"})
 	await writeNollupBundle(result, "build/desktop")
 	console.log("Bundled desktop client")
 
@@ -181,9 +190,6 @@ function nativeDepWorkaroundPlugin() {
 	return {
 		name: "native-dep-workaround",
 		resolveId(id) {
-			if (id.endsWith("keytar.node")) {
-				return false
-			}
 			if (id === "electron") {
 				return false
 			}
@@ -192,5 +198,29 @@ function nativeDepWorkaroundPlugin() {
 				return false
 			}
 		}
+	}
+}
+
+function pluginNativeLoader() {
+	return {
+		name: "native-loader",
+		resolveId(id) {
+			if (id.endsWith(".node")) {
+
+			}
+		},
+		async load(id) {
+			if (id.endsWith(".node")) {
+				const name = path.basename(id)
+				const content = await fs.promises.readFile(id)
+				this.emitFile({
+					type: 'asset',
+					name,
+					fileName: name,
+					source: content,
+				})
+				return `export * from './${name}'`
+			}
+		},
 	}
 }
