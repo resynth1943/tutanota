@@ -245,7 +245,7 @@ export class LanguageViewModel {
 
 		return translationImportMap[code]()
 			.then(translationsModule => {
-				this.translations = translationsModule
+				this.translations = translationsModule.default
 				this.code = lang.code
 			})
 	}

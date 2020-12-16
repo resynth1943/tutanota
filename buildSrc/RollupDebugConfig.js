@@ -34,7 +34,11 @@ function rollupDebugPlugins(baseDir) {
 		resolveLibs(baseDir),
 		commonjs({
 			exclude: ["src/**"],
-			ignore: ["util"]
+			ignore: ["util"],
+			// This is for the cases when es module is imported from commonjs module.
+			// "auto" will try to wrap into namespace, "preferred" will try to use default export as a namespace which is something that
+			// we want in most cases.
+			requireReturnsDefault: "preferred",
 		}),
 	]
 }

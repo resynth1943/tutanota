@@ -190,7 +190,12 @@ function nativeDepWorkaroundPlugin() {
 	return {
 		name: "native-dep-workaround",
 		resolveId(id) {
+			// It's included in the build by electron builder, consider it external
 			if (id === "electron") {
+				return false
+			}
+			// We don't use it in debug builds because packaging it doesn't really work so we consider it "external".
+			if (id === "electron-updater") {
 				return false
 			}
 			// We currently have an import in Rsa.js which we don't want in Desktop as it pulls the whole worker with it
@@ -201,14 +206,17 @@ function nativeDepWorkaroundPlugin() {
 	}
 }
 
+/**
+ * This plugin loads native node module (.node extension).
+ * This is not general enough yet, it only works in commonjs and it doesn't use ROLLUP_ASSET_URL.
+ * This will also not work with async imports.
+ *
+ * Important! Make sure that requireReturnsDefault for commonjs plugin is set to `true` or `"preferred"` if .node module is part of
+ * commonjs code.
+ */
 function pluginNativeLoader() {
 	return {
 		name: "native-loader",
-		resolveId(id) {
-			if (id.endsWith(".node")) {
-
-			}
-		},
 		async load(id) {
 			if (id.endsWith(".node")) {
 				const name = path.basename(id)
@@ -219,7 +227,9 @@ function pluginNativeLoader() {
 					fileName: name,
 					source: content,
 				})
-				return `export * from './${name}'`
+				return `
+				const nativeModule = require('./${name}')
+				export default nativeModule`
 			}
 		},
 	}

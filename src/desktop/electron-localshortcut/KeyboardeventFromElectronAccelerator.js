@@ -95,33 +95,33 @@ function _control(accelerator, event, modifier): ReducedEvent {
 }
 
 export function reduceModifier({accelerator, event}: ReducedEvent, modifier: Modifier): ReducedEvent {
-	switch (modifier) {
-		case 'Command':
-		case 'Cmd': {
+	switch (modifier.toLowerCase()) {
+		case 'ommand':
+		case 'cmd': {
 			return _command(accelerator, event, modifier);
 		}
 
-		case 'Super': {
+		case 'super': {
 			return _super(accelerator, event, modifier);
 		}
 
-		case 'Control':
-		case 'Ctrl': {
+		case 'control':
+		case 'ctrl': {
 			return _control(accelerator, event, modifier);
 		}
 
-		case 'CommandOrControl':
-		case 'CmdOrCtrl': {
+		case 'commandOrControl':
+		case 'cmdOrCtrl': {
 			return _commandorcontrol(accelerator, event, modifier);
 		}
 
-		case 'Option':
-		case 'AltGr':
-		case 'Alt': {
+		case 'option':
+		case 'altGr':
+		case 'alt': {
 			return _alt(accelerator, event, modifier);
 		}
 
-		case 'Shift': {
+		case 'shift': {
 			return _shift(accelerator, event, modifier);
 		}
 
@@ -261,7 +261,7 @@ export function toKeyEvent(accelerator: string): {} {
 	while (state.accelerator !== '') {
 		const modifierMatch = state.accelerator.match(modifiers);
 		if (modifierMatch) {
-			const modifier = modifierMatch[0].toLowerCase();
+			const modifier = modifierMatch[0]
 			state = reduceModifier(state, (modifier: any));
 			if (state === UNSUPPORTED) {
 				return {unsupportedKeyForPlatform: true};
