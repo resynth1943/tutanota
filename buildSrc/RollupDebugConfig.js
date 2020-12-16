@@ -30,6 +30,7 @@ function rollupDebugPlugins(baseDir) {
 			],
 			inputSourceMap: false,
 			babelHelpers: "bundled",
+			retainLines: true,
 		}),
 		resolveLibs(baseDir),
 		commonjs({
