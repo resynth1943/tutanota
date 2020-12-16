@@ -6,7 +6,11 @@
  *
  * Note: we can't import any other desktop code here because it is in the web (render) process.
  */
-import {ipcRenderer, webFrame} from 'electron'
+
+// This should come from bundler banner. We are in a weird environment here where there's "require" but no "module" so we can't really
+// use commonjs format. We use iife but "require" is shadowed in it. To work around this we save require before shadowing.
+declare var dynamicRequire: typeof require;
+const {ipcRenderer, webFrame} = dynamicRequire('electron')
 
 let requestId = 0
 let hoverUrl = "" // for the link popup

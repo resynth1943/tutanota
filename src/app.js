@@ -200,6 +200,7 @@ let initialized = lang.init(en).then(() => {
 	if (state.prefix == null) {
 		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
 			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+		window.tutao.appState = state
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)

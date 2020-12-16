@@ -130,7 +130,9 @@ export class WorkerClient implements EntityRestInterface {
 			if (env.dist) {
 				worker = new Worker("./WorkerBootstrap.js")
 			} else {
-				worker = new Worker('./WorkerBootstrap.js')
+				const url = window.tutao.appState.prefix
+				const workerUrl = url.substring(0, url.lastIndexOf('/')) + '/WorkerBootstrap.js'
+				worker = new Worker(workerUrl)
 			}
 			this._queue = new Queue(worker)
 

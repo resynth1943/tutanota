@@ -45,7 +45,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				+ "-----END PUBLIC KEY-----"
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
-			"preloadjs": "./desktop/desktop/preload.js",
+			"preloadjs": "./desktop/preload.js",
 			"desktophtml": "./desktop.html",
 			"iconName": "logo-solo-red.png",
 			"fileManagerTimeout": 30000,

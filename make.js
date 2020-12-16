@@ -70,45 +70,42 @@ async function prepareAssets(watch) {
 }
 
 async function build({watch, desktop}) {
-	if (desktop) {
-		await startDesktop()
+	await prepareAssets(watch)
+
+	if (watch) {
+		let NollupDevServer = (await import('nollup/lib/dev-server.js')).default;
+		NollupDevServer({
+			hot: true,
+			port: 9001,
+			config: RollupDebugConfig,
+			contentBase: "build",
+			verbose: true,
+			// "fallback" won't redirect but will serve html instead. We want redirect.
+			after: (app) => {
+				app.use((req, res, next) => {
+					if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
+						res.redirect('/?r=' + req.url.replace(/\?/g, "&"))
+					} else {
+						next()
+					}
+				})
+			}
+		})
 	} else {
-		await prepareAssets(watch)
-		const debugConfig = (await import('./buildSrc/RollupDebugConfig.js')).default
+		const start = Date.now()
+		const nollup = (await import('nollup')).default
 
-		if (watch) {
-			let NollupDevServer = (await import('nollup/lib/dev-server.js')).default;
-			NollupDevServer({
-				hot: true,
-				port: 9001,
-				config: debugConfig,
-				contentBase: "build",
-				verbose: true,
-				// "fallback" won't redirect but will serve html instead. We want redirect.
-				after: (app) => {
-					app.use((req, res, next) => {
-						if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
-							res.redirect('/?r=' + req.url.replace(/\?/g, "&"))
-						} else {
-							next()
-						}
-					})
-				}
-			})
-		} else {
-			const start = Date.now()
-			const nollup = (await import('nollup')).default
+		console.log("Bundling...")
+		const bundle = await nollup(RollupDebugConfig)
+		console.log("Generating...")
+		const result = await bundle.generate(RollupDebugConfig.output)
+		result.stats && console.log("Generated in", result.stats.time, result.stats)
 
-			console.log("Bundling...")
-			const bundle = await nollup(debugConfig)
-			console.log("Generating...")
-			const result = await bundle.generate(debugConfig.output)
-			result.stats && console.log("Generated in", result.stats.time, result.stats)
-
-			await writeNollupBundle(result)
-			console.log("Built in", Date.now() - start)
-		}
+		await writeNollupBundle(result)
+		console.log("Built in", Date.now() - start)
 	}
+
+	await buildAndStartDesktop()
 }
 
 options
@@ -139,7 +136,7 @@ build(options).catch((e) => {
 	process.exit(1)
 })
 
-async function startDesktop() {
+async function buildAndStartDesktop() {
 	console.log("Building desktop client...")
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 
@@ -156,28 +153,46 @@ async function startDesktop() {
 	await fs.writeFile("./build/package.json", content, 'utf-8')
 
 	const nollup = (await import('nollup')).default
-	const bundle = await nollup({
+	const nodePreBundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
-		input: ["src/desktop/DesktopMain.js", "src/desktop/preload.js"],
+		input: "src/desktop/DesktopMain.js",
 		plugins: [
 			pluginNativeLoader(),
 			nativeDepWorkaroundPlugin(),
 			nodeResolve({preferBuiltins: true}),
 			...RollupDebugConfig.plugins,
+		],
+	})
+	// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
+	// it's not supported inside node 12 without --experimental-node-modules.
+	const nodeBundle = await nodePreBundle.generate({format: "cjs", sourceMap: true, dir: "./build/desktop", chunkFileNames: "[name].js"})
+	await writeNollupBundle(nodeBundle, "build/desktop")
+
+
+	const preloadPreBundle = await nollup({
+		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
+		input: "src/desktop/preload.js",
+		plugins: [
+			...RollupDebugConfig.plugins,
 			{
-				name: "resolve-fallback",
-				resolveId(id) {
-					if (id === "events") {
-						console.log("no one could resolve events?")
-					}
-				}
+				name: "dynamicRequire",
+				banner() {
+					// see preload.js for explanation
+					return "const dynamicRequire = require"
+				},
 			}
 		],
 	})
 	// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
 	// it's not supported inside node 12 without --experimental-node-modules.
-	const result = await bundle.generate({format: "cjs", sourceMap: true, dir: "./build/desktop", chunkFileNames: "[name].js"})
-	await writeNollupBundle(result, "build/desktop")
+	const preloadBundle = await preloadPreBundle.generate({
+		format: "iife",
+		sourceMap: true,
+		dir: "./build/desktop",
+		chunkFileNames: "[name].js",
+	})
+	await writeNollupBundle(preloadBundle, "build/desktop")
+
 	console.log("Bundled desktop client")
 
 	spawn("/bin/sh", ["-c", "npm start"], {
@@ -232,5 +247,14 @@ function pluginNativeLoader() {
 				export default nativeModule`
 			}
 		},
+	}
+}
+
+function pluginBluebird() {
+	return {
+		name: "bluebird",
+		intro() {
+			return "globalThis.Promise = Bluebird"
+		}
 	}
 }
