@@ -1,8 +1,8 @@
 import options from "commander"
 import fs from "fs-extra"
-import {spawn, execFileSync} from "child_process"
-import {createConnection} from "net"
+import {spawn} from "child_process"
 import flow from "flow-bin"
+import {buildWithServer} from "./buildSrc/BuildServerClient.js"
 
 let opts
 options
@@ -26,47 +26,26 @@ options
 
 spawn(flow, {stdio: "inherit"})
 
-function connect(restart, attempt = 0) {
-	const client = createConnection("/tmp/buildServer")
-		.on("connect", () => {
-			console.log("Connected to the build server")
-			if (restart) {
-				console.log("Restarting the build server!")
-				client.write("clean")
-				setTimeout(() => connect(false, 0), 2000)
+const SOCKET_PATH = "/tmp/buildServer"
+
+runBuild()
+
+function runBuild() {
+	buildWithServer({clean: opts.clean, builder: "./Builder.js", watchFolder: "src", socketPath: SOCKET_PATH, buildOpts: opts})
+		.then(() => {
+			console.log("Build finished")
+			if (opts.desktop) {
+				// we don't want to quit here because we want to keep piping output to our stdout.
+				spawn("./start-desktop.sh", {stdio: "inherit"})
 			} else {
-				client.write(JSON.stringify(opts))
-			}
-		})
-		.on("data", (data) => {
-			const msg = data.toString()
-			console.log("server:", msg)
-			if (msg === "ok") {
-				console.log("build completed")
-				if (opts.desktop) {
-					// we don't want to quit here because we want to keep piping output to our stdout.
-					spawn("./start-desktop.sh", {stdio: "inherit"})
-				} else {
-					process.exit(1)
-				}
-			} else if (msg === "err") {
-				console.error("server error: ", msg)
 				process.exit(1)
 			}
 		})
-		.on("error", () => {
-			if (attempt > 2) {
-				console.error("Failed to start build server")
-				process.exit(1)
-			}
-			console.log("Starting build server")
-			spawn(process.argv[0], ["./buildSrc/BuildServer.js"], {detached: true, cwd: process.cwd()})
-			console.log("Started build server")
-			setTimeout(() => connect(false, attempt + 1), 500)
+		.catch(e => {
+			console.error(e)
+			process.exit(1)
 		})
 }
-
-connect(options.clean)
 
 if (options.clean) {
 	console.log("cleaning build dir")

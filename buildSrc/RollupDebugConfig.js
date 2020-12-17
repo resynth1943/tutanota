@@ -4,8 +4,6 @@ import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import Promise from "bluebird"
 import fs from "fs-extra"
-import flow from "flow-bin"
-import {spawn} from "child_process"
 
 const {babel} = pluginBabel
 
@@ -46,12 +44,7 @@ function rollupDebugPlugins(baseDir) {
 
 export const config = {
 	input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
-	plugins: rollupDebugPlugins(path.resolve(".")).concat({
-		name: "run-flow",
-		buildStart() {
-			spawn(flow, [], {stdio: "inherit"})
-		},
-	}),
+	plugins: rollupDebugPlugins(path.resolve(".")),
 	output: {format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js",},
 }
 
