@@ -10,7 +10,7 @@ cleanup()
 let bundleWrappers = null
 const logStream = createWriteStream("build.log")
 const log = (...args) => {
-	console.log(args)
+	console.log.apply(console.log, args)
 	logStream.write(args.join(" ") + "\n")
 }
 
@@ -23,6 +23,12 @@ async function generateBundles() {
 process.on("SIGINT", () => {
 	// IDEs tend to send SIGINT to all child processes but we want to keep running
 	log("SIGINT received, ignoring")
+})
+process.on("beforeExit", () => {
+	log("process stopped")
+})
+process.on("uncaughtException", (e) => {
+	log("Uncaught exception: ", e)
 })
 
 let oldConfig
@@ -44,14 +50,13 @@ const server = createServer((socket) => {
 			}
 			const newConfig = JSON.parse(msg)
 			if (!oldConfig || !isSameConfig(newConfig, oldConfig)) {
-				socket.write(`config has changed, rebuilding old: ${JSON.stringify(oldConfig)}, new: ${JSON.stringify(newConfig)}`)
+				log(`config has changed, rebuilding old: ${JSON.stringify(oldConfig)}, new: ${JSON.stringify(newConfig)}`)
 				bundleWrappers = null
 			}
 			oldConfig = newConfig
 
 			if (bundleWrappers == null) {
-				log("initial")
-				socket.write("initial build")
+				log("initial build")
 
 				bundleWrappers = await build(newConfig, log)
 				await generateBundles()
@@ -66,7 +71,7 @@ const server = createServer((socket) => {
 				})
 				chokidar.watch("buildSrc", {ignoreInitial: true})
 				        .on("all", () => {
-				        	// If any build-related things have changed, we want to restart
+					        // If any build-related things have changed, we want to restart
 					        closeServer()
 				        })
 			} else {
@@ -75,8 +80,11 @@ const server = createServer((socket) => {
 				socket.write("ok")
 			}
 		} catch (e) {
+			log("error:", e)
 			socket.write("err: " + String(e))
 		}
+	}).on("error", (e) => {
+		outerLog("socket error: ", e)
 	})
 }).listen(SOCKETFILE)
   .on("connection", () => {
@@ -90,6 +98,7 @@ const server = createServer((socket) => {
 log("server listening")
 
 function closeServer() {
+	log("stopping the serverP")
 	server.close(() => process.exit(0))
 }
 

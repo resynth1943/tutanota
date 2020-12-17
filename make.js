@@ -50,10 +50,11 @@ function connect(restart, attempt = 0) {
 					process.exit(1)
 				}
 			} else if (msg === "err") {
+				console.error("server error: ", msg)
 				process.exit(1)
 			}
 		})
-		.on("error", (e) => {
+		.on("error", () => {
 			if (attempt > 2) {
 				console.error("Failed to start build server")
 				process.exit(1)
