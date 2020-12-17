@@ -184,16 +184,16 @@ export default class DesktopUtils {
 			         // will terminate itself.
 			         return app.requestSingleInstanceLock()
 				         ? Promise.resolve(true)
-				         : Promise.delay(1500)
-				                  .then(() => DesktopUtils.singleInstanceLockOverridden())
-				                  .then(canStay => {
-					                  if (canStay) {
-						                  app.requestSingleInstanceLock()
-					                  } else {
-						                  app.quit()
-					                  }
-					                  return canStay
-				                  })
+				         : delay(1500)
+					         .then(() => DesktopUtils.singleInstanceLockOverridden())
+					         .then(canStay => {
+						         if (canStay) {
+							         app.requestSingleInstanceLock()
+						         } else {
+							         app.quit()
+						         }
+						         return canStay
+					         })
 		         })
 	}
 
@@ -320,4 +320,10 @@ function _isReservedFilename(filename: string): boolean {
 
 export function readJSONSync(absolutePath: string): {[string]: mixed} {
 	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
+}
+
+export function delay(ms: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+		setTimeout(resolve, ms)
+	})
 }

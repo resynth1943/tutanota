@@ -52,12 +52,16 @@ export const config = {
 			spawn(flow, [], {stdio: "inherit"})
 		},
 	}),
-	output: {format: "es", sourceMap: true, dir: "build"},
+	output: {format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js",},
 }
 
-export async function writeNollupBundle(generatedBundle, dir = "build") {
+export async function writeNollupBundle(generatedBundle, log, dir = "build") {
 	await fs.mkdirp(dir)
-	return Promise.map(generatedBundle.output, (o) => fs.writeFile(path.join(dir, o.fileName), o.code || o.source))
+	return Promise.map(generatedBundle.output, async (o) => {
+		const filePath = path.join(dir, o.fileName)
+		// log("Writing", filePath)
+		return fs.writeFile(filePath, o.code || o.source)
+	})
 }
 
 /**
