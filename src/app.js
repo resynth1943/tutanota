@@ -87,6 +87,9 @@ if (client.isIE()) {
 export const state: {prefix: ?string} = (module.hot && module.hot.data)
 	? downcast(module.hot.data.state) : {prefix: null}
 
+// Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
+window.tutao.appState = state
+
 let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
 	origin += "/client/build/index"
@@ -200,7 +203,6 @@ let initialized = lang.init(en).then(() => {
 	if (state.prefix == null) {
 		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
 			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
-		window.tutao.appState = state
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)

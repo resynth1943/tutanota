@@ -1,12 +1,12 @@
-import options from "commander"
 import fs from "fs-extra"
 import {default as path, dirname} from "path"
 import {fileURLToPath} from "url"
 import * as SystemConfig from "./SystemConfig.js"
 import * as LaunchHtml from "./LaunchHtml.js"
 import * as env from "./env.js"
-import {config as RollupDebugConfig, writeNollupBundle} from "./RollupDebugConfig.js"
+import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
+import hmr from "nollup/lib/plugin-hmr.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname)
@@ -38,7 +38,7 @@ function _writeFile(targetFile, content) {
 	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }
 
-async function prepareAssets(watch) {
+async function prepareAssets(watch, stage, host) {
 	let restUrl
 	await Promise.all([
 		await fs.emptyDir("build/images"),
@@ -46,14 +46,14 @@ async function prepareAssets(watch) {
 		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/libs'), path.join(root, '/build/libs'))
 	])
-	if (options.stage === 'test') {
+	if (stage === 'test') {
 		restUrl = 'https://test.tutanota.com'
-	} else if (options.stage === 'prod') {
+	} else if (stage === 'prod') {
 		restUrl = 'https://mail.tutanota.com'
-	} else if (options.stage === 'local') {
+	} else if (stage === 'local') {
 		restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
 	} else { // host
-		restUrl = options.host
+		restUrl = host
 	}
 
 	await fs.copyFile(path.join(root, "/src/api/worker/WorkerBootstrap.js"), path.join(root, '/build/WorkerBootstrap.js'))
@@ -61,44 +61,29 @@ async function prepareAssets(watch) {
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 
 	return Promise.all([
-		createHtml(env.create((options.stage === 'local') ? null : restUrl, version, "Browser"), watch),
+		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser"), watch),
 		createHtml(env.create(restUrl, version, "App"), watch),
 		createHtml(env.create(restUrl, version, "Desktop"), watch)
 	])
 }
 
-export async function build({watch, desktop}, log) {
-	await prepareAssets(watch)
-
-	// if (watch) {
-	// 	let NollupDevServer = (await import('nollup/lib/dev-server.js')).default;
-	// 	NollupDevServer({
-	// 		hot: true,
-	// 		port: 9001,
-	// 		config: RollupDebugConfig,
-	// 		contentBase: "build",
-	// 		verbose: true,
-	// 		// "fallback" won't redirect but will serve html instead. We want redirect.
-	// 		after: (app) => {
-	// 			app.use((req, res, next) => {
-	// 				if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
-	// 					res.redirect('/?r=' + req.url.replace(/\?/g, "&"))
-	// 				} else {
-	// 					next()
-	// 				}
-	// 			})
-	// 		}
-	// 	})
-	// } else {
+export async function build({watch, desktop, stage, host}, log) {
+	await prepareAssets(watch, stage, host)
 	const start = Date.now()
 	const nollup = (await import('nollup')).default
 
 	log("Bundling...")
-	const bundle = await nollup(RollupDebugConfig)
+	const bundle = await nollup({
+		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
+		plugins: rollupDebugPlugins(path.resolve("."))
+			.concat(watch ? hmr({bundleId: ''}) : []),
+	})
 	const generateBundle = async () => {
 		log("Generating")
 		const generateStart = Date.now()
-		const result = await bundle.generate(RollupDebugConfig.output)
+		const result = await bundle.generate({
+			output: {format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js",}
+		})
 		log("Generated in", Date.now() - generateStart)
 		// result.stats && log("Generated in", result.stats.time, result.stats)
 
@@ -106,10 +91,10 @@ export async function build({watch, desktop}, log) {
 		const writeStart = Date.now()
 		await writeNollupBundle(result, log)
 		log("Wrote in", Date.now() - writeStart)
+		return result
 	}
 
 	log("Bundled in", Date.now() - start)
-	// }
 
 	let desktopBundles
 	if (desktop) {
@@ -144,7 +129,7 @@ async function buildAndStartDesktop(log) {
 			pluginNativeLoader(),
 			nativeDepWorkaroundPlugin(),
 			nodeResolve({preferBuiltins: true}),
-			...RollupDebugConfig.plugins,
+			rollupDebugPlugins(path.resolve(".")),
 		],
 	})
 	const nodeBundleWrapper = {

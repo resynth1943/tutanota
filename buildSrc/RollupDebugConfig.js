@@ -42,12 +42,6 @@ export function rollupDebugPlugins(baseDir) {
 	]
 }
 
-export const config = {
-	input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
-	plugins: rollupDebugPlugins(path.resolve(".")),
-	output: {format: "es", sourceMap: true, dir: "./build", chunkFileNames: "[name].js",},
-}
-
 export async function writeNollupBundle(generatedBundle, log, dir = "build") {
 	await fs.mkdirp(dir)
 	return Promise.map(generatedBundle.output, async (o) => {

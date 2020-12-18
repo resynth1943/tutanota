@@ -31,13 +31,13 @@ const SOCKET_PATH = "/tmp/buildServer"
 runBuild()
 
 function runBuild() {
-	buildWithServer({clean: opts.clean, builder: "./Builder.js", watchFolder: "src", socketPath: SOCKET_PATH, buildOpts: opts})
+	buildWithServer({clean: opts.clean, builder: "./Builder.js", watchFolders: ["src"], socketPath: SOCKET_PATH, buildOpts: opts})
 		.then(() => {
 			console.log("Build finished")
 			if (opts.desktop) {
 				// we don't want to quit here because we want to keep piping output to our stdout.
 				spawn("./start-desktop.sh", {stdio: "inherit"})
-			} else {
+			} else if (!opts.watch) {
 				process.exit(1)
 			}
 		})
