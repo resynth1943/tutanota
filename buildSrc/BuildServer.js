@@ -40,7 +40,7 @@ async function runServer() {
 		socket.on("data", async (data) => {
 			const log = (...args) => {
 				outerLog(...args)
-				socket.write(args.join(" "))
+				socket.write(args.join(" ") + "\n")
 			}
 			log("new build request")
 			try {
@@ -62,7 +62,7 @@ async function runServer() {
 
 					bundleWrappers = await build(newConfig, log)
 					await generateBundles(bundleWrappers)
-					socket.write("ok")
+					socket.write("ok\n")
 					watcher && watcher.close()
 					watcher = chokidar.watch(watchFolder, {
 						ignoreInitial: true,
@@ -78,11 +78,11 @@ async function runServer() {
 					        })
 				} else {
 					await generateBundles(bundleWrappers)
-					socket.write("ok")
+					socket.write("ok\n")
 				}
 			} catch (e) {
 				log("error:", e)
-				socket.write("err: " + String(e))
+				socket.write("err: " + String(e) + "\n")
 			}
 		}).on("error", (e) => {
 			outerLog("socket error: ", e)

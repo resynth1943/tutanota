@@ -19,7 +19,7 @@ buildWithServer({
 	builder: "../test/TestBuilder.js",
 	watchFolder: "../test",
 	socketPath: "/tmp/testBuildServer",
-	buildOpts: {project}
+	buildOpts: {}
 }).then(
 	async () => {
 		console.log("build finished!")

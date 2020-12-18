@@ -30,12 +30,14 @@ export function buildWithServer({clean, builder, watchFolder, socketPath, buildO
 					})
 					.on("data", (data) => {
 						const msg = data.toString()
-						console.log("server:", msg)
-						if (msg === "ok") {
-							resolve()
+						for (const line of msg.split("\n").slice(0, -1)) {
+							console.log("server:", line)
+							if (line === "ok") {
+								resolve()
 
-						} else if (msg.startsWith("err")) {
-							reject(new Error("Server failed with error"))
+							} else if (line.startsWith("err")) {
+								reject(new Error("Server failed with error"))
+							}
 						}
 					})
 					.on("error", (e) => {

@@ -8,13 +8,12 @@ import {renderHtml} from "../buildSrc/LaunchHtml.js"
 
 export async function build(options, log) {
 	log("Build")
-	const {project} = options
 
 	const localEnv = env.create("localhost:9000", "unit-test", "Test")
 
 	log("Bundling...")
 	const bundle = await nollup({
-		input: `${project}/bootstrapTests.js`,
+		input: ["api/bootstrapTests.js", "client/bootstrapTests.js"],
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
@@ -25,7 +24,10 @@ export async function build(options, log) {
 		{
 			bundle,
 			async generate() {
-				await createUnitTestHtml(false, project, localEnv)
+				await Promise.all([
+					createUnitTestHtml(false, "api", localEnv),
+					createUnitTestHtml(false, "client", localEnv)
+				])
 
 				const start = Date.now()
 				log("Generating...")
