@@ -41,6 +41,10 @@ function getPrefix(ids) {
 	});
 }
 
+/**
+ * Plugin which will generate .dot file with dependency graph
+ * @param options {{exclude: string, output: string, prune: boolean}}
+ */
 export default function plugin(options = {}) {
 	let exclude = str => options.exclude && str.match(options.exclude);
 	let output = options.output

@@ -18,27 +18,6 @@ import type {ContactModel} from "./ContactModel"
 
 assertMainOrNode()
 
-/**
- *Creates a vCard file with all contacts if at least one contact exists
- */
-export function exportAsVCard(contactModel: ContactModel): Promise<void> {
-	return showProgressDialog("pleaseWait_msg",
-		contactModel.contactListId().then(contactListId => {
-			return loadAll(ContactTypeRef, contactListId).then((allContacts) => {
-				if (allContacts.length === 0) {
-					return 0
-				} else {
-					return exportContacts(allContacts).return(allContacts.length)
-				}
-			})
-		})
-	).then(nbrOfContacts => {
-		if (nbrOfContacts === 0) {
-			Dialog.error("noContacts_msg")
-		}
-	})
-}
-
 
 export function exportContacts(contacts: Contact[]): Promise<void> {
 	let vCardFile = contactsToVCard(contacts)

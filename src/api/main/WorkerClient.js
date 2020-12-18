@@ -125,7 +125,7 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	_initWorker() {
-		if (typeof Worker !== 'undefined') {
+		if (typeof Worker !== 'undefined' && env.mode !== "Test") {
 			let worker = null
 			if (env.dist) {
 				worker = new Worker("./WorkerBootstrap.js")
@@ -150,19 +150,11 @@ export class WorkerClient implements EntityRestInterface {
 			}
 
 		} else {
-			// node: we do not use workers but connect the client and the worker queues directly with each other
-			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			// this.initialized = import('./../worker/WorkerImpl.js').then(workerModule => {
-			// 	const workerImpl = new workerModule.WorkerImpl(this, client.browserData())
-			// 	workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
-			// 	this._queue = new Queue(({
-			// 		postMessage: function (msg) {
-			// 			workerImpl._queue._handleMessage(msg)
-			//
-			// 		}
-			// 	}: any))
-			// })
-			throw new Error("FIXME: direct worker, do we still need it?")
+			// Stub the queue for testing, this is probably tests in node and we shouldn't use it anyway
+			this.initialized = Promise.resolve()
+			this._queue = new Queue(downcast<Worker>({
+				postMessage: () => new Promise(() => {})
+			}))
 		}
 	}
 

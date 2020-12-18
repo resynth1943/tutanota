@@ -13,11 +13,12 @@ process.on("uncaughtException", (e) => {
 })
 
 const args = process.argv.slice(2)
-const [builderPath, watchFolder, addr] = args
-if (!builderPath || !watchFolder || !addr) {
+const [builderPath, watchFoldersString, addr] = args
+if (!builderPath || !watchFoldersString || !addr) {
 	console.log("Invalid arguments!", args)
 	process.exit(1)
 }
+const watchFolders = watchFoldersString.split(":")
 
 cleanup()
 
@@ -64,9 +65,9 @@ async function runServer() {
 					await generateBundles(bundleWrappers)
 					socket.write("ok\n")
 					watcher && watcher.close()
-					watcher = chokidar.watch(watchFolder, {
+					watcher = chokidar.watch(watchFolders, {
 						ignoreInitial: true,
-						ignored: path => path.includes('/node_modules/') || path.includes('/.git/'),
+						ignored: path => path.includes('/node_modules/') || path.includes('/.git/') || path.endsWith("build.log"),
 					}).on("all", (event, path) => {
 						log("invalidating", path)
 						bundleWrappers.forEach(wrapper => wrapper.bundle.invalidate(path))

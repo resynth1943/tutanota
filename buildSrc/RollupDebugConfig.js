@@ -17,7 +17,7 @@ function resolveLibs(baseDir = ".") {
 	}
 }
 
-function rollupDebugPlugins(baseDir) {
+export function rollupDebugPlugins(baseDir) {
 	return [
 		babel({
 			plugins: [

@@ -8,12 +8,12 @@ import path from "path"
  *
  * @param clean boolean, whether to restart the server
  * @param builder path to the builder which will be used by the server, relative to the buildSrc
- * @param watchFolder folder to watch for changes
+ * @param watchFolders folders to watch for changes
  * @param socketPath path to the unix socket used by this server
  * @param buildOpts options for the builder
  * @return {Promise<void>}
  */
-export function buildWithServer({clean, builder, watchFolder, socketPath, buildOpts}) {
+export function buildWithServer({clean, builder, watchFolders, socketPath, buildOpts}) {
 	return new Promise((resolve, reject) => {
 		function connect(restart, attempt = 0) {
 			try {
@@ -48,7 +48,7 @@ export function buildWithServer({clean, builder, watchFolder, socketPath, buildO
 						const serverPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "./BuildServer.js")
 						// If server fails to start and you don't know hwy, set "stdio" to "inherit"
 						spawn(process.argv[0], [
-							serverPath, builder, watchFolder, socketPath
+							serverPath, builder, watchFolders.join(":"), socketPath
 						], {detached: true, cwd: process.cwd()})
 						console.log("Started build server")
 						setTimeout(() => connect(false, attempt + 1), 500)

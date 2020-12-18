@@ -1,5 +1,4 @@
-import {rollupDebugPlugins} from "../buildSrc/RollupConfig.js"
-import {writeNollupBundle} from "../buildSrc/RollupDebugConfig.js"
+import {rollupDebugPlugins, writeNollupBundle} from "../buildSrc/RollupDebugConfig.js"
 import nollup from "nollup"
 import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
@@ -13,11 +12,12 @@ export async function build(options, log) {
 
 	log("Bundling...")
 	const bundle = await nollup({
-		input: ["api/bootstrapTests.js", "client/bootstrapTests.js"],
+		input: ["api/bootstrapTests-api.js", "client/bootstrapTests-client.js"],
 		plugins: [
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(".."),
+			// graph({output: "graph.dot", prune: true}),
 		],
 	})
 	return [
@@ -90,8 +90,8 @@ function envPlugin(env) {
 async function createUnitTestHtml(watch, project, localEnv) {
 	let imports = [`test-${project}.js`]
 
-	const template = "import('./bootstrapTests.js')"
-	await _writeFile(`../build/test-${project}.js`, [
+	const template = `import('./bootstrapTests-${project}.js')`
+	await _writeFile(`../build/test/test-${project}.js`, [
 		`window.whitelabelCustomizations = null`,
 		`window.env = ${JSON.stringify(localEnv, null, 2)}`,
 		watch ? "new WebSocket('ws://localhost:8080').addEventListener('message', (e) => window.hotReload())" : "",

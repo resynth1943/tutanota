@@ -114,7 +114,7 @@ class ContactModelMock implements ContactModel {
 	}
 
 	contactListId(): Promise<Id> {
-		throw new Error("stub!")
+		return Promise.resolve("contactListId")
 	}
 
 
