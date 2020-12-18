@@ -38,7 +38,7 @@ function runBuild() {
 				// we don't want to quit here because we want to keep piping output to our stdout.
 				spawn("./start-desktop.sh", {stdio: "inherit"})
 			} else if (!opts.watch) {
-				process.exit(1)
+				process.exit(0)
 			}
 		})
 		.catch(e => {

@@ -36,7 +36,7 @@ export function buildWithServer({clean, builder, watchFolders, socketPath, build
 								resolve()
 
 							} else if (line.startsWith("err")) {
-								reject(new Error("Server failed with error"))
+								reject(new Error("Server failed with error: " + line.substring()))
 							}
 						}
 					})
