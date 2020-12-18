@@ -51,7 +51,7 @@ export function buildWithServer({clean, builder, watchFolders, socketPath, build
 							serverPath, builder, watchFolders.join(":"), socketPath
 						], {detached: true, cwd: process.cwd()})
 						console.log("Started build server")
-						setTimeout(() => connect(false, attempt + 1), 500)
+						setTimeout(() => connect(false, attempt + 1), 10000)
 					})
 			} catch (e) {
 				reject(e)

@@ -5,7 +5,7 @@ import commonjs from "@rollup/plugin-commonjs"
 
 const {babel} = babelPlugin
 
-function resolveLibs(baseDir = ".") {
+export function resolveLibs(baseDir = ".") {
 	return {
 		name: "resolve-libs",
 		resolveId(source) {

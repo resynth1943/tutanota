@@ -24,7 +24,7 @@ async function createHtml(env, watch) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	let imports = SystemConfig.baseDevDependencies.concat([`${filenamePrefix}Bootstrap.js`])
+	const imports = ['bluebird.js', `${filenamePrefix}Bootstrap.js`]
 	const template = fs.readFileSync("./buildSrc/bootstrap.template.js", "utf8")
 	await _writeFile(`./build/${filenamePrefix}Bootstrap.js`, [
 		`window.whitelabelCustomizations = null`,
@@ -39,13 +39,12 @@ function _writeFile(targetFile, content) {
 	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }
 
-async function prepareAssets(watch, stage, host) {
+async function prepareAssets(watch, stage, host, version) {
 	let restUrl
 	await Promise.all([
 		await fs.emptyDir("build/images"),
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
 		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
-		fs.copy(path.join(root, '/libs'), path.join(root, '/build/libs'))
 	])
 	if (stage === 'test') {
 		restUrl = 'https://test.tutanota.com'
@@ -57,9 +56,12 @@ async function prepareAssets(watch, stage, host) {
 		restUrl = host
 	}
 
-	await fs.copyFile(path.join(root, "/src/api/worker/WorkerBootstrap.js"), path.join(root, '/build/WorkerBootstrap.js'))
+	await fs.copyFile("libs/bluebird.js", "build/bluebird.js")
+	let bootstrap = await fs.readFile('src/api/worker/WorkerBootstrap.js', 'utf-8')
+	bootstrap = "importScripts('bluebird.js')\nvar dynamicImport = (m) => import(m)\n" + bootstrap
+	await fs.writeFile('build/WorkerBootstrap.js', bootstrap, 'utf-8')
+	// await fs.copyFile(path.join(root, "/src/api/worker/WorkerBootstrap.js"), path.join(root, '/build/WorkerBootstrap.js'))
 
-	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 
 	return Promise.all([
 		createHtml(env.create((stage === 'local') ? null : restUrl, version, "Browser"), watch),
@@ -69,7 +71,8 @@ async function prepareAssets(watch, stage, host) {
 }
 
 export async function build({watch, desktop, stage, host}, log) {
-	await prepareAssets(watch, stage, host)
+	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
+	await prepareAssets(watch, stage, host, version)
 	const start = Date.now()
 	const nollup = (await import('nollup')).default
 
@@ -99,16 +102,15 @@ export async function build({watch, desktop, stage, host}, log) {
 
 	let desktopBundles
 	if (desktop) {
-		desktopBundles = await buildAndStartDesktop(log)
+		desktopBundles = await buildAndStartDesktop(log, version)
 	} else {
 		desktopBundles = []
 	}
 	return [{bundle, generate: generateBundle}, ...desktopBundles]
 }
 
-async function buildAndStartDesktop(log) {
+async function buildAndStartDesktop(log, version) {
 	log("Building desktop client...")
-	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 
 	const packageJSON = (await import('./electron-package-json-template.js')).default({
 		nameSuffix: "-debug",
@@ -123,19 +125,21 @@ async function buildAndStartDesktop(log) {
 	await fs.writeFile(path.join(root, "./build/package.json"), content, 'utf-8')
 
 	const nollup = (await import('nollup')).default
+	log("desktop main bundle")
 	const nodePreBundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
-			pluginNativeLoader(),
-			nativeDepWorkaroundPlugin(),
-			nodeResolve({preferBuiltins: true}),
 			rollupDebugPlugins(path.resolve(".")),
+			nativeDepWorkaroundPlugin(),
+			pluginNativeLoader(),
+			nodeResolve({preferBuiltins: true}),
 		],
 	})
 	const nodeBundleWrapper = {
 		bundle: nodePreBundle,
 		async generate() {
+			log("generating main desktop bundle")
 			// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
 			// it's not supported inside node 12 without --experimental-node-modules.
 			const nodeBundle = await nodePreBundle.generate({
@@ -148,12 +152,12 @@ async function buildAndStartDesktop(log) {
 		}
 	}
 
-
+	log("desktop preload bundle")
 	const preloadPreBundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: path.join(root, "src/desktop/preload.js"),
 		plugins: [
-			...RollupDebugConfig.plugins,
+			...rollupDebugPlugins(path.resolve(".")),
 			{
 				name: "dynamicRequire",
 				banner() {
@@ -166,6 +170,7 @@ async function buildAndStartDesktop(log) {
 	const preloadBundleWrapper = {
 		bundle: preloadPreBundle,
 		async generate() {
+			log("generating preload bundle")
 			// Electron uses commonjs imports. We could wrap it in our own commonjs module which dynamically imports the rest with import() but
 			// it's not supported inside node 12 without --experimental-node-modules.
 			const preloadBundle = await preloadPreBundle.generate({

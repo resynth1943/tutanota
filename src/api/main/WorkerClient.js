@@ -127,13 +127,14 @@ export class WorkerClient implements EntityRestInterface {
 	_initWorker() {
 		if (typeof Worker !== 'undefined' && env.mode !== "Test") {
 			let worker = null
-			if (env.dist) {
-				worker = new Worker("./WorkerBootstrap.js")
-			} else {
+			// if (env.dist) {
+			// 	worker = new Worker("./WorkerBootstrap.js")
+			// } else {
 				const url = window.tutao.appState.prefix
-				const workerUrl = url.substring(0, url.lastIndexOf('/')) + '/WorkerBootstrap.js'
+				// const workerUrl = url.substring(0, url.lastIndexOf('/')) + '/WorkerBootstrap.js'
+			const workerUrl = url + '/WorkerBootstrap.js'
 				worker = new Worker(workerUrl)
-			}
+			// }
 			this._queue = new Queue(worker)
 
 			// window.env.systemConfig.baseURL = System.getConfig().baseURL

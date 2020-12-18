@@ -1,4 +1,5 @@
-importScripts('libs/bluebird.js', 'libs/system.js')
+// bluebird must be imported here by the build script
+// dynamicImport must be declared here by the build script
 
 self.Promise = Promise.config({
 	longStackTraces: false,
@@ -14,15 +15,7 @@ self.onmessage = function (msg) {
 		self.env = data.args[0]
 		Promise.resolve()
 		       .then(() => {
-			       // if (connect instanceof Function && location.protocol !== "https:") {
-			       //     connect({
-			       //       host: location.protocol + '//' + location.hostname + ':9082',
-			       //       entries: [System.resolveSync('src/api/worker/WorkerImpl')]
-			       //     })
-			       // }
-
-
-			       import("./WorkerImpl.js").then((workerModule) => {
+			       dynamicImport("./WorkerImpl.js").then((workerModule) => {
 				       const initialRandomizerEntropy = data.args[1]
 				       const browserData = data.args[2]
 				       if (initialRandomizerEntropy == null || browserData == null) {
