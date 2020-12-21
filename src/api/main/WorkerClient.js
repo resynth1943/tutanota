@@ -126,19 +126,16 @@ export class WorkerClient implements EntityRestInterface {
 
 	_initWorker() {
 		if (typeof Worker !== 'undefined' && env.mode !== "Test") {
-			let worker = null
-			// if (env.dist) {
-			// 	worker = new Worker("./WorkerBootstrap.js")
-			// } else {
-				const url = window.tutao.appState.prefix
-				// const workerUrl = url.substring(0, url.lastIndexOf('/')) + '/WorkerBootstrap.js'
+			const {prefix} = window.tutao.appState
+			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
+			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
+			// localhost/path/WorkerBootstrap.js respectively.
+			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
+			const url = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 			const workerUrl = url + '/WorkerBootstrap.js'
-				worker = new Worker(workerUrl)
-			// }
+			const worker = new Worker(workerUrl)
 			this._queue = new Queue(worker)
 
-			// window.env.systemConfig.baseURL = System.getConfig().baseURL
-			// window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
 			this.initialized = this._queue
 			                       .postMessage(new Request('setup', [

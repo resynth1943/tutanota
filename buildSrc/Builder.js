@@ -130,7 +130,7 @@ async function buildAndStartDesktop(log, version) {
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
-			rollupDebugPlugins(path.resolve(".")),
+			...rollupDebugPlugins(path.resolve(".")),
 			nativeDepWorkaroundPlugin(),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
