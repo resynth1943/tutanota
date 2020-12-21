@@ -131,7 +131,7 @@ async function buildAndStartDesktop(log, version) {
 		input: path.join(root, "src/desktop/DesktopMain.js"),
 		plugins: [
 			...rollupDebugPlugins(path.resolve(".")),
-			nativeDepWorkaroundPlugin(),
+			nativeDepWorkaroundPlugin(false),
 			pluginNativeLoader(),
 			nodeResolve({preferBuiltins: true}),
 		],
@@ -187,7 +187,7 @@ async function buildAndStartDesktop(log, version) {
 	return [nodeBundleWrapper, preloadBundleWrapper]
 }
 
-function nativeDepWorkaroundPlugin() {
+export function nativeDepWorkaroundPlugin(includeUpdater) {
 	return {
 		name: "native-dep-workaround",
 		resolveId(id) {
@@ -196,7 +196,7 @@ function nativeDepWorkaroundPlugin() {
 				return false
 			}
 			// We don't use it in debug builds because packaging it doesn't really work so we consider it "external".
-			if (id === "electron-updater") {
+			if (id === "electron-updater" && !includeUpdater) {
 				return false
 			}
 			// We currently have an import in Rsa.js which we don't want in Desktop as it pulls the whole worker with it
@@ -215,7 +215,7 @@ function nativeDepWorkaroundPlugin() {
  * Important! Make sure that requireReturnsDefault for commonjs plugin is set to `true` or `"preferred"` if .node module is part of
  * commonjs code.
  */
-function pluginNativeLoader() {
+export function pluginNativeLoader() {
 	return {
 		name: "native-loader",
 		async load(id) {
