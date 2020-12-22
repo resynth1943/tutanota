@@ -24,13 +24,19 @@ export async function buildDesktop({
 	                                   outDir, // where to copy the finished artifacts
 	                                   unpacked // output desktop client without packing it into an installer
                                    }) {
+	// The idea is that we
+	// - build desktop code into build/dist/desktop
+	// - package the whole dist directory into the app
+	// - move installers out of the dist into build/desktop-whatever
+	// - cleanup dist directory
+	// It's messy
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
 	const updateSubDir = "desktop" + nameSuffix
-	const distDir = path.join(dirname, '/build/dist/')
-	outDir = path.join(outDir || path.join(distDir, ".."), 'desktop' + nameSuffix)
+	const distDir = path.join(dirname, "build", "dist")
+	outDir = path.join(outDir || path.join(distDir, ".."), updateSubDir)
 	await fs.promises.mkdir(outDir, {recursive: true})
 
 
@@ -45,7 +51,6 @@ export async function buildDesktop({
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
-
 	// prepare files
 	try {
 		await fs.promises.rmdir(path.join(distDir, "..", updateSubDir), {recursive: true})
@@ -67,13 +72,14 @@ export async function buildDesktop({
 		p: 'always',
 		project: distDir
 	})
-	console.log("Move output to /build/" + updateSubDir + "/...")
+	console.log("Move output to ", outDir)
+	await fs.promises.mkdir(outDir, {recursive: true})
 	await Promise.all(
 		fs.readdirSync(path.join(distDir, '/installers'))
 		  .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
 		  .map(file => fs.promises.rename(
 			  path.join(distDir, '/installers/', file),
-			  path.join(distDir, `../${updateSubDir}`, file)
+			  path.join(outDir, file)
 			  )
 		  )
 	)
@@ -132,6 +138,7 @@ function resolveKeytarPlugin() {
 	return {
 		name: "resolve-keytar",
 		resolveId(id) {
+			// These are packaged as-is in node_modules
 			if (id === "keytar") {
 				return false
 			}

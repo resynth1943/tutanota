@@ -159,8 +159,8 @@ TryExec=${packagePath}`
 
 function copyIcons(): Promise<void> {
 	return Promise.all([
-		fs.mkdir(iconTargetDir64, {recursive: true}),
-		fs.mkdir(iconTargetDir512, {recursive: true})
+		fs.promises.mkdir(iconTargetDir64, {recursive: true}),
+		fs.promises.mkdir(iconTargetDir512, {recursive: true})
 	]).then(() => {
 		return Promise.all([
 			fs.promises.copyFile(iconSourcePath64, iconTargetPath64),
