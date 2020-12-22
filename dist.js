@@ -30,7 +30,7 @@ const distLoc = (filename) => `${DistDir}/${filename}`
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
-	.arguments('[stage] [host]'
+	.arguments('[stage] [host]')
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
 	.option('-w --win', 'Build desktop client for windows')
 	.option('-l --linux', 'Build desktop client for linux')
@@ -74,7 +74,7 @@ doBuild()
 async function doBuild() {
 	try {
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
-		// await buildWebapp(version)
+		await buildWebapp(version)
 		await buildDesktopClient(version)
 		await signDesktopClients()
 		await packageDeb(version)

@@ -31,6 +31,7 @@ export async function buildDesktop({
 	const updateSubDir = "desktop" + nameSuffix
 	const distDir = path.join(dirname, '/build/dist/')
 	outDir = path.join(outDir || path.join(distDir, ".."), 'desktop' + nameSuffix)
+	await fs.promises.mkdir(outDir, {recursive: true})
 
 
 	console.log("Updating electron-builder config...")
@@ -47,19 +48,19 @@ export async function buildDesktop({
 
 	// prepare files
 	try {
-		await fs.promises.unlink(path.join(distDir, "..", updateSubDir))
+		await fs.promises.rmdir(path.join(distDir, "..", updateSubDir), {recursive: true})
 	} catch (e) {
 		if (e.code !== 'ENOENT') {
 			throw e
 		}
 	}
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, outDir)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"))
 
 	console.log("Starting installer build...")
 	// package for linux, win, mac
 	await electronBuilder.build({
-		_: ['build/desktop'],
+		_: ['build'],
 		win: targets.win,
 		mac: targets.mac,
 		linux: targets.linux,
@@ -80,7 +81,7 @@ export async function buildDesktop({
 		fs.promises.rmdir(path.join(distDir, '/installers/'), {recursive: true}),
 		fs.promises.rmdir(path.join(distDir, '/node_modules/'), {recursive: true}),
 		fs.promises.unlink(path.join(distDir, '/package.json')),
-		fs.promises.unlink(path.join(distDir, '/package-lock.json'), ),
+		fs.promises.unlink(path.join(distDir, '/package-lock.json'),),
 	])
 }
 
@@ -103,7 +104,7 @@ async function rollupDesktop(dirname, outDir) {
 			babelPreset(),
 			resolveLibs(),
 			nativeDepWorkaroundPlugin(true),
-			pluginNativeLoader(),
+			resolveKeytarPlugin(),
 			nodeResolve({preferBuiltins: true}),
 			commonjs({exclude: "src/**"}),
 			terser(),
@@ -125,4 +126,15 @@ async function rollupDesktop(dirname, outDir) {
 		],
 	})
 	await preloadBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
+}
+
+function resolveKeytarPlugin() {
+	return {
+		name: "resolve-keytar",
+		resolveId(id) {
+			if (id === "keytar") {
+				return false
+			}
+		}
+	}
 }
