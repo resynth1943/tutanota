@@ -27,6 +27,7 @@ import "./gui/base/WizardDialogNTest"
 import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
+import "./common/OutOfOfficeNotificationTest"
 import o from "ospec/ospec.js"
 
 node(() => {

@@ -149,7 +149,7 @@ export class Dialog {
 	}
 
 	/**
-	 * By default the focus is set on the first text field after this dialog is fully visible. This behavor can be overwritten by calling this function.
+	 * By default the focus is set on the first text field after this dialog is fully visible. This behavior can be overwritten by calling this function.
 	 */
 	setFocusOnLoadFunction(callback: Function): void {
 		this._focusOnLoadFunction = callback

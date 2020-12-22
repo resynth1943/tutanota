@@ -40,6 +40,14 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {LockedError} from "../api/common/error/RestError"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
+import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
+import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
+import {formatDate} from "../misc/Formatter"
+import {loadOutOfOfficeNotification} from "./OutOfOfficeNotificationUtils"
 
 assertMainOrNode()
 
@@ -56,6 +64,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_indexStateWatch: ?Stream<any>;
 	_identifierListViewer: IdentifierListViewer;
 	_editAliasFormAttrs: EditAliasesFormAttrs;
+	_outOfOfficeNotification: LazyLoaded<?OutOfOfficeNotification>;
+	_outOfOfficeIsEnabled: Stream<string>; // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
@@ -67,9 +77,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._enableMailIndexing = stream(locator.search.indexState().mailIndexEnabled)
 		this._inboxRulesExpanded = stream(false)
 		this._inboxRulesTableLines = stream([])
+		this._outOfOfficeIsEnabled = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
-
 		this._updateInboxRules(logins.getUserController().props)
 
 		this._editAliasFormAttrs = createEditAliasFormAttrs(logins.getUserController().userGroupInfo)
@@ -77,6 +87,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		if (logins.getUserController().isGlobalAdmin()) {
 			updateNbrOfAliases(this._editAliasFormAttrs)
 		}
+
+		this._outOfOfficeNotification = new LazyLoaded(() => {
+			return loadOutOfOfficeNotification()
+		}, null)
+		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
 	}
 
 	view(): Children {
@@ -127,6 +142,21 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			value: this._signature,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, changeSignatureButtonAttrs)]
+		}
+
+		const outOfOfficeAttrs: TextFieldAttrs = {
+			label: "outOfOfficeNotification_title",
+			value: this._outOfOfficeIsEnabled,
+			disabled: true,
+			injectionsRight: () => [m(ButtonN, editOutOfOfficeNotificationButtonAttrs)]
+		}
+
+		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
+			label: "outOfOfficeNotification_title",
+			click: () => logins.getUserController().isPremiumAccount()
+				? this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
+				: showNotAvailableForFreeDialog(true),
+			icon: () => Icons.Edit
 		}
 
 		const defaultUnconfidentialAttrs: DropDownSelectorAttrs<boolean> = {
@@ -202,7 +232,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			icon: () => Icons.Add
 
 		}
-
 		const inboxRulesTableAttrs: TableAttrs = {
 			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
@@ -234,6 +263,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelectorN, sendPlaintextAttrs),
 				logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelectorN, noAutomaticContactsAttrs),
 				m(DropDownSelectorN, enableMailIndexingAttrs),
+				m(TextFieldN, outOfOfficeAttrs),
 				(logins.getUserController().isGlobalAdmin()) ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 				logins.isEnabled(FeatureType.InternalCommunication) ? null : [
 					m(".flex-space-between.items-center.mt-l.mb-s", [
@@ -243,7 +273,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(ExpanderPanelN, {expanded: this._inboxRulesExpanded}, m(TableN, inboxRulesTableAttrs)),
 					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
 				],
-				m(this._identifierListViewer)
+				m(this._identifierListViewer),
+
 			])
 		]
 	}
@@ -280,6 +311,24 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
+	_updateOutOfOfficeNotification(): void {
+		const notification = this._outOfOfficeNotification.getLoaded()
+		if (notification && notification.enabled) {
+			var timeRange = ""
+			if (notification.startDate) {
+				timeRange += " (" + formatDate(notification.startDate)
+				if (notification.endDate) {
+					timeRange += " - " + formatDate(notification.endDate)
+				}
+				timeRange += ")"
+			}
+			this._outOfOfficeIsEnabled(lang.get("activated_label") + timeRange)
+		} else {
+			this._outOfOfficeIsEnabled(lang.get("deactivated_label"))
+		}
+		m.redraw()
+	}
+
 	_getTextForTarget(mailboxDetails: MailboxDetail, targetFolderId: IdTuple): string {
 		let folder = mailboxDetails.folders.find(folder => isSameId(folder._id, targetFolderId))
 		if (folder) {
@@ -307,6 +356,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					this._editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()
 				})
+			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)
+				|| isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
+				//TODO would it be enough to use either of those, to avoid redrawing twice?
+				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			}
 			return p.then(() => {
 				this._identifierListViewer.entityEventReceived(update)

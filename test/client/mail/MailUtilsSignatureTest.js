@@ -11,7 +11,7 @@ import type {LoginController} from "../../../src/api/main/LoginController"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 
-o.spec("MailUtils", function () {
+o.spec("MailUtilsSignatureTest", function () {
 
 	const mockedAttributes = []
 
