@@ -2565,16 +2565,18 @@ sjcl.random = new sjcl.prng(6);
  * @author Marco Munizaga
  */
 
-//patch arraybuffers if they don't exist
-if (typeof (ArrayBuffer) === 'undefined') {
-	(function (globals) {
-		"use strict";
-		globals.ArrayBuffer = function () {
-		};
-		globals.DataView = function () {
-		};
-	}(this));
-}
+// ivk: commented out. we expect that they are there. "this" is undefined generally and rollup overwrites it as "undefined".
+
+// //patch arraybuffers if they don't exist
+// if (typeof (ArrayBuffer) === 'undefined') {
+// 	(function (globals) {
+// 		"use strict";
+// 		globals.ArrayBuffer = function () {
+// 		};
+// 		globals.DataView = function () {
+// 		};
+// 	}(this));
+// }
 
 /**
  * ArrayBuffer

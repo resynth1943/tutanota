@@ -40,6 +40,9 @@ export async function buildDesktop({
 	await fs.promises.mkdir(outDir, {recursive: true})
 
 
+	// We need to get the right build of native dependencies. There's a tool called node-gyp which can build for different architectures
+	// and downloads everything it needs. Usually dependencies build themselves in post-install script.
+	// Currently we have keytar which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
 	const content = generatePackgeJson({
 		nameSuffix,
