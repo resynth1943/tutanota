@@ -643,13 +643,19 @@ export class Dialog {
 		})
 	}
 
-	static largeDialogN<T>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<MComponent<$Attrs<T>>>, childAttrs: $Attrs<T>): Dialog {
+	static largeDialogN<T>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<MComponent<$Attrs<T>>>, childAttrs: $Attrs<T>, rightChild?: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
-			view: () => {
+			view: (vnode) => {
 				return m("", [
 					m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
 					m(".dialog-container.scroll",
-						m(".fill-absolute.plr-l", m(child, childAttrs)))
+						m(".fill-absolute.plr-l", m(child, childAttrs))),
+					rightChild ? m(".abs", {style: {right: px(0)}}, m(rightChild)) : null
+					/**
+					 *  It is a bit tricky to get the div to align outside the dialog.
+					 *  By CSS default, the element will always try to align its top left corner to the top left corner of its parent.
+					 *  When we move the ".abs" wrapper to the most right (right: 0px), it will force the wrapped element to be outside the Dialog.
+					 */
 				])
 			}
 		})

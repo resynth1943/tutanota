@@ -12,7 +12,7 @@ import {locator} from "../api/main/MainLocator"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
-import {MailModel} from "./MailModel"
+import {MailModel} from "../mail/MailModel"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
@@ -181,6 +181,7 @@ export class TemplateModel {
 		if (this._selectedTemplate) {
 			for (const content of this._selectedTemplate.contents) {
 				if (content.languageCode === languageCode) {
+					console.log(content.text)
 					return content.text
 				}
 			}

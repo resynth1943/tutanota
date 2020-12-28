@@ -37,11 +37,11 @@ export const SELECT_PREV_TEMPLATE = "previous";
 export type NavAction = "previous" | "next";
 
 /*
-*	Creates a Modal/Popup that allows user to paste templates directly into the Maileditor.
+*	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
 *	Also allows user to change desired language when pasting.
 */
 
-export class TemplatePopup implements ModalComponent { // TODO: Ask Bernd regarding the search problem
+export class TemplatePopup implements ModalComponent {
 	_rect: PosRect
 	_filterTextAttrs: TextFieldAttrs
 	_addTemplateButtonAttrs: ButtonAttrs

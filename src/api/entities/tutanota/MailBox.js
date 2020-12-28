@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {KnowledgeBaseRef} from "./KnowledgeBaseRef"
 import type {MailFolderRef} from "./MailFolderRef"
 import type {EmailTemplateRef} from "./EmailTemplateRef"
 
@@ -80,6 +81,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"knowledgeBase": {
+			"name": "knowledgeBase",
+			"id": 1166,
+			"since": 45,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "KnowledgeBaseRef",
+			"final": false
+		},
 		"systemFolders": {
 			"name": "systemFolders",
 			"id": 443,
@@ -130,7 +140,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
@@ -149,6 +159,7 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: ?Uint8Array;
 
+	knowledgeBase: ?KnowledgeBaseRef;
 	systemFolders: ?MailFolderRef;
 	templates: ?EmailTemplateRef;
 	mails: Id;

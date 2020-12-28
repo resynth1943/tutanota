@@ -183,6 +183,11 @@ styles.registerStyle('main', () => {
 
 		".white-space-pre": {'white-space': "pre"},
 
+		".min-content": {
+			width: "min-content",
+			height: "min-content"
+		},
+
 		// margins
 		'.m-0': {margin: 0},
 		'.mt': {'margin-top': px(size.vpad)},
@@ -329,7 +334,7 @@ styles.registerStyle('main', () => {
 		'.underline': {'text-decoration': 'underline'},
 		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
-		// positioning
+		// positioning1
 		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
 		'.abs': {position: 'absolute'},
 		'.fixed': {position: 'fixed'},
@@ -352,6 +357,9 @@ styles.registerStyle('main', () => {
 			'overflow-x': 'auto',
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar',
+		},
+		'.scroll-y': {
+			'overflow-y': 'scroll'
 		},
 		'*': {
 			"scrollbar-color": `${theme.content_button} transparent`,
@@ -876,6 +884,12 @@ styles.registerStyle('main', () => {
 			'margin': px(size.vpad_small / 2),
 			'background-color': theme.button_bubble_bg,
 			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
+		},
+		'.bubbleTag-no-padding': {
+			'max-width': "300px",
+			'border-radius': px(size.border_radius),
+			'margin': px(size.vpad_small / 2),
+			'background-color': theme.button_bubble_bg,
 		},
 		'mark': {
 			// 'background-color': theme.content_button,

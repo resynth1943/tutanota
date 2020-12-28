@@ -46,6 +46,7 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {nativeApp} from "../native/NativeWrapper"
 import {TemplateListView} from "./TemplateListView"
+import {KnowledgeBaseListView} from "./KnowledgeBaseListView"
 
 assertMainOrNode()
 
@@ -68,6 +69,7 @@ export class SettingsView implements CurrentView {
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 			new SettingsFolder("template_label", () => Icons.Folder, "template", () => new TemplateListView(this)),
+			new SettingsFolder("knowledgebase_label",() => Icons.Archive, "knowledgebase", () => new KnowledgeBaseListView(this)),
 			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
 

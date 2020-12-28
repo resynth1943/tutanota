@@ -90,7 +90,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createEmailTemplate(values?: $Shape<$Exact<EmailTemplate>>): EmailTemplate {

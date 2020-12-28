@@ -58,28 +58,32 @@ import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, defer, downcast} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
-import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "./TemplatePopup"
+import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "../templates/TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
-import {templateModel, TemplateModel} from "./TemplateModel"
+import {templateModel} from "../templates/TemplateModel"
+import {knowledgebase} from "../knowledgebase/KnowledgeBaseModel"
+import {KnowledgeBaseView} from "../knowledgebase/KnowledgeBaseView"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
 	body: Stream<string>,
 	doBlockExternalContent: Stream<boolean>,
 	doShowToolbar: Stream<boolean>,
-	onload?: Function,
+	onload?: (editor: Editor) => void,
 	onclose?: Function,
 	areDetailsExpanded: Stream<boolean>,
 	selectedNotificationLanguage: Stream<string>,
 	inlineImages?: Promise<InlineImages>,
 	_focusEditorOnLoad: () => void,
 	_onSend: () => void,
-	_editor: ?Editor
+	_editor: ?Editor,
 }
 
-export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>): MailEditorAttrs {
+export function createMailEditorAttrs(model: SendMailModel, doBlockExternalContent: boolean, doFocusEditorOnLoad: boolean, inlineImages?: Promise<InlineImages>,
+                                      onload?: (Editor) => void): MailEditorAttrs {
 	return {
 		model,
 		body: stream(""),
@@ -90,7 +94,8 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		inlineImages: inlineImages,
 		_focusEditorOnLoad: () => {},
 		_onSend: () => {},
-		_editor: null
+		_editor: null,
+		onload
 	}
 }
 
@@ -131,6 +136,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+			a.onload && a.onload(this.editor)
 			// Add mutation observer to remove attachments when corresponding DOM element is removed
 			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
 				attributes: false,
@@ -263,9 +269,13 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			label: "templateOpen_label",
 			click: () => openTemplateFeature(this.editor),
 			icon: () => Icons.ListAlt,
-			noRecipientInfoBubble: true
 		}
 
+		const knowledgebaseButtonAttrs = {
+			label: () => "Open Knowledgebase Panel",
+			click: () => this.openKnowledgeBase(),
+			icon: () => Icons.ListOrdered,
+		}
 
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
@@ -275,9 +285,11 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			injectionsRight: () => {
 				return showConfidentialButton
 					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
-					: [m(ButtonN, templateButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
+					: [
+						m(ButtonN, templateButtonAttrs), m(ButtonN, knowledgebaseButtonAttrs), m(ButtonN, attachFilesButtonAttrs),
+						toolbarButton()
+					]
 			}
-
 		}
 
 		function animate(domElement: HTMLElement, fadein: boolean) {
@@ -324,10 +336,10 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			}
 		}
 
-
 		return m("#mail-editor.full-height.text.touch-callout", {
 			onremove: vnode => {
 				model.dispose()
+				knowledgebase.close()
 				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
 			},
 			onclick: (e) => {
@@ -391,8 +403,24 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 				}, [m(this.toolbar), m("hr.hr")])
 				: null,
 			m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this.editor.focus()}, m(this.editor)),
+			// m(".flex.abs", {
+			// 	style: {
+			// 		height: px(840),
+			// 		width: px(575),
+			// 		top: px(180),
+			// 		left: px(750),
+			// 		backgroundColor: "hotpink"
+			// 	}
+			// }),
 			m(".pb")
 		])
+	}
+
+	openKnowledgeBase() {
+		knowledgebase.init().then(() => {
+			knowledgebase.setActive()
+			m.redraw()
+		})
 	}
 }
 
@@ -479,9 +507,28 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		}
 	}
 
-	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages);
+	const editorDeferred = defer()
+	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages, (editor) => {
+		editorDeferred.resolve(editor)
+	});
 
-	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditorN, mailEditorAttrs)
+
+	const knowledgebaseComponent = {
+		view: () => {
+			return knowledgebase.returnStatus()
+				? m(KnowledgeBaseView, {
+					onSubmit: (text) => {
+						editorDeferred.promise.then((editor) => {
+							editor.insertHTML(text)
+							editor.focus()
+						})
+					}
+				})
+				: null
+		}
+	}
+
+	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditorN, mailEditorAttrs, knowledgebaseComponent)
 	               .addShortcut({
 		               key: Keys.ESC,
 		               exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) },
@@ -561,9 +608,10 @@ function openTemplateFeature(editor: ?Editor) {
 	} else {
 		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height);
 	}
-	templateModel.init().then( new TemplatePopup(rect, onsubmit, highlightedText).show() )
+	templateModel.init().then(new TemplatePopup(rect, onsubmit, highlightedText).show())
 	//new TemplatePopup(rect, onsubmit, highlightedText).show()
 }
+
 
 /**
  * open a MailEditor

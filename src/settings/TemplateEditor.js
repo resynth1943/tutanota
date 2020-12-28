@@ -1,8 +1,9 @@
 // @flow
+
 import m from "mithril"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
-import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, neverNull, noOp} from "../api/common/utils/Utils"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
@@ -13,12 +14,10 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createDropdown} from "../gui/base/DropdownN"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
-import type {Language, LanguageCode} from "../misc/LanguageViewModel"
+import type {LanguageCode} from "../misc/LanguageViewModel"
 import {createEmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {clone} from "../api/common/utils/Utils"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
-import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
-import {createEmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import {NotFoundError} from "../api/common/error/RestError"
 import {EntityClient} from "../api/common/EntityClient"
 import {TemplateEditorModel} from "./TemplateEditorModel"
@@ -27,7 +26,7 @@ import {TemplateEditorModel} from "./TemplateEditorModel"
 	Creates an Editor Popup in which you can create a new template or edit an existing one
 */
 
-export class TemplateEditor { // TODO: Move to templateEditorModel
+export class TemplateEditor {
 	template: EmailTemplate
 	view: Function
 	_templateContentEditor: HtmlEditor
