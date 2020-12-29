@@ -1,19 +1,18 @@
 // @flow
 
-import {knowledgebase} from "./KnowledgeBaseModel"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 
-export function knowledgeBaseSearch(text: string): Array<KnowledgeBaseEntry> {
+export function knowledgeBaseSearch(text: string, allEntries: Array<KnowledgeBaseEntry>, filterKeywords: Array<string>): Array<KnowledgeBaseEntry> {
 	let matchesKeywordQuery = [] // entries that match the keyword search
 	let matchesKeywordAndTitleQuery = [] // entries that match the keyword and title search
-	if (knowledgebase.getFilterKeywords().length > 0) { // for no filter keywords we do not have to search -> else
-		knowledgebase.getAllEntries().forEach(entry => {
-			if (hasAllFilterKeywords(entry)) { // check for every entry if it has all filter keywords included
+	if (filterKeywords.length > 0) { // for no filter keywords we do not have to search -> else
+		allEntries.forEach(entry => {
+			if (hasAllFilterKeywords(entry, filterKeywords)) { // check for every entry if it has all filter keywords included
 				matchesKeywordQuery.push(entry)
 			}
 		})
 	} else {
-		matchesKeywordQuery = knowledgebase.getAllEntries()
+		matchesKeywordQuery = allEntries
 	}
 	if (text) { // based on matched keywords search for title and push it to separate array
 		matchesKeywordQuery.forEach(entry => {
@@ -28,15 +27,14 @@ export function knowledgeBaseSearch(text: string): Array<KnowledgeBaseEntry> {
 	}
 }
 
-function hasAllFilterKeywords(entry: KnowledgeBaseEntry): boolean { // returns false if one keyword of the entry is not included in the filter keywords
-	const filterKeywords = knowledgebase.getFilterKeywords()
+function hasAllFilterKeywords(entry: KnowledgeBaseEntry, allFilterKeywords: Array<string>): boolean { // returns false if one keyword of the entry is not included in the filter keywords
 	let foundKeywords = [] // Array for the found keywords of the entry
-	for (const keyword of entry.keywords) { // iterate over all keywords of the entry and check if its includes in the filter keywords
-		if (filterKeywords.includes(keyword.keyword)) {
+	for (const keyword of entry.keywords) { // iterate over all keywords of the entry and check if its included in the filter keywords
+		if (allFilterKeywords.includes(keyword.keyword)) {
 			foundKeywords.push(keyword.keyword)
 		}
 	}
-	return (foundKeywords.length === filterKeywords.length)
+	return (foundKeywords.length === allFilterKeywords.length)
 }
 
 /**

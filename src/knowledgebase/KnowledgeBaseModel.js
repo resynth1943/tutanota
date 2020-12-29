@@ -130,11 +130,10 @@ export class KnowledgeBaseModel {
 	}
 
 	search(text: string): void {
-		this._displayedEntries(knowledgeBaseSearch(text))
+		this._displayedEntries(knowledgeBaseSearch(text, this.getAllEntries(), this.getFilterKeywords()))
 	}
 
 	getAllKeywords(): Array<string> {
-		console.log("getAllKeywords was called", this._allKeywords)
 		return this._allKeywords.sort()
 	}
 
