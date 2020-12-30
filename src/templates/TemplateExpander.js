@@ -54,7 +54,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 		}, [
 			m(".mt-negative-s", [
 				m(DropDownSelectorN, {
-					label: () => "Choose Language", // TODO: Add TranslationKey
+					label: "chooseLanguage_action",
 					items: this._returnLanguages(template.contents),
 					selectedValue: stream(selectedLanguage),
 					dropdownWidth: 250,
@@ -73,7 +73,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 			),
 			m(".flex.justify-right", [
 				m(ButtonN, {
-					label: () => "Submit", // TODO: Add TranslationKey
+					label: "submit_label",
 					click: (e) => {
 						attrs.onSubmitted(model.getContentFromLanguage(selectedLanguage))
 						e.stopPropagation()
@@ -81,7 +81,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 					type: ButtonType.Primary,
 				}),
 				m(ButtonN, {
-					label: () => "Edit", // TODO: Add TranslationKey
+					label: "edit_action",
 					click: () => {
 						new TemplateEditor(template, listIdPart(template._id), neverNull(template._ownerGroup), locator.entityClient)
 					},
@@ -89,9 +89,9 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 
 				}),
 				m(ButtonN, {
-					label: () => "Remove", // TODO: Add TranslationKey
+					label: "remove_action",
 					click: () => {
-						Dialog.confirm(() => "Are you sure you want to delete the Template?").then((confirmed) => {  // TODO: Add TranslationKey
+						Dialog.confirm("deleteTemplate_msg").then((confirmed) => {
 							if (confirmed) {
 								const promise = locator.entityClient.erase(template)
 								promise.then(() => console.log("removed"))

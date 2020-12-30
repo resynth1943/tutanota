@@ -120,6 +120,7 @@ export class KnowledgeBaseModel {
 	}
 
 	initAllKeywords() {
+		this._allKeywords = []
 		for (const entry of this._allEntries) {
 			for (const keyword of entry.keywords) {
 				if (!this._allKeywords.includes(keyword.keyword)) {

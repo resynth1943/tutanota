@@ -237,7 +237,7 @@ export class KnowledgeBaseEditor {
 		let headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [{label: 'cancel_action', click: dialogCloseAction, type: ButtonType.Secondary}],
 			right: [{label: 'save_action', click: () => this._save(), type: ButtonType.Primary}],
-			middle: () => lang.get(this.entry._id ? "editEntry_action" : "createEntry_action")
+			middle: () => lang.get(this.entry._id ? "editEntry_label" : "createEntry_action")
 		}
 		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 		this._dialog.show()

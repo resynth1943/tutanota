@@ -81,7 +81,7 @@ export class TemplatePopup implements ModalComponent {
 			injectionsRight: () => m(ButtonN, this._addTemplateButtonAttrs)
 		}
 		this._addTemplateButtonAttrs = {
-			label: () => "Create Template", // TODO: Add TranslationKey
+			label: "createTemplate_action",
 			type: ButtonType.Action,
 			click: () => {
 				locator.mailModel.getUserMailboxDetails().then(details => {

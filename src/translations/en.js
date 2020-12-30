@@ -1289,7 +1289,6 @@ module.exports = {
 		"addStep_action": "Add step",
 		"emptyStepContent_msg": "The content of step {step} is empty!",
 		"deleteStep_msg": "Are you sure you want to delete Step {stepNumber}",
-		"editEntry_action": "Edit entry",
 		"createEntry_action": "Create entry",
 		"useCase_label": "Use Case",
 		"keywordExistsErr_msg": "Duplicate keywords arent allowed!",
@@ -1307,5 +1306,7 @@ module.exports = {
 		"linkedTemplateTag_label": "linked template tag: ",
 		"chooseKeyword_action": "choose filter keyword",
 		"searchTitle_label": "search for title",
+		"deleteTemplate_msg": "Are you sure you want to delete the Template?",
+		"addTemplate_label": "Add template",
 	}
 }
