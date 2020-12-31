@@ -13,7 +13,6 @@ import {
 	appendEmailSignature,
 	conversationTypeString,
 	createInlineImage,
-	getDefaultSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
 	parseMailtoUrl,
@@ -57,8 +56,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
-import {assertNotNull, defer, downcast} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, noOp, defer} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "../templates/TemplatePopup"

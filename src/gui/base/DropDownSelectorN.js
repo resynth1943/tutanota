@@ -30,7 +30,6 @@ export type DropDownSelectorAttrs<T> = {
 	icon?: AllIconsEnum,
 	disabled?: boolean,
 	class?: string,
-	onButtonCreate?: (vnode: Vnode<*>) => void
 }
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
@@ -50,8 +49,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 					label: a.label,
 					icon: () => a.icon ? a.icon : BootIcons.Expand,
 					click: noOp,
-					colors: ButtonColors.DrawerNav,
-					oncreate: a.onButtonCreate
+					colors: ButtonColors.DrawerNav
 				})
 		})
 	}
@@ -63,8 +61,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 			        .map(item => {
 				        return {
 					        label: () => item.name,
-					        click: (e) => {
-					        	e.stopPropagation()
+					        click: () => {
 						        if (a.selectionChangedHandler) {
 							        a.selectionChangedHandler(item.value)
 						        } else {
