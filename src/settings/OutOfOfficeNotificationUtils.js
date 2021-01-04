@@ -57,6 +57,7 @@ export function notificationMessagesAreValid(messages: OutOfOfficeNotificationMe
 	messages.forEach((message) => {
 		if (message.subject.length === 0
 			|| message.message.length === 0
+			|| message.message === "<div><br></div>" // TODO proper check
 			|| message.subject.length > OUT_OF_OFFICE_SUBJECT_MAX_LENGTH
 			|| message.message.length > OUT_OF_OFFICE_MESSAGE_MAX_LENGTH) {
 			result = false
