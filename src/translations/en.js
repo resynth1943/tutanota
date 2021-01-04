@@ -1268,7 +1268,7 @@ module.exports = {
 		"outOfOfficeInternal_msg": "Inside your organization",
 		"outOfOfficeExternal_msg": "Outside your organization",
 		"outOfOfficeEveryone_msg": "To everyone",
-		"outOfOfficeMessageInvalid_msg": "The subject and/or message is invalid.",
+		"outOfOfficeMessageInvalid_msg": "The subject and/or message is invalid.\nEmpty subjects or messages are not allowed.\nMaximum subject size: 128 characters. Maximum message size: 20kb.",
 		"outOfOfficeTimeRange_msg": "Only send during this time range:",
 		"outOfOfficeTimeRangeHelp_msg": "Check to pick dates.",
 		"outOfOfficeReminder_label": "Out of office notifications are activated.",
@@ -1277,5 +1277,6 @@ module.exports = {
 		"insideOnly_label": "Inside only",
 		"insideOutside_label": "Inside/outside",
 		"everyone_label": "Everyone",
+		"outOfOfficeUnencrypted_msg": "Please note that out of office notifications are sent in plaintext to the server and to future recipients."
 	}
 }

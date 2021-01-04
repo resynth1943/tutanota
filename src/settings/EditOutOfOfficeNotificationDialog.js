@@ -209,6 +209,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: ?
 						m(notificationData.startDatePicker), m(notificationData.endDatePicker)
 					])
 					: null,
+				m(".mt-l", lang.get("outOfOfficeUnencrypted_msg",)),
 				defaultEnabled
 					? [
 						m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
