@@ -83,8 +83,8 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"knowledgeBase": {
 			"name": "knowledgeBase",
-			"id": 1166,
-			"since": 45,
+			"id": 1193,
+			"since": 46,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "KnowledgeBaseRef",
@@ -101,8 +101,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"templates": {
 			"name": "templates",
-			"id": 1143,
-			"since": 44,
+			"id": 1170,
+			"since": 45,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "EmailTemplateRef",
@@ -140,7 +140,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {

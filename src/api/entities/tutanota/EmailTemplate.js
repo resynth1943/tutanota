@@ -7,17 +7,17 @@ import type {EmailTemplateContent} from "./EmailTemplateContent"
 export const EmailTemplateTypeRef: TypeRef<EmailTemplate> = new TypeRef("tutanota", "EmailTemplate")
 export const _TypeModel: TypeModel = {
 	"name": "EmailTemplate",
-	"since": 44,
+	"since": 45,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 1130,
-	"rootId": "CHR1dGFub3RhAARq",
+	"id": 1157,
+	"rootId": "CHR1dGFub3RhAASF",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1134,
-			"since": 44,
+			"id": 1161,
+			"since": 45,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -25,8 +25,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_id": {
 			"name": "_id",
-			"id": 1132,
-			"since": 44,
+			"id": 1159,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -34,8 +34,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1136,
-			"since": 44,
+			"id": 1163,
+			"since": 45,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -43,8 +43,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1135,
-			"since": 44,
+			"id": 1162,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -52,8 +52,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1133,
-			"since": 44,
+			"id": 1160,
+			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -61,8 +61,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"tag": {
 			"name": "tag",
-			"id": 1138,
-			"since": 44,
+			"id": 1165,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -70,8 +70,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"title": {
 			"name": "title",
-			"id": 1137,
-			"since": 44,
+			"id": 1164,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -81,8 +81,8 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"contents": {
 			"name": "contents",
-			"id": 1139,
-			"since": 44,
+			"id": 1166,
+			"since": 45,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "EmailTemplateContent",
@@ -90,7 +90,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createEmailTemplate(values?: $Shape<$Exact<EmailTemplate>>): EmailTemplate {

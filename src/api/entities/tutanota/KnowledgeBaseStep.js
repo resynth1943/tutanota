@@ -6,17 +6,17 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const KnowledgeBaseStepTypeRef: TypeRef<KnowledgeBaseStep> = new TypeRef("tutanota", "KnowledgeBaseStep")
 export const _TypeModel: TypeModel = {
 	"name": "KnowledgeBaseStep",
-	"since": 45,
+	"since": 46,
 	"type": "AGGREGATED_TYPE",
-	"id": 1144,
-	"rootId": "CHR1dGFub3RhAAR4",
+	"id": 1171,
+	"rootId": "CHR1dGFub3RhAAST",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1145,
-			"since": 45,
+			"id": 1172,
+			"since": 46,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -24,8 +24,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"description": {
 			"name": "description",
-			"id": 1147,
-			"since": 45,
+			"id": 1174,
+			"since": 46,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -33,8 +33,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"stepNumber": {
 			"name": "stepNumber",
-			"id": 1146,
-			"since": 45,
+			"id": 1173,
+			"since": 46,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -44,8 +44,8 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"template": {
 			"name": "template",
-			"id": 1148,
-			"since": 45,
+			"id": 1175,
+			"since": 46,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "EmailTemplate",
@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createKnowledgeBaseStep(values?: $Shape<$Exact<KnowledgeBaseStep>>): KnowledgeBaseStep {

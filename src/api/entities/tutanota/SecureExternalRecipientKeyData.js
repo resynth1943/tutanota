@@ -108,7 +108,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createSecureExternalRecipientKeyData(values?: $Shape<$Exact<SecureExternalRecipientKeyData>>): SecureExternalRecipientKeyData {

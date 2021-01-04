@@ -6,17 +6,17 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const EmailTemplateRefTypeRef: TypeRef<EmailTemplateRef> = new TypeRef("tutanota", "EmailTemplateRef")
 export const _TypeModel: TypeModel = {
 	"name": "EmailTemplateRef",
-	"since": 44,
+	"since": 45,
 	"type": "AGGREGATED_TYPE",
-	"id": 1140,
-	"rootId": "CHR1dGFub3RhAAR0",
+	"id": 1167,
+	"rootId": "CHR1dGFub3RhAASP",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1141,
-			"since": 44,
+			"id": 1168,
+			"since": 45,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -26,8 +26,8 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"list": {
 			"name": "list",
-			"id": 1142,
-			"since": 44,
+			"id": 1169,
+			"since": 45,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "EmailTemplate",
@@ -36,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createEmailTemplateRef(values?: $Shape<$Exact<EmailTemplateRef>>): EmailTemplateRef {

@@ -6,17 +6,17 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const KnowledgeBaseEntryKeywordsTypeRef: TypeRef<KnowledgeBaseEntryKeywords> = new TypeRef("tutanota", "KnowledgeBaseEntryKeywords")
 export const _TypeModel: TypeModel = {
 	"name": "KnowledgeBaseEntryKeywords",
-	"since": 45,
+	"since": 46,
 	"type": "AGGREGATED_TYPE",
-	"id": 1149,
-	"rootId": "CHR1dGFub3RhAAR9",
+	"id": 1176,
+	"rootId": "CHR1dGFub3RhAASY",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1150,
-			"since": 45,
+			"id": 1177,
+			"since": 46,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -24,8 +24,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"keyword": {
 			"name": "keyword",
-			"id": 1151,
-			"since": 45,
+			"id": 1178,
+			"since": 46,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createKnowledgeBaseEntryKeywords(values?: $Shape<$Exact<KnowledgeBaseEntryKeywords>>): KnowledgeBaseEntryKeywords {

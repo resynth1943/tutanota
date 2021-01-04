@@ -36,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createCalendarPostReturn(values?: $Shape<$Exact<CalendarPostReturn>>): CalendarPostReturn {

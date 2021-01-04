@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createUnencryptedStatisticLogEntry(values?: $Shape<$Exact<UnencryptedStatisticLogEntry>>): UnencryptedStatisticLogEntry {

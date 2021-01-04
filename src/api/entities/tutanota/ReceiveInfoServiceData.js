@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createReceiveInfoServiceData(values?: $Shape<$Exact<ReceiveInfoServiceData>>): ReceiveInfoServiceData {

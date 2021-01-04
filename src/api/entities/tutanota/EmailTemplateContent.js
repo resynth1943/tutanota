@@ -6,17 +6,17 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const EmailTemplateContentTypeRef: TypeRef<EmailTemplateContent> = new TypeRef("tutanota", "EmailTemplateContent")
 export const _TypeModel: TypeModel = {
 	"name": "EmailTemplateContent",
-	"since": 44,
+	"since": 45,
 	"type": "AGGREGATED_TYPE",
-	"id": 1126,
-	"rootId": "CHR1dGFub3RhAARm",
+	"id": 1153,
+	"rootId": "CHR1dGFub3RhAASB",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1127,
-			"since": 44,
+			"id": 1154,
+			"since": 45,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -24,8 +24,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"languageCode": {
 			"name": "languageCode",
-			"id": 1129,
-			"since": 44,
+			"id": 1156,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -33,8 +33,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"text": {
 			"name": "text",
-			"id": 1128,
-			"since": 44,
+			"id": 1155,
+			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createEmailTemplateContent(values?: $Shape<$Exact<EmailTemplateContent>>): EmailTemplateContent {

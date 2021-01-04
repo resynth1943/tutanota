@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "45"
+	"version": "46"
 }
 
 export function createDeleteGroupData(values?: $Shape<$Exact<DeleteGroupData>>): DeleteGroupData {
