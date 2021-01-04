@@ -11,7 +11,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import {locator} from "../api/main/MainLocator"
-import {Keys, OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotificationMessageType} from "../api/common/TutanotaConstants"
+import {EmailSignatureType, Keys, OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotificationMessageType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {CheckboxAttrs} from "../gui/base/CheckboxN"
 import {CheckboxN} from "../gui/base/CheckboxN"
@@ -21,6 +21,8 @@ import {px} from "../gui/size"
 import {ButtonType} from "../gui/base/ButtonN"
 import {getDayShifted, getStartOfDay, getStartOfNextDay} from "../api/common/utils/DateUtils"
 import {getDefaultNotificationLabel, getMailMembership, notificationMessagesAreValid} from "./OutOfOfficeNotificationUtils"
+import {logins} from "../api/main/LoginController"
+import {getDefaultSignature} from "../mail/MailUtils"
 
 const RecipientMessageType = Object.freeze({
 	EXTERNAL_TO_EVERYONE: 0,
@@ -41,32 +43,26 @@ class NotificationData {
 	defaultOutOfOfficeEditor: HtmlEditor
 	timeRangeEnabled: Stream<boolean> = stream(false)
 	recipientMessageTypes: Stream<RecipientMessageTypeEnum> = stream(RecipientMessageType.EXTERNAL_TO_EVERYONE)
-	initialSetup: boolean
 
 	constructor(outOfOfficeNotification: ?OutOfOfficeNotification) {
-		if (!outOfOfficeNotification) {
-			this.outOfOfficeNotification = createOutOfOfficeNotification()
-			this.initialSetup = true
-		} else {
-			this.outOfOfficeNotification = outOfOfficeNotification
-			this.initialSetup = false
-		}
 		this.mailMembership = getMailMembership()
 		this.enabled = stream(false)
 		this.startDatePicker = new DatePicker(getStartOfTheWeekOffsetForUser(), "dateFrom_label")
 		this.endDatePicker = new DatePicker(getStartOfTheWeekOffsetForUser(), "dateTo_label")
-		this.organizationSubject = stream(lang.get("outOfOfficeDefaultSubject_msg"))
-		this.defaultSubject = stream(lang.get("outOfOfficeDefaultSubject_msg"))
+		this.organizationSubject = stream("")
+		this.defaultSubject = stream("")
 		this.organizationOutOfOfficeEditor = new HtmlEditor("message_label", {enabled: true})
 			.setMinHeight(100)
 			.showBorders()
-			.setValue(lang.get("outOfOfficeDefault_msg"))
 		this.defaultOutOfOfficeEditor = new HtmlEditor("message_label", {enabled: true})
 			.setMinHeight(100)
 			.showBorders()
-			.setValue(lang.get("outOfOfficeDefault_msg"))
-		this.startDatePicker.setDate(getStartOfDay(new Date()))
-		if (outOfOfficeNotification) {
+		this._setDefaultMessages()
+		if (!outOfOfficeNotification) {
+			this.startDatePicker.setDate(getStartOfDay(new Date()))
+			this.outOfOfficeNotification = createOutOfOfficeNotification()
+		} else {
+			this.outOfOfficeNotification = outOfOfficeNotification
 			this.enabled(outOfOfficeNotification.enabled)
 			let defaultEnabled = false
 			let organizationEnabled = false
@@ -97,6 +93,25 @@ class NotificationData {
 				this.endDatePicker.setDate(shiftedEndDate)
 			}
 		}
+	}
+
+	_setDefaultMessages() {
+		const templateSubject = lang.get("outOfOfficeDefaultSubject_msg")
+		const props = logins.getUserController().props
+		let signature = ""
+		if (props.emailSignatureType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+			signature = props.customEmailSignature
+		} else if (props.emailSignatureType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+			signature = getDefaultSignature()
+		}
+		let templateMessage = lang.get("outOfOfficeDefault_msg")
+		if (signature.length) {
+			templateMessage = `${templateMessage}\n<br>${signature}`
+		}
+		this.organizationSubject(templateSubject)
+		this.defaultSubject(templateSubject)
+		this.defaultOutOfOfficeEditor.setValue(templateMessage)
+		this.organizationOutOfOfficeEditor.setValue(templateMessage)
 	}
 
 	/**
