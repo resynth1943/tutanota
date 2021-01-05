@@ -1,7 +1,6 @@
 import fs from "fs-extra"
 import {default as path, dirname} from "path"
 import {fileURLToPath} from "url"
-import * as SystemConfig from "./SystemConfig.js"
 import * as LaunchHtml from "./LaunchHtml.js"
 import * as env from "./env.js"
 import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
@@ -70,7 +69,7 @@ async function prepareAssets(watch, stage, host, version) {
 	])
 }
 
-export async function build({watch, desktop, stage, host}, log) {
+export async function build({watch, desktop, stage, host, entryPoints}, log) {
 	const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 	await prepareAssets(watch, stage, host, version)
 	const start = Date.now()
@@ -78,7 +77,7 @@ export async function build({watch, desktop, stage, host}, log) {
 
 	log("Bundling...")
 	const bundle = await nollup({
-		input: ["src/app.js", "src/api/worker/WorkerImpl.js"],
+		input: entryPoints.web,
 		plugins: rollupDebugPlugins(path.resolve("."))
 			.concat(watch ? hmr({bundleId: ''}) : []),
 	})
@@ -101,15 +100,15 @@ export async function build({watch, desktop, stage, host}, log) {
 	log("Bundled in", Date.now() - start)
 
 	let desktopBundles
-	if (desktop) {
-		desktopBundles = await buildAndStartDesktop(log, version)
+	if (entryPoints.desktop) {
+		desktopBundles = await buildAndStartDesktop(entryPoints.desktop, log, version)
 	} else {
 		desktopBundles = []
 	}
 	return [{bundle, generate: generateBundle}, ...desktopBundles]
 }
 
-async function buildAndStartDesktop(log, version) {
+async function buildAndStartDesktop({main, preload}, log, version) {
 	log("Building desktop client...")
 
 	const packageJSON = (await import('./electron-package-json-template.js')).default({
@@ -128,7 +127,7 @@ async function buildAndStartDesktop(log, version) {
 	log("desktop main bundle")
 	const nodePreBundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
-		input: path.join(root, "src/desktop/DesktopMain.js"),
+		input: path.join(root, main),
 		plugins: [
 			...rollupDebugPlugins(path.resolve(".")),
 			nativeDepWorkaroundPlugin(false),
@@ -155,7 +154,7 @@ async function buildAndStartDesktop(log, version) {
 	log("desktop preload bundle")
 	const preloadPreBundle = await nollup({
 		// Preload is technically separate but it doesn't import anything from the desktop anyway so we can bundle it together.
-		input: path.join(root, "src/desktop/preload.js"),
+		input: path.join(root, preload),
 		plugins: [
 			...rollupDebugPlugins(path.resolve(".")),
 			{
