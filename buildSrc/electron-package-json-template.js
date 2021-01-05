@@ -68,6 +68,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 		},
 		"dependencies": {
 			"electron-updater": pj.devDependencies["electron-updater"],
+			// This is not ideal, keytar pulls some rebuild dependencies into runtime. We should probably use our own rebuild versions
 			"keytar": pj.dependencies.keytar
 		},
 		"build": {
