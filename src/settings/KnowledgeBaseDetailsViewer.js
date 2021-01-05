@@ -19,6 +19,10 @@ import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 
+/**
+ *  Renders one knowledgebase entry in the settings
+ */
+
 export class KnowledgeBaseDetailsViewer {
 	view: Function
 	_contentEditor: HtmlEditor

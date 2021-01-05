@@ -1279,6 +1279,7 @@ module.exports = {
 		"emptyTitle_msg": "Der Titel ist leer",
 		"templateSettings_label": "Vorlagen Bearbeiten",
 		"nothingFound_label": "Keine Vorlagen gefunden",
-		"loadingTemplates_label": "Vorlagen werden geladen..."
+		"loadingTemplates_label": "Vorlagen werden geladen...",
+		"noEntryFound_label": "Keine Einträge gefunden"
 	}
 }

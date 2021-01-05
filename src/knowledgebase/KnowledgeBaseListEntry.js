@@ -10,9 +10,9 @@ export type KnowledgebaseListEntryAttrs = {
 
 export const KNOWLEDGEBASE_LIST_ENTRY_HEIGHT = 70
 
-/*
-*renders one list entry of the knowledgebase
-*/
+/**
+ *  Renders one list entry of the knowledgebase
+ */
 
 export class KnowledgeBaseListEntry implements MComponent<KnowledgebaseListEntryAttrs> {
 	view(vnode: Vnode<KnowledgebaseListEntryAttrs>): Children {

@@ -19,7 +19,7 @@ import {OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {EntityClient} from "../api/common/EntityClient"
 
-/*
+/**
 *   Model that holds main logic for the Template Feature.
 *   Handles things like returning the selected Template, selecting Templates, indexes, scrolling.
 */
@@ -181,7 +181,6 @@ export class TemplateModel {
 		if (this._selectedTemplate) {
 			for (const content of this._selectedTemplate.contents) {
 				if (content.languageCode === languageCode) {
-					console.log(content.text)
 					return content.text
 				}
 			}

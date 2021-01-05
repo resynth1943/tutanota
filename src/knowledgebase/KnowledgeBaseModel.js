@@ -14,6 +14,13 @@ import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
 
+/**
+ *   Model that holds main logic for the Knowdledgebase.
+ */
+
+export const ENABLE_VIEW = true;
+export const DISABLE_VIEW = false;
+
 export class KnowledgeBaseModel {
 	_allEntries: Array<KnowledgeBaseEntry>
 	_displayedEntries: Stream<Array<KnowledgeBaseEntry>>
@@ -111,7 +118,7 @@ export class KnowledgeBaseModel {
 		return this._showTemplateDetailsViewer
 	}
 
-	setEntryView(status: boolean) { // TODO: create type instead of bool, something like "on" | "off"
+	setEntryView(status: boolean) {
 		this._showEntryDetailsViewer = status
 	}
 

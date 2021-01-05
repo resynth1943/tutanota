@@ -10,7 +10,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {KnowledgeBaseTemplateView} from "./KnowledgeBaseTemplateView"
-import {knowledgebase} from "./KnowledgeBaseModel"
+import {DISABLE_VIEW, ENABLE_VIEW, knowledgebase} from "./KnowledgeBaseModel"
 import {KnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 import {listIdPart} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
@@ -24,6 +24,10 @@ type KnowledgeBaseEntryViewAttrs = {
 	onSubmit: (string) => void,
 }
 
+/**
+ *  Renders one knowledgebase entry
+ */
+
 export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryViewAttrs> {
 	_templates: {[id: Id]: EmailTemplate}
 	_step: KnowledgeBaseStep
@@ -36,7 +40,6 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 	view({attrs}: Vnode<KnowledgeBaseEntryViewAttrs>): Children {
 		const {title, keywords, steps, useCase} = attrs.entry
 		if (knowledgebase.isEntryViewActive()) {
-
 			return m(".flex.flex-column.abs.elevated-bg", {
 				style: {
 					height: px(KNOWLEDGEBASE_PANEL_HEIGHT),
@@ -46,8 +49,8 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 				// removed stopPropagation here, didn't break when testing, but if it does, just add it back
 			}, m(".ml-s.mr-s", [
 				renderHeaderBar(title, () => {
-					knowledgebase.setTemplateView(false)
-					knowledgebase.setEntryView(false)
+					knowledgebase.setTemplateView(DISABLE_VIEW)
+					knowledgebase.setEntryView(DISABLE_VIEW)
 				}, false),
 				m(".flex", [
 					m(ButtonN, {
@@ -65,8 +68,8 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 								if (confirmed) {
 									const promise = this._entityClient.erase(attrs.entry)
 									promise.then(() => {
-										knowledgebase.setTemplateView(false)
-										knowledgebase.setEntryView(false)
+										knowledgebase.setTemplateView(DISABLE_VIEW)
+										knowledgebase.setEntryView(DISABLE_VIEW)
 									})
 								}
 							})
@@ -126,8 +129,8 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 					click: () => {
 						// open template details view
 						this._step = step
-						knowledgebase.setTemplateView(true)
-						knowledgebase.setEntryView(false)
+						knowledgebase.setTemplateView(ENABLE_VIEW)
+						knowledgebase.setEntryView(DISABLE_VIEW)
 					},
 					type: ButtonType.Primary
 				})

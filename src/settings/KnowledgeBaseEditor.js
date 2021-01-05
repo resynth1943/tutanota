@@ -25,6 +25,10 @@ import type {KeyPress} from "../misc/KeyManager"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import {knowledgebase} from "../knowledgebase/KnowledgeBaseModel"
 
+/**
+ *  Editor to edit / add a knowledgebase entry
+ */
+
 export class KnowledgeBaseEditor {
 	_editorModel: KnowledgeBaseEditorModel
 	entry: KnowledgeBaseEntry

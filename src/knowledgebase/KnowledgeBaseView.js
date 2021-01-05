@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {px} from "../gui/size"
-import {knowledgebase} from "./KnowledgeBaseModel"
+import {ENABLE_VIEW, knowledgebase} from "./KnowledgeBaseModel"
 import {theme} from "../gui/theme"
 import {Icons} from "../gui/base/icons/Icons"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
@@ -24,18 +24,20 @@ type KnowledgebaseViewAttrs = {
 }
 
 export const KNOWLEDGEBASE_PANEL_HEIGHT = 840;
-export const KNOWLEDGEBASE_PANEL_WIDTH = 575;
+export const KNOWLEDGEBASE_PANEL_WIDTH = 500;//575;
+
+/**
+ *  Renders the SearchBar and the list of knowledgebase entries besides the MailEditor
+ */
 
 export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 	_searchbarValue: Stream<string>
 	_selectedKeyword: Stream<string>
-	_detailsViewer: boolean
 	_redrawStream: Stream<*>
 
 	constructor() {
 		this._selectedKeyword = stream("")
 		this._searchbarValue = stream("")
-		this._detailsViewer = false
 		knowledgebase.initAllKeywords()
 		this._redrawStream = knowledgebase.getDisplayedEntries().map(() => m.redraw())
 	}
@@ -53,7 +55,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				m(".mr-s.scroll", [ // LIST
 					knowledgebase.containsResult()
 						? knowledgebase.getDisplayedEntries()().map((entry, index) => this._renderListEntry(entry, index))
-						: m("", lang.get("nothingFound_label"))
+						: m(".center", lang.get("noEntryFound_label"))
 				])
 			]))
 		} else {
@@ -68,7 +70,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 
 	_renderHeader(): Children {
 		const addKeywordAttrs: ButtonAttrs = {
-			label: () => "",
+			label: "chooseFilterKeyword_label",
 			click: () => {
 				knowledgebase.initAllKeywords() // we need to call initAllKeywords here, because the knowledgebase isn't aware of any new entry and its keywords
 				this._selectedKeyword(knowledgebase.getAllKeywords()[0])
@@ -114,7 +116,9 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 			value: this._searchbarValue,
 			injectionsRight: () => [
 				m(ButtonN, addEntryAttrs),
-				m(ButtonN, addKeywordAttrs)
+				knowledgebase.getAllEntries().length > 0 // only show "addFilterKeywords-Button" when entries exist
+					? m(ButtonN, addKeywordAttrs)
+					: null
 			],
 			oninput: (input) => {
 				knowledgebase.search(input)
@@ -157,7 +161,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				},
 				onclick: () => {
 					knowledgebase.setSelectedEntry(entry)
-					knowledgebase.setEntryView(true)
+					knowledgebase.setEntryView(ENABLE_VIEW)
 				}
 			}, [
 				m(KnowledgeBaseListEntry, {entry: entry}),

@@ -11,6 +11,10 @@ import {elementIdPart} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {createKnowledgeBaseEntryKeywords} from "../api/entities/tutanota/KnowledgeBaseEntryKeywords"
 
+/**
+ *  Model, which includes the logic of the editor
+ */
+
 export class KnowledgeBaseEditorModel {
 	_addedKeywords: Array<KnowledgeBaseEntryKeywords>
 	_addedSteps: Array<KnowledgeBaseStep>

@@ -1294,4 +1294,6 @@ export type TranslationKeyType = "about_label"
 	| "searchTitle_label"
 	| "deleteTemplate_msg"
 	| "addTemplate_label"
+	| "noEntryFound_label"
+	| "chooseFilterKeyword_label"
 

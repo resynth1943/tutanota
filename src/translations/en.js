@@ -1277,10 +1277,10 @@ module.exports = {
 		"submit_label": "Submit",
 		"content_label": "Content",
 		"languageContentEmpty_msg": "The content of {language} is empty!",
-		"deleteLanguageContent_msg" : "Are you sure you want to delete {language}",
-		"emptyTitle_msg" : "The Title is Empty",
+		"deleteLanguageContent_msg": "Are you sure you want to delete {language}",
+		"emptyTitle_msg": "The Title is Empty",
 		"templateSettings_label": "Template Settings",
-		"nothingFound_label": "No Templates Found",
+		"nothingFound_label": "No Templates found",
 		"loadingTemplates_label": "Loading templates...",
 		"knowledgebase_label": "Knowledgebase",
 		"emptyUseCase_msg": "The Use Case is Empty",
@@ -1308,5 +1308,7 @@ module.exports = {
 		"searchTitle_label": "search for title",
 		"deleteTemplate_msg": "Are you sure you want to delete the Template?",
 		"addTemplate_label": "Add template",
+		"noEntryFound_label": "No Entries found",
+		"chooseFilterKeyword_label": "Add filter keyword"
 	}
 }
