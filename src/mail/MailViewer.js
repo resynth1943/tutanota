@@ -686,7 +686,8 @@ export class MailViewer {
 						moreButtons.push({
 							label: "disallowExternalContent_label",
 							click: () => {
-								this._setContentBlockingStatus(ContentBlockingStatus.Show)
+								this._setContentBlockingStatus(ContentBlockingStatus.Block)
+								this._showContentBlockingBanner = false
 							},
 							icon: () => Icons.Picture,
 							type: ButtonType.Dropdown
@@ -1208,7 +1209,9 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return this._mailModel.getMailboxDetailsForMail(this.mail)
-				           .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlockingPolicy === ContentBlockingPolicy.Block, this._inlineImages, mailboxDetails))
+				           .then(mailboxDetails =>
+					           newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(),
+						           this._contentBlockingStatus === ContentBlockingStatus.Block, this._inlineImages, mailboxDetails))
 				           .then(editorDialog => editorDialog.show())
 				           .catch(UserError, showUserError)
 			}
@@ -1554,17 +1557,20 @@ export class MailViewer {
 
 		const status = this._contentBlockingStatus
 
-		let title, okLabel, okAction
+		let title, okLabel, okAction, notOkLabel
+
 
 		if (status === ContentBlockingStatus.Block) {
 			title = "contentBlocked_msg"
 			okLabel = "allowExternalContent_label"
+			notOkLabel = "ignore_label"
 			okAction = () => {
 				this._setContentBlockingStatus(ContentBlockingStatus.Show)
 			}
 		} else if (status === ContentBlockingStatus.Show) {
 			title = "contentAllowed_msg"
-			okLabel = "alwaysAllowExternalContent_label"
+			okLabel = "yes_label"
+			notOkLabel = "no_label"
 			okAction = () => {
 				this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
 			}
@@ -1584,7 +1590,7 @@ export class MailViewer {
 					click: okAction
 				},
 				{
-					text: "ignore_label",
+					text: notOkLabel,
 					click: () => this._showContentBlockingBanner = false
 				}
 			]

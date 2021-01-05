@@ -342,15 +342,6 @@ export class WorkerImpl {
 			getEventByUid: (message: Request) => {
 				return locator.calendar.getEventByUid(...message.args)
 			},
-			addAllowedExternalSender: (message: Request) => {
-				return locator.indexer.addAllowedExternalSender(...message.args)
-			},
-			removeAllowedExternalSender: (message: Request) => {
-				return locator.indexer.removeAllowedExternalSender(...message.args)
-			},
-			isAllowedExternalSender: (message: Request) => {
-				return locator.indexer.isAllowedExternalSender(...message.args)
-			}
 
 			generateGiftCard: (message: Request) => {
 				return locator.giftCards.generateGiftCard(message.args[0], message.args[1], message.args[2])
@@ -362,7 +353,16 @@ export class WorkerImpl {
 
 			redeemGiftCard: (message: Request) => {
 				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
-			}
+			},
+			addAllowedExternalSender: (message: Request) => {
+				return locator.indexer.addAllowedExternalSender(...message.args)
+			},
+			removeAllowedExternalSender: (message: Request) => {
+				return locator.indexer.removeAllowedExternalSender(...message.args)
+			},
+			isAllowedExternalSender: (message: Request) => {
+				return locator.indexer.isAllowedExternalSender(...message.args)
+			},
 		})
 
 		// only register oncaught error handler if we are in the *real* worker scope
