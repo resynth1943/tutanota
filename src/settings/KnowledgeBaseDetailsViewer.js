@@ -11,10 +11,9 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
 import {KnowledgeBaseEditor} from "./KnowledgeBaseEditor"
-import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
+import {elementIdPart, getListId, listIdPart} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
-import {px} from "../gui/size"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
@@ -42,7 +41,7 @@ export class KnowledgeBaseDetailsViewer {
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
-				new KnowledgeBaseEditor(entry, listIdPart(entry._id), neverNull(entry._ownerGroup), locator.entityClient)
+				new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
 			}
 		}
 
@@ -53,8 +52,8 @@ export class KnowledgeBaseDetailsViewer {
 			click: () => {
 				Dialog.confirm("deleteEntryConfirm_msg").then((confirmed) => {
 					if (confirmed) {
-						const promise = entityClient.erase(entry)
-						promise.then(() => console.log("removed"))
+						entityClient.erase(entry)
+						            .then()
 					}
 				})
 			}
@@ -95,15 +94,14 @@ export class KnowledgeBaseDetailsViewer {
 	}
 
 	_fetchTemplates(entry: KnowledgeBaseEntry) {
-		for (const step of entry.steps) {
+		Promise.each(entry.steps, step => {
 			const entryStepTemplateId = step.template
 			if (entryStepTemplateId) {
-				this._entityClient.load(EmailTemplateTypeRef, entryStepTemplateId).then(template => {
+				return this._entityClient.load(EmailTemplateTypeRef, entryStepTemplateId).then(template => {
 					this._templates[elementIdPart(entryStepTemplateId)] = template
-					m.redraw()
 				})
 			}
-		}
+		}).then(() => m.redraw())
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

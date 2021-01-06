@@ -23,7 +23,6 @@ assertMainOrNode()
  */
 
 export class KnowledgeBaseListView implements UpdatableSettingsViewer {
-	_dialog: Dialog
 	_list: List<KnowledgeBaseEntry, KnowledgeBaseRow>
 	_settingsView: SettingsView
 

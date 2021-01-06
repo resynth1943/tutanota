@@ -513,7 +513,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	const knowledgebaseComponent = {
 		view: () => {
-			return knowledgebase.returnStatus()
+			return knowledgebase.getStatus()
 				? m(KnowledgeBaseView, {
 					onSubmit: (text) => {
 						editorDeferred.promise.then((editor) => {

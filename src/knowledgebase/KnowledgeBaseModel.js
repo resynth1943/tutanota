@@ -13,13 +13,14 @@ import stream from "mithril/stream/stream.js"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
+import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {lang} from "../misc/LanguageViewModel"
+import {downcast} from "../api/common/utils/Utils"
 
 /**
  *   Model that holds main logic for the Knowdledgebase.
  */
-
-export const ENABLE_VIEW = true;
-export const DISABLE_VIEW = false;
 
 export class KnowledgeBaseModel {
 	_allEntries: Array<KnowledgeBaseEntry>
@@ -110,20 +111,14 @@ export class KnowledgeBaseModel {
 		return this._displayedEntries().indexOf(this._selectedEntry)
 	}
 
-	isEntryViewActive(): boolean {
-		return this._showEntryDetailsViewer
-	}
-
-	isTemplateViewActive(): boolean {
-		return this._showTemplateDetailsViewer
-	}
-
-	setEntryView(status: boolean) {
-		this._showEntryDetailsViewer = status
-	}
-
-	setTemplateView(status: boolean) {
-		this._showTemplateDetailsViewer = status
+	getLanguageFromTemplate(template: EmailTemplate): LanguageCode {
+		const clientLanguage = lang.code
+		const hasClientLanguage = template.contents.some(
+			(content) => content.languageCode === clientLanguage
+		)
+		if (hasClientLanguage)
+			return clientLanguage
+		return downcast(template.contents[0].languageCode)
 	}
 
 	initAllKeywords() {
@@ -183,13 +178,12 @@ export class KnowledgeBaseModel {
 		this._selectedEntry = entry
 	}
 
-	selectNextEntry(): boolean { // returns true if selection is changed
-		const selectedIndex = this.getSelectedEntryIndex()
-		return true
-	}
-
 	setActive() { // TODO: instead write callback
 		this._isActive = true
+	}
+
+	loadTemplate(templateId: IdTuple): Promise<EmailTemplate> {
+		return this._entityClient.load(EmailTemplateTypeRef, templateId)
 	}
 
 	_loadEntries(): Promise<Array<KnowledgeBaseEntry>> {
@@ -214,10 +208,11 @@ export class KnowledgeBaseModel {
 
 	getContentFromTemplate(languageCode: LanguageCode, template: ?EmailTemplate): string { // returns the value of the content as string
 		const content = template && template.contents.find(c => c.languageCode === languageCode)
-		return content && content.text || ""
+		const text = content && content.text || ""
+		return htmlSanitizer.sanitize(text, true).text
 	}
 
-	returnStatus(): boolean {
+	getStatus(): boolean {
 		return this._isActive
 	}
 

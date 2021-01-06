@@ -23,7 +23,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {px} from "../gui/size"
 import type {KeyPress} from "../misc/KeyManager"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
-import {knowledgebase} from "../knowledgebase/KnowledgeBaseModel"
+import {Keys} from "../api/common/TutanotaConstants"
 
 /**
  *  Editor to edit / add a knowledgebase entry
@@ -88,7 +88,7 @@ export class KnowledgeBaseEditor {
 			value: this._entryKeyword,
 			injectionsRight: () => m(ButtonN, addKeywordAttrs),
 			keyHandler: (key: KeyPress) => {
-				if (key.keyCode === 13) {
+				if (key.keyCode === Keys.RETURN.code) {
 					this._editorModel.addKeyword(this._entryKeyword())
 					this._entryKeyword("")
 					return false
@@ -102,9 +102,9 @@ export class KnowledgeBaseEditor {
 			type: ButtonType.Action,
 			icon: () => Icons.More,
 			click: createDropdown(() => {
-				let buttons = []
-				for (let stepObject of this._editorModel.getAddedSteps()) {
-					buttons.push({
+				let buttons
+				buttons = this._editorModel.getAddedSteps().map(stepObject => {
+					return {
 						label: () => lang.get("step_label", {"{stepNumber}": stepObject.stepNumber}),
 						click: () => {
 							//save current step editor value
@@ -116,8 +116,8 @@ export class KnowledgeBaseEditor {
 							this._entryContentEditor.setValue(stepObject.description)
 						},
 						type: ButtonType.Dropdown
-					})
-				}
+					}
+				})
 				buttons.push({
 					label: "addStep_action",
 					click: () => {
@@ -137,32 +137,40 @@ export class KnowledgeBaseEditor {
 			})
 		}
 
+		const removeStepButtonAttrs: ButtonAttrs = {
+			label: () => "remove step", // TODO: Translationkey
+			type: ButtonType.Action,
+			icon: () => Icons.Trash,
+			click: () => {
+				this._editorModel.removeLastStep()
+				// update selectedStep and editor
+				this._selectedStep(this._editorModel.getLastStep())
+				this._entryContentEditor.setValue(this._selectedStep().description)
+			}
+		}
+
 		const addTemplateButtonAttrs: ButtonAttrs = {
-			label: () => "Add template",
+			label: () => "Add template", // TODO: Translationkey
 			type: ButtonType.Action,
 			icon: () => Icons.Edit,
 			click: createDropdown(() => {
-				let buttons = []
-				const availableTemplates = this._editorModel.getAvailableTemplates()
-				console.log(availableTemplates)
-				for (let template of availableTemplates) {
-					buttons.push({
+				let buttons
+				buttons = this._editorModel.getAvailableTemplates().map(template => {
+					return {
 						label: () => downcast(template).tag,
 						click: () => {
 							// show content
 							this._editorModel.updateStepTemplate(this._selectedStep(), template)
 							this._selectedTemplate(template)
-							console.log("Template", this._selectedTemplate())
 						},
 						type: ButtonType.Dropdown
-					})
-				}
+					}
+				})
 				buttons.unshift({
 					label: "noTemplateSelected_label",
 					click: () => {
 						this._editorModel.addAvailableTemplate(this._selectedTemplate())
 						this._selectedTemplate(null)
-						console.log("Template", this._selectedTemplate())
 					},
 					type: ButtonType.Dropdown
 				})
@@ -172,16 +180,21 @@ export class KnowledgeBaseEditor {
 		}
 
 		const stepAttrs: TextFieldAttrs = {
-			label: "currentStep_label",
+			label: "currentStep_label", // TODO: Translationkey
 			value: this._selectedStep.map(step => lang.get("step_label", {"{stepNumber}": step.stepNumber})),
-			injectionsRight: () => m(ButtonN, stepButtonAttrs),
+			injectionsRight: () => {
+				return [
+					this._editorModel.isLastStep(this._selectedStep())
+						? m(ButtonN, removeStepButtonAttrs)
+						: null,
+					m(ButtonN, stepButtonAttrs)
+				]
+			},
 			disabled: true
 		}
 
-		const selectedTemplate: ?EmailTemplate = this._selectedTemplate()
-
 		const templateAttrs: TextFieldAttrs = {
-			label: () => "linked Template",
+			label: () => "linked Template", //TODO: Translationkey
 			value: this._selectedTemplate.map(template => {
 				if (template) {
 					return template.tag
@@ -189,10 +202,8 @@ export class KnowledgeBaseEditor {
 					return lang.get("noTemplateSelected_label")
 				}
 			}),
-			//stream(selectedTemplate ? selectedTemplate.tag : "No Template"),
 			injectionsRight: () => m(ButtonN, addTemplateButtonAttrs),
 			disabled: true
-
 		}
 
 		this.view = () => {

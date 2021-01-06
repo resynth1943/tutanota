@@ -1,6 +1,7 @@
 // @flow
 
 import type {KnowledgeBaseEntryKeywords} from "../api/entities/tutanota/KnowledgeBaseEntryKeywords"
+import {createKnowledgeBaseEntryKeywords} from "../api/entities/tutanota/KnowledgeBaseEntryKeywords"
 import type {KnowledgeBaseStep} from "../api/entities/tutanota/KnowledgeBaseStep"
 import {createKnowledgeBaseStep} from "../api/entities/tutanota/KnowledgeBaseStep"
 import {Dialog} from "../gui/base/Dialog"
@@ -8,8 +9,8 @@ import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {templateModel} from "../templates/TemplateModel"
 import {elementIdPart} from "../api/common/EntityFunctions"
-import {neverNull} from "../api/common/utils/Utils"
-import {createKnowledgeBaseEntryKeywords} from "../api/entities/tutanota/KnowledgeBaseEntryKeywords"
+import {filterInt} from "../calendar/CalendarUtils"
+import {remove} from "../api/common/utils/ArrayUtils"
 
 /**
  *  Model, which includes the logic of the editor
@@ -34,15 +35,9 @@ export class KnowledgeBaseEditorModel {
 		const keywordString = keywordInput.toLowerCase().replace(/\s/g, "")
 		if (keywordString !== "") {
 			keyword = createKnowledgeBaseEntryKeywords({keyword: keywordString})
-		}
-		if (keyword) {
 			if (!this.hasKeyword(keyword)) {
 				this._addedKeywords.push(keyword)
-			} else {
-				Dialog.error("keywordExistsErr_msg")
 			}
-		} else {
-			console.log("Cant add empty string")
 		}
 	}
 
@@ -69,27 +64,30 @@ export class KnowledgeBaseEditorModel {
 	}
 
 	getAvailableTemplates(): Array<EmailTemplate> {
-		console.log("available Templates: ", this._availableTemplates)
 		return this._availableTemplates
 	}
 
 	getTemplateFromStep(currentStep: KnowledgeBaseStep): ?EmailTemplate {
 		const stepTemplate = currentStep.template
-		const template = stepTemplate && this._availableTemplates.find(t => elementIdPart(t._id) === elementIdPart(stepTemplate))
-		return template && template || null
+		return stepTemplate && this._availableTemplates.find(t => elementIdPart(t._id) === elementIdPart(stepTemplate))
 	}
 
 	updateStepContent(step: KnowledgeBaseStep, editorValue: string) {
-		const index = parseInt(step.stepNumber)
+		const index = filterInt(step.stepNumber)
 		this._addedSteps[(index - 1)].description = editorValue
 	}
 
 	updateStepTemplate(step: KnowledgeBaseStep, template: ?EmailTemplate) {
-		const index = parseInt(step.stepNumber)
+		const index = filterInt(step.stepNumber)
 		this._addedSteps[(index - 1)].template = template ? template._id : null
 	}
 
-	removeFromAddedSteps() {
+	isLastStep(step: KnowledgeBaseStep): boolean {
+		const stepNumber = filterInt(step.stepNumber)
+		return (stepNumber > 1 && stepNumber === this._addedSteps.length)
+	}
+
+	removeLastStep() {
 		/**
 		 *  We can call .pop() because you can only remove the last added step
 		 *  Checking if we remove the "correct" step is thus not needed
@@ -98,10 +96,12 @@ export class KnowledgeBaseEditorModel {
 	}
 
 	removeKeyword(keyword: KnowledgeBaseEntryKeywords) {
-		const index = this._addedKeywords.indexOf((keyword))
-		if (index > -1) {
-			this._addedKeywords.splice(index, 1)
-		}
+		remove(this._addedKeywords, keyword)
+	}
+
+	getLastStep(): KnowledgeBaseStep {
+		const lastIndex = this._addedSteps.length - 1
+		return this._addedSteps[lastIndex]
 	}
 
 	getAddedKeywords(): Array<KnowledgeBaseEntryKeywords> {
@@ -109,12 +109,10 @@ export class KnowledgeBaseEditorModel {
 	}
 
 	hasKeyword(currentKeyword: KnowledgeBaseEntryKeywords): boolean {
-		for (const keyword of this._addedKeywords) {
-			if (currentKeyword.keyword === keyword.keyword) {
-				return true
-			}
-		}
-		return false
+		return this._addedKeywords.some(keyword => {
+			return currentKeyword.keyword === keyword.keyword
+		})
+
 	}
 
 	stepHasContent(): boolean {
@@ -130,16 +128,11 @@ export class KnowledgeBaseEditorModel {
 	}
 
 	initAddedKeywords(keywords: Array<KnowledgeBaseEntryKeywords>) {
-		for (const keyword of keywords) {
-			console.log(keyword)
-			this._addedKeywords.push(keyword)
-		}
+		this._addedKeywords.push(...keywords)
 	}
 
 	initAddedSteps(steps: Array<KnowledgeBaseStep>) {
-		for (const step of steps) {
-			this._addedSteps.push(step)
-		}
+		this._addedSteps.push(...steps)
 	}
 
 }
