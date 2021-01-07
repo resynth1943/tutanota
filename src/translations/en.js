@@ -1299,7 +1299,7 @@ module.exports = {
 		"noTemplateSelected_label": "No Template",
 		"removeEntry_label": "Remove entry",
 		"editEntry_label": "Edit entry",
-		"addEntry_label": "Add new entry",
+		"addEntry_label": "Add entry",
 		"deleteEntryConfirm_msg": "Are you sure you want to delete the Entry?",
 		"linkedTemplate_label": "linked Template",
 		"noLinkedTemplate_label": "no template linked",

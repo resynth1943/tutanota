@@ -12,7 +12,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {Dialog} from "../gui/base/Dialog"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 

@@ -7,11 +7,11 @@ import type {KnowledgeBaseStep} from "../api/entities/tutanota/KnowledgeBaseStep
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {KnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
-import {neverNull} from "../api/common/utils/Utils"
+import {memoized, neverNull} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
 import {Icons} from "../gui/base/icons/Icons"
-import {EntityClient} from "../api/common/EntityClient"
 import {getListId} from "../api/common/EntityFunctions"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry,
@@ -19,20 +19,36 @@ type KnowledgeBaseEntryViewAttrs = {
 	onEntryDeleted: (entry: KnowledgeBaseEntry) => void
 }
 
+type SanitizedStep = {
+	sanitizedDescription: string,
+	step: KnowledgeBaseStep
+}
+
 /**
  *  Renders one knowledgebase entry
  */
 
 export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryViewAttrs> {
-	_entityClient: EntityClient
+	_sanitizedEntry: (KnowledgeBaseEntry) => {useCase: string, steps: Array<SanitizedStep>}
 
 	constructor() {
-		this._entityClient = locator.entityClient
+		this._sanitizedEntry = memoized((entry) => {
+			return {
+				useCase: htmlSanitizer.sanitize(entry.useCase, true).text,
+				steps: entry.steps.map(step => {
+					return {
+						sanitizedDescription: htmlSanitizer.sanitize(step.description, true).text,
+						step
+					}
+
+				})
+			}
+		})
 	}
 
 	view({attrs}: Vnode<KnowledgeBaseEntryViewAttrs>): Children {
 		return m(".flex.flex-column", [
-			this._renderEditRemoveBtn(attrs),
+			this._renderEditRemoveBtn(attrs), // TODO: Discuss
 			this._renderContent(attrs)
 		])
 	}
@@ -59,7 +75,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 	}
 
 	_renderContent(attrs: KnowledgeBaseEntryViewAttrs): Children {
-		const {keywords, steps, useCase} = attrs.entry
+		const {keywords} = attrs.entry
 		return m(".flex.flex-column.scroll.mt-s", [ // CONTENT
 			m(".h5.mt-s", lang.get("keywords_label")),
 			m(".flex.wrap.mt-s", [
@@ -68,10 +84,10 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 				})
 			]),
 			m(".h5.mt-l", lang.get("useCase_label")),
-			m(".editor-border", m.trust(useCase)),
+			m(".editor-border", m.trust(this._sanitizedEntry(attrs.entry).useCase)), // TODO: sanitize
 			m(".mt-s", [
-				steps.map(step => {
-					return this._renderSteps(step, attrs)
+				this._sanitizedEntry(attrs.entry).steps.map(step => {
+					return this._renderStep(step, attrs)
 				})
 			])
 		])
@@ -83,11 +99,11 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 		]
 	}
 
-	_renderSteps(step: KnowledgeBaseStep, attrs: KnowledgeBaseEntryViewAttrs): Children {
+	_renderStep({step, sanitizedDescription}: SanitizedStep, attrs: KnowledgeBaseEntryViewAttrs): Children {
 		const stepTemplate = step.template
 		return [
 			m(".h5.mt-s", lang.get("step_label", {"{stepNumber}": step.stepNumber})),
-			m(".editor-border", m.trust(step.description)),
+			m(".editor-border", m.trust(sanitizedDescription)), // TODO: sanitize
 			stepTemplate
 				? m(ButtonN, {
 					label: "linkedTemplate_label",
@@ -99,4 +115,5 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 				: m(".ml-s.mt-s.primary", lang.get("noLinkedTemplate_label"))
 		]
 	}
+
 }

@@ -2,6 +2,17 @@
 
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 
+/**
+ *  keyword search has priority over text query search, as the list of available entries to be text-searched in has to be changed depending on prior keyword matches
+ *  the search function has to cover 4 cases:
+ *      - no input and no keywords
+ *      - no input and keywords
+ *      - input and no keywords
+ *      - input and keywords
+ *  if the two searches would be independent of each other, it would give double results because 2 of the 4 cases would be marked as correct,
+ *  We have to limit either to the other to avoid that mistake.
+ */
+
 export function knowledgeBaseSearch(text: string, allEntries: Array<KnowledgeBaseEntry>, filterKeywords: Array<string>): Array<KnowledgeBaseEntry> {
 	let matchesKeywordQuery = [] // entries that match the keyword search
 	let matchesKeywordAndTitleQuery = [] // entries that match the keyword and title search
@@ -37,13 +48,4 @@ function hasAllFilterKeywords(entry: KnowledgeBaseEntry, allFilterKeywords: Arra
 	return (foundKeywords.length === allFilterKeywords.length)
 }
 
-/**
- *  keyword search has priority over text query search, as the list of available entries to be text-searched in has to be changed depending on prior keyword matches
- *  the search function has to cover 4 cases:
- *      - no input and no keywords
- *      - no input and keywords
- *      - input and no keywords
- *      - input and keywords
- *  if the two searches would be independent of each other, it would give double results because 2 of the 4 cases would be marked as correct,
- *  We have to limit either to the other to avoid that mistake.
- */
+

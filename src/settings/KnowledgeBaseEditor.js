@@ -286,10 +286,6 @@ export class KnowledgeBaseEditor {
 		}
 	}
 
-	_submitKeyword() {
-
-	}
-
 	_save() {
 		this._editorModel.updateStepContent(this._selectedStep(), this._entryContentEditor.getValue())
 		this._editorModel.updateStepTemplate(this._selectedStep(), this._selectedTemplate())

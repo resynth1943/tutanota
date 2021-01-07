@@ -2,7 +2,7 @@
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
-import type {EntityEventsListener} from "../api/main/EventController"
+import type {EntityEventsListener, EntityUpdateData} from "../api/main/EventController"
 import {MailModel} from "../mail/MailModel"
 import {EntityClient} from "../api/common/EntityClient"
 import {locator} from "../api/main/MainLocator"
@@ -27,11 +27,7 @@ export class KnowledgeBaseModel {
 	_displayedEntries: Stream<Array<KnowledgeBaseEntry>>
 	_filterKeywords: Array<string>
 	_allKeywords: Array<string>
-	_selectedEntry: ?KnowledgeBaseEntry
 	_isActive: boolean
-	_panel: ?HTMLElement
-	_showEntryDetailsViewer: boolean
-	_showTemplateDetailsViewer: boolean
 	+_eventController: EventController;
 	+_entityEventReceived: EntityEventsListener;
 	+_mailModel: MailModel;
@@ -45,45 +41,9 @@ export class KnowledgeBaseModel {
 		this._allKeywords = []
 		this._filterKeywords = []
 		this._displayedEntries = stream(this._allEntries)
-		this._selectedEntry = null
 		this._isActive = false
-		this._showEntryDetailsViewer = false
-		this._showTemplateDetailsViewer = false
-		this._panel = null
 		this._entityEventReceived = (updates) => {
-			return Promise.each(updates, update => {
-				if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
-					if (update.operation === OperationType.CREATE) {
-						return this._getKnowledgeBaseListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
-								           .then((entry) => {
-									           this._allEntries.push(entry)
-									           this._displayedEntries(this._allEntries)
-								           })
-							}
-						})
-					} else if (update.operation === OperationType.UPDATE) {
-						return this._getKnowledgeBaseListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
-								           .then((entry) => {
-									           findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
-									           this._allEntries.push(entry)
-									           this._displayedEntries(this._allEntries)
-								           })
-							}
-						})
-					} else if (update.operation === OperationType.DELETE) {
-						return this._getKnowledgeBaseListId().then((listId) => {
-							if (listId && listId === update.instanceListId) {
-								findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
-								this._displayedEntries(this._allEntries)
-							}
-						})
-					}
-				}
-			}).return()
+			return this._entityUpdate(updates)
 		}
 		this._eventController.addEntityListener(this._entityEventReceived)
 	}
@@ -93,32 +53,6 @@ export class KnowledgeBaseModel {
 			this._allEntries = entries
 			this._displayedEntries(this._allEntries)
 		})
-	}
-
-	getAllEntries(): Array<KnowledgeBaseEntry> {
-		return this._allEntries
-	}
-
-	getDisplayedEntries(): Stream<Array<KnowledgeBaseEntry>> {
-		return this._displayedEntries
-	}
-
-	getSelectedEntry(): ?KnowledgeBaseEntry {
-		return this._selectedEntry
-	}
-
-	getSelectedEntryIndex(): number {
-		return this._displayedEntries().indexOf(this._selectedEntry)
-	}
-
-	getLanguageFromTemplate(template: EmailTemplate): LanguageCode {
-		const clientLanguage = lang.code
-		const hasClientLanguage = template.contents.some(
-			(content) => content.languageCode === clientLanguage
-		)
-		if (hasClientLanguage)
-			return clientLanguage
-		return downcast(template.contents[0].languageCode)
 	}
 
 	initAllKeywords() {
@@ -132,8 +66,24 @@ export class KnowledgeBaseModel {
 		}
 	}
 
-	search(text: string): void {
-		this._displayedEntries(knowledgeBaseSearch(text, this.getAllEntries(), this.getFilterKeywords()))
+	containsResult(): boolean {
+		return this._displayedEntries().length > 0
+	}
+
+	setActive() { // TODO: instead write callback
+		this._isActive = true
+	}
+
+	getStatus(): boolean {
+		return this._isActive
+	}
+
+	getAllEntries(): Array<KnowledgeBaseEntry> {
+		return this._allEntries
+	}
+
+	getDisplayedEntries(): Stream<Array<KnowledgeBaseEntry>> {
+		return this._displayedEntries
 	}
 
 	getAllKeywords(): Array<string> {
@@ -142,6 +92,26 @@ export class KnowledgeBaseModel {
 
 	getFilterKeywords(): Array<string> {
 		return this._filterKeywords
+	}
+
+	getLanguageFromTemplate(template: EmailTemplate): LanguageCode {
+		const clientLanguage = lang.code
+		const hasClientLanguage = template.contents.some(
+			(content) => content.languageCode === clientLanguage
+		)
+		if (hasClientLanguage)
+			return clientLanguage
+		return downcast(template.contents[0].languageCode)
+	}
+
+	getContentFromTemplate(languageCode: LanguageCode, template: ?EmailTemplate): string { // returns the value of the content as string
+		const content = template && template.contents.find(c => c.languageCode === languageCode)
+		const text = content && content.text || ""
+		return htmlSanitizer.sanitize(text, true).text
+	}
+
+	search(text: string): void {
+		this._displayedEntries(knowledgeBaseSearch(text, this.getAllEntries(), this.getFilterKeywords()))
 	}
 
 	addFilterKeyword(keyword: string) {
@@ -166,20 +136,22 @@ export class KnowledgeBaseModel {
 		}
 	}
 
-	containsResult(): boolean {
-		return this._displayedEntries().length > 0
+	_getKnowledgeBaseListId(): Promise<?Id> {
+		return this._mailModel.getUserMailboxDetails().then(details => {
+			if (details.mailbox.knowledgeBase) {
+				return details.mailbox.knowledgeBase.list
+			} else {
+				return null
+			}
+		})
 	}
 
-	isSelectedEntry(entry: KnowledgeBaseEntry): boolean {
-		return (this._selectedEntry === entry)
+	dispose() {
+		this._eventController.removeEntityListener(this._entityEventReceived)
 	}
 
-	setSelectedEntry(entry: ?KnowledgeBaseEntry) {
-		this._selectedEntry = entry
-	}
-
-	setActive() { // TODO: instead write callback
-		this._isActive = true
+	close() {
+		this._isActive = false
 	}
 
 	loadTemplate(templateId: IdTuple): Promise<EmailTemplate> {
@@ -196,34 +168,40 @@ export class KnowledgeBaseModel {
 		})
 	}
 
-	_getKnowledgeBaseListId(): Promise<?Id> {
-		return this._mailModel.getUserMailboxDetails().then(details => {
-			if (details.mailbox.knowledgeBase) {
-				return details.mailbox.knowledgeBase.list
-			} else {
-				return null
+	_entityUpdate(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
+				if (update.operation === OperationType.CREATE) {
+					return this._getKnowledgeBaseListId().then((listId) => {
+						if (listId && listId === update.instanceListId) {
+							return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
+							           .then((entry) => {
+								           this._allEntries.push(entry)
+								           this._displayedEntries(this._allEntries)
+							           })
+						}
+					})
+				} else if (update.operation === OperationType.UPDATE) {
+					return this._getKnowledgeBaseListId().then((listId) => {
+						if (listId && listId === update.instanceListId) {
+							return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
+							           .then((entry) => {
+								           findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
+								           this._allEntries.push(entry)
+								           this._displayedEntries(this._allEntries)
+							           })
+						}
+					})
+				} else if (update.operation === OperationType.DELETE) {
+					return this._getKnowledgeBaseListId().then((listId) => {
+						if (listId && listId === update.instanceListId) {
+							findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
+							this._displayedEntries(this._allEntries)
+						}
+					})
+				}
 			}
-		})
-	}
-
-	getContentFromTemplate(languageCode: LanguageCode, template: ?EmailTemplate): string { // returns the value of the content as string
-		const content = template && template.contents.find(c => c.languageCode === languageCode)
-		const text = content && content.text || ""
-		return htmlSanitizer.sanitize(text, true).text
-	}
-
-	getStatus(): boolean {
-		return this._isActive
-	}
-
-	dispose() {
-		this._eventController.removeEntityListener(this._entityEventReceived)
-	}
-
-	close() {
-		this._showEntryDetailsViewer = false
-		this._showTemplateDetailsViewer = false
-		this._isActive = false
+		}).return()
 	}
 }
 

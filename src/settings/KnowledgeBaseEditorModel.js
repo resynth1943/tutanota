@@ -30,6 +30,41 @@ export class KnowledgeBaseEditorModel {
 			})
 	}
 
+	initAddedKeywords(keywords: Array<KnowledgeBaseEntryKeywords>) {
+		this._addedKeywords.push(...keywords)
+	}
+
+	initAddedSteps(steps: Array<KnowledgeBaseStep>) {
+		this._addedSteps.push(...steps)
+	}
+
+	getAddedSteps(): Array<KnowledgeBaseStep> {
+		return this._addedSteps
+	}
+
+	getAvailableTemplates(): Array<EmailTemplate> {
+		return this._availableTemplates
+	}
+
+	getLastStep(): KnowledgeBaseStep {
+		const lastIndex = this._addedSteps.length - 1
+		return this._addedSteps[lastIndex]
+	}
+
+	getTemplateFromStep(currentStep: KnowledgeBaseStep): ?EmailTemplate {
+		const stepTemplate = currentStep.template
+		return stepTemplate && this._availableTemplates.find(t => elementIdPart(t._id) === elementIdPart(stepTemplate))
+	}
+
+	getAddedKeywords(): Array<KnowledgeBaseEntryKeywords> {
+		return this._addedKeywords
+	}
+
+	isLastStep(step: KnowledgeBaseStep): boolean {
+		const stepNumber = filterInt(step.stepNumber)
+		return (stepNumber > 1 && stepNumber === this._addedSteps.length)
+	}
+
 	addKeyword(keywordInput: string) {
 		let keyword
 		const keywordString = keywordInput.toLowerCase().replace(/\s/g, "")
@@ -59,20 +94,7 @@ export class KnowledgeBaseEditorModel {
 		}
 	}
 
-	getAddedSteps(): Array<KnowledgeBaseStep> {
-		return this._addedSteps
-	}
-
-	getAvailableTemplates(): Array<EmailTemplate> {
-		return this._availableTemplates
-	}
-
-	getTemplateFromStep(currentStep: KnowledgeBaseStep): ?EmailTemplate {
-		const stepTemplate = currentStep.template
-		return stepTemplate && this._availableTemplates.find(t => elementIdPart(t._id) === elementIdPart(stepTemplate))
-	}
-
-	updateStepContent(step: KnowledgeBaseStep, editorValue: string) {
+	updateStepContent(step: KnowledgeBaseStep, editorValue: string) { // TODO: sanitize here?
 		const index = filterInt(step.stepNumber)
 		this._addedSteps[(index - 1)].description = editorValue
 	}
@@ -80,11 +102,6 @@ export class KnowledgeBaseEditorModel {
 	updateStepTemplate(step: KnowledgeBaseStep, template: ?EmailTemplate) {
 		const index = filterInt(step.stepNumber)
 		this._addedSteps[(index - 1)].template = template ? template._id : null
-	}
-
-	isLastStep(step: KnowledgeBaseStep): boolean {
-		const stepNumber = filterInt(step.stepNumber)
-		return (stepNumber > 1 && stepNumber === this._addedSteps.length)
 	}
 
 	removeLastStep() {
@@ -99,20 +116,10 @@ export class KnowledgeBaseEditorModel {
 		remove(this._addedKeywords, keyword)
 	}
 
-	getLastStep(): KnowledgeBaseStep {
-		const lastIndex = this._addedSteps.length - 1
-		return this._addedSteps[lastIndex]
-	}
-
-	getAddedKeywords(): Array<KnowledgeBaseEntryKeywords> {
-		return this._addedKeywords
-	}
-
 	hasKeyword(currentKeyword: KnowledgeBaseEntryKeywords): boolean {
 		return this._addedKeywords.some(keyword => {
 			return currentKeyword.keyword === keyword.keyword
 		})
-
 	}
 
 	stepHasContent(): boolean {
@@ -126,13 +133,4 @@ export class KnowledgeBaseEditorModel {
 		}
 		return true
 	}
-
-	initAddedKeywords(keywords: Array<KnowledgeBaseEntryKeywords>) {
-		this._addedKeywords.push(...keywords)
-	}
-
-	initAddedSteps(steps: Array<KnowledgeBaseStep>) {
-		this._addedSteps.push(...steps)
-	}
-
 }

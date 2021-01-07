@@ -8,7 +8,7 @@ import {createKnowledgeBaseEntryKeywords} from "../../../src/api/entities/tutano
 import {createKnowledgeBaseStep} from "../../../src/api/entities/tutanota/KnowledgeBaseStep"
 
 o.spec("KnowledgeBaseSearchFilter", function () {
-	o.only("finds in title with two filtered keywords", function () {
+	o("finds in title with two filtered keywords", function () {
 		const knowledgebaseEntry1: KnowledgeBaseEntry = createKnowledgeBaseEntry({
 			title: "User forgot their password",
 			useCase: "When a user is certain that they do not remember their password anymore",
@@ -52,7 +52,7 @@ o.spec("KnowledgeBaseSearchFilter", function () {
 		const filterKeywords = ["password", "forgotten"]
 		o(knowledgeBaseSearch("password", allFakeEntries, filterKeywords)).deepEquals([knowledgebaseEntry1]) // should find knowledgebaseEntry1
 	})
-	o.only("finds in title without filtered keywords", function () {
+	o("finds in title without filtered keywords", function () {
 		const knowledgebaseEntry1: KnowledgeBaseEntry = createKnowledgeBaseEntry({
 			title: "User forgot their password",
 			useCase: "When a user is certain that they do not remember their password anymore",
@@ -96,7 +96,7 @@ o.spec("KnowledgeBaseSearchFilter", function () {
 		const filterKeywords = []
 		o(knowledgeBaseSearch("user", allFakeEntries, filterKeywords)).deepEquals([knowledgebaseEntry1, knowledgebaseEntry2]) // should find in both entries
 	})
-	o.only("finds entry only by filtered keywords", function () {
+	o("finds entry only by filtered keywords", function () {
 		const knowledgebaseEntry1: KnowledgeBaseEntry = createKnowledgeBaseEntry({
 			title: "Payment has been booked but features arent accessible",
 			useCase: "Something went wrong and the payment registered, but the user believes their features arent accessible yet",
