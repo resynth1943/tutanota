@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2021-01-05T09:48:24Z",
+	"updated_at": "2021-01-05T10:32:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -832,6 +832,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Graag op de knop klikken om bij PayPal in te loggen. U zult doorgestuurd worden naar de website van PayPal.",
 		"paymentDataValidation_action": "Bevestigen",
 		"paymentMethodAccountBalance_label": "Accountsaldo",
+		"paymentMethodAccountBalance_msg": "U betaalt rekeningen met krediet van uw rekening. U kunt het tegoed alleen opladen door cadeaubonnen in te wisselen.",
 		"paymentMethodCreditCard_label": "Kredietkaart",
 		"paymentMethodNotAvailable_msg": "Deze betaalmethode is niet beschikbaar in uw land.",
 		"paymentMethodOnAccount_label": "Koop op rekening",

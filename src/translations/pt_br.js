@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2021-01-05T09:48:24Z",
+	"updated_at": "2021-01-05T18:17:33Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -832,6 +832,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Clique no botão PayPal para fazer login. Você será redirecionado ao PayPal.",
 		"paymentDataValidation_action": "Confirme",
 		"paymentMethodAccountBalance_label": "Balança da conta.",
+		"paymentMethodAccountBalance_msg": "Você está pagando por sua conta usando o crédito da conta. Você pode recarregar seu crédito usando cartões-presente.",
 		"paymentMethodCreditCard_label": "Cartão de crédito",
 		"paymentMethodNotAvailable_msg": "Forma de pagamento indisponível no seu país.",
 		"paymentMethodOnAccount_label": "Comprar uma conta",

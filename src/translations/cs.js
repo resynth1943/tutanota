@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-07T08:37:36Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -558,6 +558,7 @@ module.exports = {
 		"invalidRecipients_msg": "Opravte neplatné e-mailové adresy v polích příjemce.",
 		"invalidRegexSyntax_msg": "Neplatná syntaxe regulárního výraz",
 		"invalidRegistrationCode_msg": "Tento registrační kód je neplatný.",
+		"invalidTimePeriod_msg": "Zadané časové období je neplatné.",
 		"invalidVatIdNumber_msg": "Identifikační číslo daňe z přidané hodnoty (DPH) je neplatné.",
 		"invalidVatIdValidationFailed_msg": "Nepodařilo se ověřit identifikační číslo daně z přidané hodnoty. Prosím zkuste to znovu později.",
 		"invitationMailBody_msg": "Zdravím!<br><br>Toto je moje nová emailová adresa. Služba Tutanota nabízí kompletně zašifrovanou emailovou schránku bez reklam, aby chránila naše právo na soukromí. S automatizovaným šifrováním si můžeme posílat emaily stejně bezpečně jako v zapečetěných dopisech. Naše data tak konečně patří jen nám, nikdo jiný k nim nemá přístup.<br><br>Přidejte se i vy:<br>{registrationLink}<br><br><br>S pozdravem,<br>{username}<br><br>PS: Tutanota je zdarma včetně 1 GB úložné kapacity a navíc je open source: {githubLink}",
@@ -795,6 +796,11 @@ module.exports = {
 		"outdatedClient_msg": "Aktualizujte prosím Tutanotu. Nainstalovaná verze je příliš stará a již není podporována.",
 		"outlookInvoiceMailBodyAutomatic_msg": "v příloze je k dispozici nová faktura s číslem {1}. Celková suma bude automaticky zaúčtována. Všechny faktury jsou dostupné v {2}",
 		"outlookInvoiceMailBodyOnAccount_msg": "je k dispozici nová faktura s číslem {1}, která je připojena k tomuto e-mailu. Platba je splatná 7 dní po datu vystavení faktury. Všechny faktury můžete vidět také v {2}.",
+		"outOfOfficeExternal_msg": "Mimo organizaci",
+		"outOfOfficeInternal_msg": "Uvnitř organizace",
+		"outOfOfficeNotification_title": "Automatické odpovědi",
+		"outOfOfficeRecipients_label": "Příjemci oznámení",
+		"outOfOfficeTimeRange_msg": "Posílat pouze v tomto časovém období:",
 		"owner_label": "Vlastník",
 		"packageDowngradeUserAccounts_label": "Zrušení balíčku pro {1} uživatele(-ů)",
 		"packageUpgradeUserAccounts_label": "Předplacení balíčku pro {1} uživatelů",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2021-01-05T09:48:25Z",
+	"updated_at": "2021-01-05T10:23:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -832,6 +832,7 @@ module.exports = {
 		"paymentDataPayPalLogin_msg": "Per favore clicca il pulsante PayPal per il login. Verrai reindirizzato al sito di PayPal.",
 		"paymentDataValidation_action": "Conferma",
 		"paymentMethodAccountBalance_label": "Saldo del conto",
+		"paymentMethodAccountBalance_msg": "Stai pagando per il tuo account utilizzando il credito dell'account. Puoi ricaricare il tuo credito utilizzando carte regalo.",
 		"paymentMethodCreditCard_label": "Carta di credito",
 		"paymentMethodNotAvailable_msg": "Questo metodo di pagamento non è disponibile nel tuo paese.",
 		"paymentMethodOnAccount_label": "Acquista ",
