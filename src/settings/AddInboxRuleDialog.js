@@ -23,9 +23,7 @@ import {LockedError} from "../api/common/error/RestError"
 assertMainOrNode()
 
 export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
-	if (logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(true)
-	} else if (mailBoxDetails) {
+	if (mailBoxDetails) {
 		let targetFolders = mailBoxDetails.folders
 		                                  .map(folder => {
 			                                  return {name: getFolderName(folder), value: folder}
