@@ -70,7 +70,7 @@ export class KnowledgeBaseModel {
 		return this._displayedEntries().length > 0
 	}
 
-	setActive() { // TODO: instead write callback
+	setActive() {
 		this._isActive = true
 	}
 

@@ -289,6 +289,7 @@ export class KnowledgeBaseEditor {
 	_save() {
 		this._editorModel.updateStepContent(this._selectedStep(), this._entryContentEditor.getValue())
 		this._editorModel.updateStepTemplate(this._selectedStep(), this._selectedTemplate())
+		// check for empty content
 		if (!this._entryTitle()) {
 			Dialog.error("emptyTitle_msg")
 			return
@@ -297,8 +298,9 @@ export class KnowledgeBaseEditor {
 			Dialog.error("emptyUseCase_msg")
 			return
 		}
-		if (!this._editorModel.stepHasContent()) {
-			// Error Message in stepHasContent
+		const stepWithNoContent = this._editorModel.stepHasContent()
+		if (stepWithNoContent) {
+			Dialog.error(() => lang.get("emptyStepContent_msg", {"{step}": stepWithNoContent.stepNumber}))
 			return
 		}
 		this.entry.title = this._entryTitle()

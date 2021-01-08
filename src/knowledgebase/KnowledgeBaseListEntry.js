@@ -25,12 +25,7 @@ export class KnowledgeBaseListEntry implements MComponent<KnowledgebaseListEntry
 			m(".text-ellipsis.mb-xs", title),
 			m(".flex.badge-line-height.text-ellipsis", [
 				keywords.map(keyword => {
-					return m(".b.small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s", {
-						style: {
-							width: "min-content",
-							height: "min-content"
-						}
-					}, keyword.keyword)
+					return m(".b.small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s.min-content", keyword.keyword)
 				})
 			]),
 			m(".mb-xs", lang.get("stepAmount_label", {"{steps}": steps.length}))

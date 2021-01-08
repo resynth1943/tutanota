@@ -94,7 +94,7 @@ export class KnowledgeBaseEditorModel {
 		}
 	}
 
-	updateStepContent(step: KnowledgeBaseStep, editorValue: string) { // TODO: sanitize here?
+	updateStepContent(step: KnowledgeBaseStep, editorValue: string) {
 		const index = filterInt(step.stepNumber)
 		this._addedSteps[(index - 1)].description = editorValue
 	}
@@ -122,15 +122,14 @@ export class KnowledgeBaseEditorModel {
 		})
 	}
 
-	stepHasContent(): boolean {
+	stepHasContent(): ?KnowledgeBaseStep { // returns step which has no content
 		for (const step of this._addedSteps) {
 			const content = step.description
 			const hasContent = !!content.replace(/(<([^>]+)>)/ig, "").length
 			if (!hasContent) {
-				Dialog.error(() => lang.get("emptyStepContent_msg", {"{step}": step.stepNumber}))
-				return false
+				return step
 			}
 		}
-		return true
+		return null
 	}
 }

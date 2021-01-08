@@ -34,7 +34,7 @@ export class KnowledgeBaseTemplateView {
 
 	view(vnode: Vnode<Attrs>): Children {
 		const {fetchedTemplate, language} = vnode.attrs
-		return m(".flex.flex-column.ml-s", [
+		return m(".flex.flex-column.", [
 			m(".half-width", [
 				fetchedTemplate
 					? m(DropDownSelectorN, {

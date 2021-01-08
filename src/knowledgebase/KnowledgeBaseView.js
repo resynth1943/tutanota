@@ -33,6 +33,7 @@ type KnowledgebaseViewAttrs = {
 
 export const KNOWLEDGEBASE_PANEL_HEIGHT = 840;
 export const KNOWLEDGEBASE_PANEL_WIDTH = 500;//575;
+export const KNOWLEDGEBASE_PANEL_TOP = 120;
 
 type TemplatePage = {
 	type: "template",
@@ -48,7 +49,7 @@ export type Page =
 	| TemplatePage
 
 /**
- *  Renders the SearchBar and the list of knowledgebase entries besides the MailEditor
+ *  Renders the SearchBar and the pages (list, entry, template) of the knowledgebase besides the MailEditor
  */
 
 export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
@@ -80,7 +81,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 			style: {
 				height: px(KNOWLEDGEBASE_PANEL_HEIGHT),
 				width: px(KNOWLEDGEBASE_PANEL_WIDTH),
-				top: px(120),
+				top: px(KNOWLEDGEBASE_PANEL_TOP),
 			}
 		}, [this._renderHeader(attrs), m(".mr-s.ml-s", this._renderCurrentPageContent())])
 	}

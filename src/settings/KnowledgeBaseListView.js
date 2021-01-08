@@ -35,9 +35,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 				const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
 					rowHeight: size.list_row_height,
 					fetch: (startId, count) => {
-						console.log("Entries fetched", startId, count)
 						return entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true).then(entries => {
-							console.log("Entries", entries)
 							return entries
 						})
 					},
@@ -105,7 +103,6 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		console.log("event update received", updates)
 		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				return this._list.entityEventReceived(update.instanceId, update.operation)

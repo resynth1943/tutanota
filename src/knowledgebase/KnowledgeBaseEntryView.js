@@ -84,7 +84,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 				})
 			]),
 			m(".h5.mt-l", lang.get("useCase_label")),
-			m(".editor-border", m.trust(this._sanitizedEntry(attrs.entry).useCase)), // TODO: sanitize
+			m(".editor-border", m.trust(this._sanitizedEntry(attrs.entry).useCase)),
 			m(".mt-s", [
 				this._sanitizedEntry(attrs.entry).steps.map(step => {
 					return this._renderStep(step, attrs)
@@ -103,7 +103,7 @@ export class KnowledgeBaseEntryView implements MComponent<KnowledgeBaseEntryView
 		const stepTemplate = step.template
 		return [
 			m(".h5.mt-s", lang.get("step_label", {"{stepNumber}": step.stepNumber})),
-			m(".editor-border", m.trust(sanitizedDescription)), // TODO: sanitize
+			m(".editor-border", m.trust(sanitizedDescription)),
 			stepTemplate
 				? m(ButtonN, {
 					label: "linkedTemplate_label",
